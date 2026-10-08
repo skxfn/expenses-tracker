@@ -1,0 +1,75 @@
+name: Release
+
+# Тег vX.Y.Z (должен совпадать с MARKETING_VERSION) или ручной запуск —
+# собрать неподписанный .ipa, выложить в GitHub Releases и обновить source.json в основной ветке.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write # создать релиз и запушить source.json
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      # Xcode 26.6 (iOS 26.5 SDK) на образе macos-26; список версий — actions/runner-images.
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      GH_TOKEN: ${{ github.token }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Версия и тег
+        id: meta
+        run: |
+          version=$(sed -n -E 's/^[[:space:]]*MARKETING_VERSION[[:space:]]*=[[:space:]]*([^[:space:]]+).*/\1/p' Config/Version.xcconfig)
+          tag="v$version"
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "$tag" ]]; then
+            echo "::error::Тег $GITHUB_REF_NAME не совпадает с MARKETING_VERSION=$version в Config/Version.xcconfig (ожидался $tag)"
+            exit 1
+          fi
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "::error::Релиз $tag уже существует — поднимите версию (scripts/bump_version.sh)"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          xcodebuild -version
+
+      - name: Сборка .ipa
+        run: ./scripts/build_ipa.sh --no-bump
+
+      - name: Лог xcodebuild
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: xcodebuild-log
+          path: build/xcodebuild.log
+          if-no-files-found: ignore
+
+      - name: GitHub Release
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: gh release create "$TAG" dist/*.ipa --title "Траты $VERSION" --generate-notes --target "$GITHUB_SHA"
+
+      - name: Обновить source.json в основной ветке
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          git fetch --depth=1 origin "$DEFAULT_BRANCH"
+          git checkout -B "$DEFAULT_BRANCH" FETCH_HEAD
+          python3 scripts/update_source.py dist/*.ipa --tag "$TAG" --branch "$DEFAULT_BRANCH"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source.json
+          git commit -m "source.json: версия $VERSION"
+          git push origin "$DEFAULT_BRANCH"

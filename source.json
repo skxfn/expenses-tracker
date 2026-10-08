@@ -1,0 +1,25 @@
+{
+  "name": "Траты",
+  "identifier": "com.skxfn.expenses.source",
+  "subtitle": "Личный трекер расходов",
+  "description": "Source для установки и обновления «Трат» через SideStore или AltStore.",
+  "website": "https://github.com/skxfn/expenses-tracker",
+  "sourceURL": "https://raw.githubusercontent.com/skxfn/expenses-tracker/main/source.json",
+  "apps": [
+    {
+      "name": "Траты",
+      "bundleIdentifier": "com.skxfn.expenses",
+      "developerName": "skxfn",
+      "subtitle": "Личный трекер расходов",
+      "localizedDescription": "Личный трекер расходов на SwiftUI. Данные хранятся только на устройстве — регулярно экспортируйте резервную копию.",
+      "iconURL": "https://github.com/skxfn.png",
+      "category": "utilities",
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {}
+      },
+      "versions": []
+    }
+  ],
+  "news": []
+}
