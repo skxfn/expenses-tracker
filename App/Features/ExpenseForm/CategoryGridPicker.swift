@@ -10,7 +10,7 @@ struct CategoryGridPicker: View {
     @ScaledMetric private var cellWidth: CGFloat = 76
 
     var body: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: cellWidth), spacing: 8)], spacing: 8) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: cellWidth), spacing: 8, alignment: .top)], spacing: 8) {
             ForEach(categories) { category in
                 cell(for: category, isSelected: category.id == selectedID)
             }

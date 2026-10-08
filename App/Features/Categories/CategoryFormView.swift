@@ -18,7 +18,7 @@ struct CategoryFormView: View {
         NavigationStack {
             Form {
                 Section("Превью") {
-                    ExpenseRowView(appearance: model.appearance, note: "Пример заметки", amount: money.string(fromMinor: 1250))
+                    CategoryAmountRow(appearance: model.appearance, subtitle: "Пример заметки", amount: money.string(fromMinor: 1250))
                 }
                 Section("Название") {
                     TextField("Например, «Кофе»", text: $model.name)

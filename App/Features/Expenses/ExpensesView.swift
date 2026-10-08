@@ -80,9 +80,9 @@ struct ExpensesView: View {
                         Button {
                             formRoute = .edit(expense)
                         } label: {
-                            ExpenseRowView(
+                            CategoryAmountRow(
                                 appearance: CategoryAppearance(expense.category),
-                                note: expense.note,
+                                subtitle: expense.note,
                                 amount: money.string(fromMinor: expense.amountMinor)
                             )
                         }

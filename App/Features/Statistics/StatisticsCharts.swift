@@ -78,7 +78,9 @@ struct TimeSeriesChart: View {
         .chartXAxis {
             AxisMarks(values: .stride(by: axisStride.component, count: axisStride.count)) { _ in
                 AxisGridLine()
-                AxisValueLabel(format: axisFormat, centered: true)
+                // Центровать можно только подписи шагом в один отрезок: иначе подпись
+                // встаёт в середину шага (например, «1» — над 4-м днём недели).
+                AxisValueLabel(format: axisFormat, centered: axisStride.count == 1)
             }
         }
         .chartYAxis { compactAmountAxis() }
@@ -133,6 +135,7 @@ struct CumulativeChart: View {
             }
         }
         .chartForegroundStyleScale([currentLabel: Color.accentColor, previousLabel: Color.gray])
+        .chartXScale(domain: 1...max(comparison.current.count, comparison.previous.count, 2))
         .chartLegend(position: .top, alignment: .leading)
         .chartYAxis { compactAmountAxis() }
         .frame(height: 220)

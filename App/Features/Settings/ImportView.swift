@@ -88,7 +88,7 @@ struct ImportView: View {
     private func reportSections(_ report: ImportReport) -> some View {
         if session.needsCurrencyDecision(currentCode: currencyCode) {
             Section {
-                Text("В файле валюта \(CurrencyOption.displayName(for: report.currencyCode)), в приложении — \(CurrencyOption.displayName(for: currencyCode)). Суммы при смене не пересчитываются.")
+                Text("В файле: \(CurrencyOption(code: report.currencyCode).name) (\(report.currencyCode)). В приложении: \(CurrencyOption(code: currencyCode).name) (\(currencyCode)). Суммы при смене не пересчитываются.")
                 Button("Использовать \(report.currencyCode)") {
                     currencyCode = report.currencyCode
                     session.answerCurrencyQuestion()

@@ -138,6 +138,10 @@ struct StatisticsView: View {
             .padding(.vertical, 4)
             .accessibilityElement(children: .combine)
 
+            // Изменение считается к предыдущему периоду целиком — показываем, к какой сумме.
+            if model.summary.change != nil {
+                LabeledContent(model.previousTitle, value: money.string(fromMinor: model.summary.previousTotalMinor))
+            }
             LabeledContent("В среднем в день", value: money.string(fromMinor: model.summary.averagePerDayMinor))
             LabeledContent("Количество трат", value: model.summary.count.formatted())
         }
@@ -168,7 +172,13 @@ struct StatisticsView: View {
                 Button {
                     model.toggleFilter(row.filter)
                 } label: {
-                    categoryRow(row)
+                    CategoryAmountRow(
+                        appearance: row.appearance,
+                        subtitle: row.share.formatted(.percent.precision(.fractionLength(0...1))),
+                        amount: money.string(fromMinor: row.totalMinor),
+                        iconDiameter: 30,
+                        isSelected: row.isSelected
+                    )
                 }
                 .tint(.primary)
                 .accessibilityAddTraits(row.isSelected ? .isSelected : [])
@@ -179,29 +189,6 @@ struct StatisticsView: View {
         } footer: {
             Text("Нажмите на категорию, чтобы отфильтровать по ней всю статистику.")
         }
-    }
-
-    private func categoryRow(_ row: CategoryShareRow) -> some View {
-        HStack(spacing: 12) {
-            CategoryIconView(row.appearance, diameter: 30)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(row.appearance.name)
-                    .lineLimit(2)
-                Text(row.share.formatted(.percent.precision(.fractionLength(0...1))))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 8)
-            Text(money.string(fromMinor: row.totalMinor))
-                .monospacedDigit()
-                .layoutPriority(1)
-            if row.isSelected {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color.accentColor)
-                    .accessibilityHidden(true)
-            }
-        }
-        .accessibilityElement(children: .combine)
     }
 
     // MARK: - Графики
@@ -215,8 +202,8 @@ struct StatisticsView: View {
             Section("Накопительно") {
                 CumulativeChart(
                     comparison: cumulative,
-                    currentLabel: model.currentSeriesLabel,
-                    previousLabel: model.previousSeriesLabel
+                    currentLabel: model.title,
+                    previousLabel: model.previousTitle
                 )
             }
         }
@@ -232,21 +219,13 @@ struct StatisticsView: View {
     private var topSection: some View {
         Section("Самые крупные траты") {
             ForEach(model.topExpenses) { row in
-                HStack(spacing: 12) {
-                    CategoryIconView(row.appearance, diameter: 30)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(row.note.isEmpty ? row.appearance.name : row.note)
-                            .lineLimit(2)
-                        Text(row.date.formatted(.dateTime.day().month(.abbreviated).hour().minute()))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer(minLength: 8)
-                    Text(money.string(fromMinor: row.amountMinor))
-                        .monospacedDigit()
-                        .layoutPriority(1)
-                }
-                .accessibilityElement(children: .combine)
+                CategoryAmountRow(
+                    appearance: row.appearance,
+                    title: row.note.isEmpty ? nil : row.note,
+                    subtitle: row.date.formatted(.dateTime.day().month(.abbreviated).hour().minute()),
+                    amount: money.string(fromMinor: row.amountMinor),
+                    iconDiameter: 30
+                )
             }
         }
     }
