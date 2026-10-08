@@ -18,7 +18,23 @@
         "entitlements": [],
         "privacy": {}
       },
-      "versions": []
+      "versions": [
+        {
+          "version": "1.0.0",
+          "buildVersion": "1",
+          "date": "2026-10-08T18:48:17Z",
+          "localizedDescription": "Версия 1.0.0 (сборка 1)",
+          "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.0.0/Expenses-1.0.0.ipa",
+          "size": 367342,
+          "sha256": "549c5d6e885aeac899a897a3a3346a4fb80ee2ad627b6f6ac4b7ab24285d38b5",
+          "minOSVersion": "17.0"
+        }
+      ],
+      "version": "1.0.0",
+      "versionDate": "2026-10-08T18:48:17Z",
+      "versionDescription": "Версия 1.0.0 (сборка 1)",
+      "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.0.0/Expenses-1.0.0.ipa",
+      "size": 367342
     }
   ],
   "news": []
