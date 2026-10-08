@@ -19,6 +19,12 @@ struct ContentView: View {
             }
             .tabItem { Label("Расходы", systemImage: "list.bullet.rectangle") }
             .tag(AppTab.expenses)
+
+            NavigationStack {
+                StatisticsView()
+            }
+            .tabItem { Label("Статистика", systemImage: "chart.pie") }
+            .tag(AppTab.statistics)
         }
         .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode))
     }
