@@ -11,7 +11,7 @@
 - Статистика считается по `ExpenseRecord` (value type); интервалы полуоткрытые `[start, end)`. Средняя/кривая текущего периода — по сегодня включительно.
 - Формат бэкапа версионируется `formatVersion` (сейчас 1); при несовместимой смене поднять `BackupFormat.currentVersion` и сохранить чтение старых версий.
 - Версия — только в `Config/Version.xcconfig`; `scripts/build_ipa.sh` поднимает её сам, в CI — `--no-bump`. Тег релиза строго `v<MARKETING_VERSION>`, иначе Action падает.
-- GitHub-репо ещё не создан: плейсхолдер `DEFAULT_REPO` в `scripts/update_source.py` (в Actions — `$GITHUB_REPOSITORY`). Репо и релизы должны быть публичными — иначе SideStore не скачает.
+- Репо — публичный `skxfn/expenses-tracker` (`DEFAULT_REPO` в `scripts/update_source.py`, в Actions — `$GITHUB_REPOSITORY`). Должен оставаться публичным — иначе SideStore не скачает релизы.
 - UI: тонкие View + `@Observable` модели рядом (`ExpenseFormModel`, `StatisticsModel`, `BackupModel`…). При внедрении дизайна переписываются только View и `App/Shared`, модели остаются.
 - Дизайн не утверждён: текущий UI временный на системных компонентах. Референсы — `design/` (`gallery.html` открывать в обычном браузере), Mobbin MCP требует платный план. Dime (open-source) под GPL-3.0 — код не копировать.
 
@@ -26,5 +26,6 @@
 - `.fileExporter` сам дописывает `.json` по типу — `defaultFilename` передавать без расширения.
 - Не читать свойства удалённой SwiftData-модели: sheet-маршруты и модели форм копируют `id`/флаги при открытии.
 - Swift Charts на iOS 17: свой тип `AxisContent` объявить нельзя — общие оси через функцию `some AxisContent`.
+- Устройство пользователя — iOS 27. SideStore нужен ≥ 0.7.0-alpha (0.6.4 и старше не логинятся после изменений Apple в сент. 2026). На iOS 27 шорткат «Refresh All Apps» может падать с ADI -45061 — обход: SideStore → Settings → User Customizations → Reset adi.db (SideStore#1596).
 - SideStore может дописать к Bundle ID `.<TeamID>`: ничего не хардкодить по bundle ID; смена Apple ID = новое пустое приложение (данные — только через бэкап).
 - Новые SF Symbols — только доступные в iOS ≤ 17.0 (сверка по `CoreGlyphs.bundle/.../name_availability.plist` в `CatalogTests`); `NSImage(systemSymbolName:)` на свежем macOS этого не гарантирует.

@@ -32,7 +32,7 @@
 
 Можно запустить и вручную: Actions → Release → Run workflow — тег `v<MARKETING_VERSION>` создастся сам. Сборка падает, если тег не совпадает с версией или такой релиз уже есть. Если основная ветка защищена (branch protection), разрешите пуш для GitHub Actions, иначе `source.json` не обновится. В публичном репозитории раннеры GitHub бесплатны, в приватном macOS-минуты платные (примерно в 10 раз дороже Linux).
 
-Имя репозитория `skxfn/expenses-tracker` — плейсхолдер, задан в одном месте: `DEFAULT_REPO` в `scripts/update_source.py`. В Actions вместо него берётся реальный `$GITHUB_REPOSITORY`.
+Репозиторий — [skxfn/expenses-tracker](https://github.com/skxfn/expenses-tracker) (публичный), задан в одном месте: `DEFAULT_REPO` в `scripts/update_source.py`. В Actions вместо него берётся реальный `$GITHUB_REPOSITORY`.
 
 Без Actions: собрать `.ipa`, создать релиз с тегом `v<версия>` и приложить файл, затем `python3 scripts/update_source.py dist/Expenses-<версия>.ipa` и закоммитить `source.json`.
 
