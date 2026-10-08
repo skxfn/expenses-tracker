@@ -121,22 +121,12 @@ final class StatisticsModel {
         }
     }
 
-    var currentSeriesLabel: String {
-        switch kind {
-        case .day: "Этот день"
-        case .week: "Эта неделя"
-        case .month: "Этот месяц"
-        case .year: "Этот год"
-        }
-    }
+    /// Подписи линий накопительного графика — заголовки периодов, а не «этот/прошлый»:
+    /// при листании назад «этот месяц» был бы неправдой.
+    var currentSeriesLabel: String { title }
 
     var previousSeriesLabel: String {
-        switch kind {
-        case .day: "Предыдущий день"
-        case .week: "Прошлая неделя"
-        case .month: "Прошлый месяц"
-        case .year: "Прошлый год"
-        }
+        period.previous(in: engine.calendar).title(now: now, calendar: engine.calendar)
     }
 
     // MARK: - Действия

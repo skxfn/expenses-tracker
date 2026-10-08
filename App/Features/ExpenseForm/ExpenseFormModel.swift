@@ -12,11 +12,14 @@ final class ExpenseFormModel {
     var date: Date
     var note: String
     var errorMessage: String?
+    /// Категория расхода на момент открытия формы — может быть архивной.
+    private let initialCategory: ExpenseCategory?
 
     init(expense: Expense?, formatter: MoneyFormatter, now: Date = .now) {
         self.expense = expense
         amountText = expense.map { formatter.editingString(fromMinor: $0.amountMinor) } ?? ""
-        category = expense?.category
+        initialCategory = expense?.category
+        category = initialCategory
         date = expense?.date ?? now
         note = expense?.note ?? ""
     }
@@ -33,10 +36,10 @@ final class ExpenseFormModel {
     }
 
     /// Активные категории для выбора. Архивная категория редактируемого расхода
-    /// добавляется в конец, чтобы выбор не «пропадал».
+    /// добавляется в конец, чтобы её можно было оставить или вернуть после снятия выбора.
     func pickerCategories(active: [ExpenseCategory]) -> [ExpenseCategory] {
-        guard let category, !active.contains(where: { $0.id == category.id }) else { return active }
-        return active + [category]
+        guard let initialCategory, !active.contains(where: { $0.id == initialCategory.id }) else { return active }
+        return active + [initialCategory]
     }
 
     /// Повторный тап по выбранной категории снимает выбор.
