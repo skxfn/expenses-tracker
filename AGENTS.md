@@ -14,6 +14,8 @@
 - Репо — публичный `skxfn/expenses-tracker` (`DEFAULT_REPO` в `scripts/update_source.py`, в Actions — `$GITHUB_REPOSITORY`). Должен оставаться публичным — иначе SideStore не скачает релизы.
 - UI: тонкие View + `@Observable` модели рядом (`ExpenseFormModel`, `StatisticsModel`, `BackupModel`…). При внедрении дизайна переписываются только View и `App/Shared`, модели остаются.
 - Дизайн не утверждён: текущий UI временный на системных компонентах. Референсы — `design/` (`gallery.html` открывать в обычном браузере), Mobbin MCP требует платный план. Dime (open-source) под GPL-3.0 — код не копировать.
+- Наброски дизайна (скилл impeccable) — холст https://claude.ai/artifact/Wkh9EydSQCAbkH1tYXHPDB: 4 направления (A «Веер образцов», B «Отрывной календарь», C «Бумага» как Spendly, D стандарт iOS) + все экраны в A + сравнение библиотек иконок. Выбор пользователя ещё не сделан. Продуктовый контекст для скилла — `PRODUCT.md`.
+- Пожелания пользователя к дизайну: добавление как в Spendly, главный как в Monefy (кольцо с иконками + лента), редактор категории как в EZ Money Tracker, красивый календарь отдельной вкладкой, статистика S1–S4 все, свой произвольный период и на главном, иконки категорий — из библиотек (не эмодзи).
 
 ## Ловушки
 - Xcode 26: без установленной iOS-платформы (`xcodebuild -downloadPlatform iOS`) сборка по схеме падает «iOS 26.5 is not installed»; `-target Expenses -sdk iphoneos` при этом собирается.
