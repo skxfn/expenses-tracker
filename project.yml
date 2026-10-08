@@ -2,7 +2,7 @@ name: Expenses
 options:
   bundleIdPrefix: com.skxfn
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "26.0"
   projectFormat: xcode16_0
   developmentLanguage: ru
 packages:
