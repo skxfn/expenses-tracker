@@ -13,10 +13,11 @@ public struct StatisticsEngine: Sendable {
 
     // MARK: - Сводка
 
-    /// Итог, количество, средняя трата в день и сравнение с предыдущим периодом.
+    /// Итог, количество, средняя трата в день и сравнение с прошлым периодом «к той же дате» (D5).
     ///
     /// Для текущего (незавершённого) периода средняя считается по дням с начала периода
     /// по сегодняшний включительно и только по тратам этих дней; для прошлых и будущих — по всем дням.
+    /// С чем сравнивается итог — `comparisonInterval(for:now:)`.
     public func summary(
         for period: StatsPeriod,
         records: [ExpenseRecord],
@@ -25,8 +26,8 @@ public struct StatisticsEngine: Sendable {
     ) -> StatsSummary {
         let matching = records.filter(filter.matches)
         let inPeriod = matching.filter { period.contains($0.date) }
-        let previousPeriod = period.previous(in: calendar)
-        let previousTotal = Self.total(of: matching.filter { previousPeriod.contains($0.date) })
+        let comparison = comparisonInterval(for: period, now: now)
+        let previousTotal = Self.total(of: matching.filter { comparison.containsHalfOpen($0.date) })
 
         let averaging = averagingInterval(of: period, now: now)
         let dayCount = slices(of: averaging, by: .day).count
@@ -40,11 +41,42 @@ public struct StatisticsEngine: Sendable {
         return StatsSummary(
             totalMinor: total,
             count: inPeriod.count,
-            averagePerDayMinor: Self.divideRounded(averagedTotal, by: dayCount),
+            averagePerDayMinor: Money.divideRounded(averagedTotal, by: dayCount),
             averagedDayCount: dayCount,
             previousTotalMinor: previousTotal,
-            change: change
+            change: change,
+            comparisonInterval: comparison,
+            comparisonReference: comparisonReference(for: period, now: now)
         )
+    }
+
+    /// Отрезок прошлого периода, с которым сравнивается итог (D5, design/INTEGRATION.md §4.7):
+    /// - идущий календарный период (`contains(now)`) — первые `min(n, длина прошлого)` дней прошлого,
+    ///   где `n` — номер сегодняшнего дня в периоде с 1: 31 октября → весь сентябрь,
+    ///   30 марта → весь февраль, «День» → весь вчерашний;
+    /// - прошедший или будущий — весь прошлый период;
+    /// - свой период — весь предыдущий диапазон той же длины.
+    public func comparisonInterval(for period: StatsPeriod, now: Date) -> DateInterval {
+        let previous = period.previous(in: calendar).interval
+        guard period.kind != nil, period.contains(now) else { return previous }
+        let elapsedDayCount = slices(of: averagingInterval(of: period, now: now), by: .day).count
+        let previousDays = slices(of: previous, by: .day)
+        guard elapsedDayCount < previousDays.count else { return previous }
+        return DateInterval(start: previous.start, end: previousDays[elapsedDayCount].start)
+    }
+
+    /// С чем сравнили: идущий период — относительно («в прошлом месяце»), прошедший — по имени
+    /// («в августе», «за 22–28 сен», «накануне», «в 2024»), свой — датами предыдущего диапазона.
+    private func comparisonReference(for period: StatsPeriod, now: Date) -> StatsComparisonReference {
+        let isCurrent = period.contains(now)
+        let previous = period.previous(in: calendar).interval
+        switch period.kind {
+        case .day: return isCurrent ? .yesterday : .dayBefore
+        case .week: return isCurrent ? .lastWeek : .range(previous)
+        case .month: return isCurrent ? .lastMonth : .month(calendar.component(.month, from: previous.start))
+        case .year: return isCurrent ? .lastYear : .year(calendar.component(.year, from: previous.start))
+        case nil: return .range(previous)
+        }
     }
 
     // MARK: - Категории
@@ -136,7 +168,7 @@ public struct StatisticsEngine: Sendable {
                 weekday: weekday,
                 dayCount: dayCount,
                 totalMinor: total,
-                averageMinor: Self.divideRounded(total, by: dayCount)
+                averageMinor: Money.divideRounded(total, by: dayCount)
             )
         }
     }
@@ -177,7 +209,7 @@ public struct StatisticsEngine: Sendable {
     }
 
     /// Часть периода, по которой считаются средние: для текущего — до конца сегодняшнего дня.
-    private func averagingInterval(of period: StatsPeriod, now: Date) -> DateInterval {
+    func averagingInterval(of period: StatsPeriod, now: Date) -> DateInterval {
         guard period.contains(now), let today = calendar.dateInterval(of: .day, for: now) else {
             return period.interval
         }
@@ -186,7 +218,7 @@ public struct StatisticsEngine: Sendable {
 
     /// Нарезка полуоткрытого интервала по календарной единице; крайние куски обрезаются.
     /// Учитывает DST: сутки могут длиться 23 или 25 часов.
-    private func slices(of interval: DateInterval, by component: Calendar.Component) -> [DateInterval] {
+    func slices(of interval: DateInterval, by component: Calendar.Component) -> [DateInterval] {
         var result: [DateInterval] = []
         var cursor = interval.start
         while cursor < interval.end {
@@ -199,7 +231,7 @@ public struct StatisticsEngine: Sendable {
     }
 
     /// Суммы и количества трат по кускам; траты вне кусков отбрасываются.
-    private func aggregate(
+    func aggregate(
         _ records: [ExpenseRecord],
         into slices: [DateInterval]
     ) -> [(total: Int64, count: Int)] {
@@ -238,21 +270,11 @@ public struct StatisticsEngine: Sendable {
         return low
     }
 
-    private static func total(of records: [ExpenseRecord]) -> Int64 {
+    static func total(of records: [ExpenseRecord]) -> Int64 {
         records.reduce(0) { $0 + $1.amountMinor }
     }
 
-    /// Целочисленное деление с округлением половины от нуля. При `divisor <= 0` — 0.
-    static func divideRounded(_ value: Int64, by divisor: Int) -> Int64 {
-        guard divisor > 0 else { return 0 }
-        let divisor = Int64(divisor)
-        let quotient = value / divisor
-        let remainder = value % divisor
-        guard remainder.magnitude * 2 >= divisor.magnitude else { return quotient }
-        return quotient + (value < 0 ? -1 : 1)
-    }
-
-    private static func isOrderedBefore(_ lhs: StatsCategoryShare, _ rhs: StatsCategoryShare) -> Bool {
+    static func isOrderedBefore(_ lhs: StatsCategoryShare, _ rhs: StatsCategoryShare) -> Bool {
         if lhs.totalMinor != rhs.totalMinor { return lhs.totalMinor > rhs.totalMinor }
         if lhs.count != rhs.count { return lhs.count > rhs.count }
         switch (lhs.categoryID, rhs.categoryID) {
@@ -269,7 +291,7 @@ public struct StatisticsEngine: Sendable {
     }
 }
 
-private extension DateInterval {
+extension DateInterval {
     /// Попадание в полуоткрытый интервал `[start, end)`; штатный `contains` включает `end`.
     func containsHalfOpen(_ date: Date) -> Bool {
         start <= date && date < end
