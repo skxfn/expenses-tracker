@@ -1,6 +1,6 @@
 {
  "schemaVersion": 2,
- "generatedAt": "2026-10-09T09:08:32+00:00",
+ "generatedAt": "2026-10-09T10:32:13+00:00",
  "title": "Design System: Траты",
  "extensions": {
   "colorMeta": {
@@ -124,6 +124,21 @@
      "#F1EEEB"
     ]
    },
+   "night-canvas-elevated": {
+    "role": "neutral",
+    "displayName": "night-canvas-elevated",
+    "canonical": "#181513",
+    "tonalRamp": [
+     "#0D0A09",
+     "#282422",
+     "#45413F",
+     "#64605E",
+     "#85817F",
+     "#A8A4A1",
+     "#CCC8C5",
+     "#F2EDEA"
+    ]
+   },
    "night-surface": {
     "role": "neutral",
     "displayName": "night-surface",
@@ -199,6 +214,36 @@
      "#F1EEE7"
     ]
    },
+   "night-placeholder": {
+    "role": "neutral",
+    "displayName": "night-placeholder",
+    "canonical": "#96928B",
+    "tonalRamp": [
+     "#0E0B06",
+     "#28251F",
+     "#45413B",
+     "#64615A",
+     "#86827B",
+     "#A9A49D",
+     "#CDC9C1",
+     "#F2EEE6"
+    ]
+   },
+   "night-graphic": {
+    "role": "neutral",
+    "displayName": "night-graphic",
+    "canonical": "#78726C",
+    "tonalRamp": [
+     "#0F0A06",
+     "#29241F",
+     "#46413B",
+     "#66605A",
+     "#87817B",
+     "#AAA49D",
+     "#CEC8C1",
+     "#F4EDE6"
+    ]
+   },
    "night-separator": {
     "role": "neutral",
     "displayName": "night-separator",
@@ -212,6 +257,96 @@
      "#A7A4A0",
      "#CECAC6",
      "#F2EEEA"
+    ]
+   },
+   "night-destructive": {
+    "role": "neutral",
+    "displayName": "night-destructive",
+    "canonical": "#EA6C5C",
+    "tonalRamp": [
+     "#1F0000",
+     "#4D0100",
+     "#810101",
+     "#A93025",
+     "#D05547",
+     "#F97968",
+     "#FEB4A8",
+     "#FFE9E5"
+    ]
+   },
+   "night-heat-0": {
+    "role": "tertiary",
+    "displayName": "night-heat-0",
+    "canonical": "#1E1B18",
+    "tonalRamp": [
+     "#0D0B08",
+     "#282421",
+     "#45413E",
+     "#64605D",
+     "#85827E",
+     "#A8A4A0",
+     "#CCC8C4",
+     "#F2EEE9"
+    ]
+   },
+   "night-heat-1": {
+    "role": "tertiary",
+    "displayName": "night-heat-1",
+    "canonical": "#352F29",
+    "tonalRamp": [
+     "#0F0A06",
+     "#2A241E",
+     "#47413A",
+     "#676059",
+     "#88817A",
+     "#ABA49C",
+     "#CFC8C0",
+     "#F5EDE5"
+    ]
+   },
+   "night-heat-2": {
+    "role": "tertiary",
+    "displayName": "night-heat-2",
+    "canonical": "#4D4740",
+    "tonalRamp": [
+     "#0F0A05",
+     "#29241E",
+     "#47413A",
+     "#666059",
+     "#888179",
+     "#ABA49C",
+     "#CFC8BF",
+     "#F5EDE5"
+    ]
+   },
+   "night-heat-3": {
+    "role": "tertiary",
+    "displayName": "night-heat-3",
+    "canonical": "#68625B",
+    "tonalRamp": [
+     "#0F0A06",
+     "#29241E",
+     "#47413A",
+     "#666059",
+     "#87817A",
+     "#AAA49C",
+     "#CFC8C0",
+     "#F4EDE5"
+    ]
+   },
+   "night-heat-4": {
+    "role": "tertiary",
+    "displayName": "night-heat-4",
+    "canonical": "#C3BCB6",
+    "tonalRamp": [
+     "#0F0A07",
+     "#29241F",
+     "#47413C",
+     "#66605B",
+     "#87817B",
+     "#AAA49E",
+     "#CFC8C2",
+     "#F4EDE7"
     ]
    },
    "heat-0": {
@@ -307,6 +442,13 @@
      "#CE6C8D",
      "#E98BA9",
      "#FFADC6"
+    ],
+    "subcategoryShadesDark": [
+     "#CE6C8D",
+     "#A14B69",
+     "#8C3F5A",
+     "#77324B",
+     "#63263D"
     ]
    },
    "krapplak-tint": {
@@ -372,6 +514,13 @@
      "#D16E5A",
      "#EC8D79",
      "#FFB09F"
+    ],
+    "subcategoryShadesDark": [
+     "#D16E5A",
+     "#A54E3D",
+     "#8F4132",
+     "#7A3427",
+     "#66281C"
     ]
    },
    "kinovar-tint": {
@@ -437,6 +586,13 @@
      "#BE7C30",
      "#D89957",
      "#F3B77A"
+    ],
+    "subcategoryShadesDark": [
+     "#BE7C30",
+     "#945A0C",
+     "#804C02",
+     "#6B3E00",
+     "#573200"
     ]
    },
    "abrikos-tint": {
@@ -502,6 +658,13 @@
      "#967729",
      "#B0934E",
      "#CBAF70"
+    ],
+    "subcategoryShadesDark": [
+     "#967729",
+     "#7F641C",
+     "#6D5412",
+     "#5C4607",
+     "#4B3800"
     ]
    },
    "okhra-tint": {
@@ -567,6 +730,13 @@
      "#759242",
      "#91AD63",
      "#AEC984"
+    ],
+    "subcategoryShadesDark": [
+     "#759242",
+     "#566F26",
+     "#485F1D",
+     "#3B4F12",
+     "#2E3F07"
     ]
    },
    "olivka-tint": {
@@ -599,6 +769,21 @@
      "#DDFBB1"
     ]
    },
+   "olivka-darktint": {
+    "role": "secondary",
+    "displayName": "Оливка · darktint",
+    "canonical": "#26330E",
+    "tonalRamp": [
+     "#070E00",
+     "#1E2A05",
+     "#3A4823",
+     "#586841",
+     "#798962",
+     "#9BAC83",
+     "#BFD1A6",
+     "#E4F7CB"
+    ]
+   },
    "shalfey": {
     "role": "secondary",
     "displayName": "Шалфей",
@@ -617,6 +802,13 @@
      "#3E9B6B",
      "#63B688",
      "#85D2A5"
+    ],
+    "subcategoryShadesDark": [
+     "#3E9B6B",
+     "#1D764C",
+     "#12643F",
+     "#055432",
+     "#004327"
     ]
    },
    "shalfey-tint": {
@@ -682,6 +874,13 @@
      "#308F8E",
      "#57AAA9",
      "#7BC5C4"
+    ],
+    "subcategoryShadesDark": [
+     "#308F8E",
+     "#177271",
+     "#0C6161",
+     "#025150",
+     "#014040"
     ]
    },
    "viridon-tint": {
@@ -714,6 +913,21 @@
      "#B5FEFD"
     ]
    },
+   "viridon-darktint": {
+    "role": "secondary",
+    "displayName": "Виридон · darktint",
+    "canonical": "#003635",
+    "tonalRamp": [
+     "#000F0E",
+     "#012C2B",
+     "#1A4B49",
+     "#3C6B69",
+     "#5D8C8B",
+     "#7FB0AE",
+     "#A3D4D2",
+     "#C7FAF8"
+    ]
+   },
    "tseruleum": {
     "role": "secondary",
     "displayName": "Церулеум",
@@ -732,6 +946,13 @@
      "#277594",
      "#4C90AD",
      "#6DABC7"
+    ],
+    "subcategoryShadesDark": [
+     "#277594",
+     "#1D6480",
+     "#12546D",
+     "#06455B",
+     "#013548"
     ]
    },
    "tseruleum-tint": {
@@ -797,6 +1018,13 @@
      "#4569B4",
      "#6185CD",
      "#7FA1E5"
+    ],
+    "subcategoryShadesDark": [
+     "#4569B4",
+     "#395A9D",
+     "#2E4B87",
+     "#233C71",
+     "#182E5D"
     ]
    },
    "kobalt-tint": {
@@ -862,6 +1090,13 @@
      "#7585D9",
      "#91A2F2",
      "#B2C1FF"
+    ],
+    "subcategoryShadesDark": [
+     "#7585D9",
+     "#5562AC",
+     "#485395",
+     "#3B447F",
+     "#2E366B"
     ]
    },
    "ultramarin-tint": {
@@ -927,6 +1162,13 @@
      "#A978C1",
      "#C495DB",
      "#DFB3F5"
+    ],
+    "subcategoryShadesDark": [
+     "#A978C1",
+     "#825697",
+     "#704982",
+     "#5E3C6F",
+     "#4E2F5C"
     ]
    },
    "ametist-tint": {
@@ -992,6 +1234,28 @@
      "#9A4C7C",
      "#B46996",
      "#CF87B1"
+    ],
+    "subcategoryShadesDark": [
+     "#9F5181",
+     "#8A4470",
+     "#76385F",
+     "#632B4E",
+     "#511F3F"
+    ]
+   },
+   "pion-night": {
+    "role": "secondary",
+    "displayName": "Пион · night",
+    "canonical": "#9F5181",
+    "tonalRamp": [
+     "#1C0012",
+     "#460032",
+     "#6B2151",
+     "#8E4272",
+     "#B36394",
+     "#D986B7",
+     "#FFABDC",
+     "#FFE7F4"
     ]
    },
    "pion-tint": {
@@ -1057,6 +1321,13 @@
      "#886248",
      "#A27D64",
      "#BC9981"
+    ],
+    "subcategoryShadesDark": [
+     "#886248",
+     "#75533C",
+     "#634530",
+     "#523725",
+     "#422A19"
     ]
    },
    "umbra-tint": {
@@ -1122,6 +1393,13 @@
      "#798DA3",
      "#95A8BE",
      "#B3C5D9"
+    ],
+    "subcategoryShadesDark": [
+     "#798DA3",
+     "#57697C",
+     "#49596A",
+     "#3C4A59",
+     "#2F3B49"
     ]
    },
    "slanets-tint": {
@@ -1154,6 +1432,21 @@
      "#E3F0FF"
     ]
    },
+   "slanets-darktint": {
+    "role": "secondary",
+    "displayName": "Сланец · darktint",
+    "canonical": "#1E2F42",
+    "tonalRamp": [
+     "#010B1C",
+     "#162639",
+     "#324458",
+     "#506379",
+     "#71849B",
+     "#93A7BF",
+     "#B6CCE4",
+     "#E3F0FF"
+    ]
+   },
    "grafit": {
     "role": "secondary",
     "displayName": "Графит (категория)",
@@ -1172,6 +1465,13 @@
      "#797875",
      "#949390",
      "#AFAFAC"
+    ],
+    "subcategoryShadesDark": [
+     "#797875",
+     "#686764",
+     "#585755",
+     "#494846",
+     "#3A3A38"
     ]
    },
    "grafit-tint": {
@@ -1264,6 +1564,14 @@
    "caption": {
     "displayName": "Caption",
     "purpose": "Подписи таб-бара и шкал."
+   },
+   "range-days": {
+    "displayName": "Дни диапазона",
+    "purpose": "Шапка своего периода: «5–7»."
+   },
+   "range-month": {
+    "displayName": "Месяц диапазона",
+    "purpose": "Шапка своего периода: «окт» рядом с днями, graphite-secondary."
    }
   },
   "glass": [
@@ -1292,12 +1600,6 @@
     "purpose": "Одно главное действие: «Сохранить», «+», «Готово»."
    },
    {
-    "name": "glass-dark",
-    "css": "background:rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 .5px rgba(255,255,255,.12),0 8px 24px rgba(0,0,0,.4)",
-    "swiftUI": "системный .regular в тёмной теме",
-    "purpose": "Тёмная тема (рецепт из брифа, тёмных макетов экранов нет)."
-   },
-   {
     "name": "lens",
     "css": "см. компонент «Клетка календаря»",
     "swiftUI": ".glassEffect(.clear, in: .rect(cornerRadius: 12))",
@@ -1308,6 +1610,66 @@
     "css": "background:rgba(253,251,247,.96);backdrop-filter:none",
     "swiftUI": "система делает сама при «Понижении прозрачности»",
     "purpose": "Запасной вид стекла."
+   },
+   {
+    "name": "glass-dark",
+    "css": "background:rgba(54,49,44,.62);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.3),inset 0 0 0 .5px rgba(255,255,255,.1),0 8px 24px rgba(0,0,0,.4)",
+    "swiftUI": "системный .regular в тёмной теме",
+    "purpose": "Тёмная тема: хром. Тёплая дымка глушит яркое под собой, а не белит; ink на стекле 11,5–12,9:1, над плиткой Краплака 6,6:1."
+   },
+   {
+    "name": "glass-in-dark",
+    "css": "background:rgba(54,49,44,.62);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.3),0 0 0 .5px rgba(255,255,255,.08),0 4px 12px rgba(0,0,0,.32)",
+    "swiftUI": ".glassEffect(.regular, in: .capsule) на листе",
+    "purpose": "Тёмная тема: стекло на листе."
+   },
+   {
+    "name": "glass-k-dark",
+    "css": "background:rgba(54,49,44,.62);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.3),inset 0 0 0 .5px rgba(255,255,255,.1),0 3px 10px rgba(0,0,0,.35)",
+    "swiftUI": ".glassEffect(.regular.interactive(), in: .capsule)",
+    "purpose": "Тёмная тема: стеклянные клавиши и чипы."
+   },
+   {
+    "name": "pro-dark",
+    "css": "background:rgba(239,236,231,.92);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(0,0,0,.14),inset 0 0 0 .5px rgba(255,255,255,.5),0 8px 24px rgba(0,0,0,.5);color:#1E1B18",
+    "swiftUI": ".buttonStyle(.glassProminent).tint(Color(nightInk)), текст night-on-ink",
+    "purpose": "Тёмная тема: главное действие — графит, вывернутый в бумагу (ink 92 %)."
+   },
+   {
+    "name": "segment-active-dark",
+    "css": "background:rgba(255,250,244,.16);color:#EFECE7;box-shadow:0 2px 8px rgba(0,0,0,.38)",
+    "swiftUI": "внутренняя пилюля сегмента",
+    "purpose": "Тёмная тема: активная пилюля сегмента и переключателя вида."
+   },
+   {
+    "name": "tab-active-dark",
+    "css": "background:rgba(239,236,231,.1);color:#EFECE7",
+    "swiftUI": "системная активная вкладка",
+    "purpose": "Тёмная тема: активная вкладка таб-бара."
+   },
+   {
+    "name": "reduced-transparency-dark",
+    "css": "background:rgba(39,35,32,.96);-webkit-backdrop-filter:none;backdrop-filter:none",
+    "swiftUI": "система делает сама",
+    "purpose": "Тёмная тема: запасной вид стекла — night-glass 96 %."
+   },
+   {
+    "name": "lens-dark",
+    "css": "background:linear-gradient(160deg,rgba(255,255,255,.07) 0%,rgba(0,0,0,.12) 55%,rgba(255,255,255,.04) 100%);-webkit-backdrop-filter:blur(1.5px) saturate(1.5) brightness(.9);backdrop-filter:blur(1.5px) saturate(1.5) brightness(.9);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(0,0,0,.35),inset 0 0 0 .5px rgba(255,255,255,.28),inset 0 0 10px rgba(255,255,255,.08),0 10px 22px rgba(0,0,0,.5),0 2px 5px rgba(0,0,0,.4)",
+    "swiftUI": ".glassEffect(.clear, in: .rect(cornerRadius: 12)) + лёгкое затемнение центра",
+    "purpose": "Тёмная тема: линза «сегодня», центр затемнён brightness(.9)."
+   },
+   {
+    "name": "lens-reduced-dark",
+    "css": "background:rgba(30,27,24,.55);-webkit-backdrop-filter:none;backdrop-filter:none",
+    "swiftUI": "система делает сама",
+    "purpose": "Тёмная тема: линза без прозрачности."
+   },
+   {
+    "name": "keyboard-dark",
+    "css": "background:rgba(44,44,46,.8);-webkit-backdrop-filter:blur(30px) saturate(1.6);backdrop-filter:blur(30px) saturate(1.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 0 .5px rgba(255,255,255,.08),0 -1px 0 rgba(0,0,0,.3); клавиша: background:rgba(255,255,255,.3);box-shadow:0 1px 0 rgba(0,0,0,.4); без прозрачности: background:#2C2C2E",
+    "swiftUI": "системная клавиатура (в макетах — имитация, значения подобраны на глаз)",
+    "purpose": "Тёмная тема: клавиатура и панель быстрых сумм в макетах."
    }
   ],
   "shadows": [
@@ -1355,6 +1717,16 @@
     "name": "ring-lift",
     "value": "drop-shadow 0 3px 4px #5A4632 / .20 + fractal noise grain ≈ 16 %",
     "purpose": "Кольцо «Просто круг»."
+   },
+   {
+    "name": "dark-rule",
+    "value": "drop: rgba(0,0,0, min(.55, .22 + 1.3·α светлой)); inset-тёмная: rgba(0,0,0, max(.3, α·3)); тёмный волосяной контур → rgba(255,255,255, α); белый контур стекла → α·0.2; блик сверху → α·0.16…0.4",
+    "purpose": "Тёмная тема: тени чёрные и плотнее, подъём держат светлота поверхности и тонкий светлый контур. Цветная тень выбранного образца — чёрная."
+   },
+   {
+    "name": "sheet-dark",
+    "value": "0 -6px 24px rgba(0,0,0,.3), inset 0 .5px 0 rgba(255,255,255,.07)",
+    "purpose": "Тёмная тема: лист ленты и календаря."
    }
   ],
   "motion": [
@@ -1475,11 +1847,13 @@
   ],
   "aura": {
    "value": "2–3 radial-gradient пятна tint-цветов крупнейших категорий, непрозрачность 0.5–0.9, верхняя треть экрана; в шите записи — цвет выбранной категории над клавиатурой",
-   "example": "background:radial-gradient(60% 80% at 10% 0%,rgba(212,242,223,.85),rgba(212,242,223,0)),radial-gradient(60% 80% at 95% 0%,rgba(253,229,206,.9),rgba(253,229,206,0)),#F3F0EA"
+   "example": "background:radial-gradient(60% 80% at 10% 0%,rgba(212,242,223,.85),rgba(212,242,223,0)),radial-gradient(60% 80% at 95% 0%,rgba(253,229,206,.9),rgba(253,229,206,0)),#F3F0EA",
+   "dark": "те же radial-gradient пятна той же формы и альфы, цвет — darktint группы"
   },
   "hatch": {
    "value": "45°, основной тон 1.4 px / tint 2.1 px (шаг 3.5 px)",
-   "purpose": "«Без подкатегории»."
+   "purpose": "«Без подкатегории».",
+   "dark": "основной тон группы (у Пиона — pion-night) по darktint группы"
   },
   "icons": {
    "set": "MingCute Fill (Apache 2.0)",
@@ -1538,7 +1912,853 @@
     "swiftUI": ".sensoryFeedback(.warning, trigger:)",
     "when": "Удаление категории."
    }
-  ]
+  ],
+  "darkTheme": {
+   "source": "Макеты холста Dark-*.dc.html и доска «Тёмная тема: палитра» (Dark-Palette); раскладка не меняется — только цвета, прозрачности, тени, стекло.",
+   "decisions": {
+    "neutrals": "Тёплая ночная бумага на оттенке графита (OKLCH h≈67, C≈0,007), не #000 и не сине-серый. Подъём = светлота: canvas 0,179 → шит 0,200 → лист 0,224; второй, более светлый лист внутри шитов не вводится — тёмные тона (Пион, Кобальт, Умбра) на нём упали бы ниже 3:1.",
+    "glass": "Тёмное стекло = тёплая дымка rgba(54,49,44,.62) + те же blur/saturate + слабые блики: на тёмном regular-стекло должно глушить яркий контент под собой (HIG), а не добавлять белый туман; ink на стекле 11,5–12,9:1 над фоном и аурой, 6,6:1 над самой яркой плиткой (Краплак).",
+    "primary": "Главное действие — инверсия графита в бумагу: ink 92 % стекло с тёмным текстом. Без брендового акцента (правило бумаги), самый светлый предмет экрана — как графитовый «+» самый тёмный в светлой.",
+    "gouache": "Основные тона общие для обеих тем: на тёмном листе 3,2–5,0:1. Выравнивать громкость по контрасту нельзя — при равной светлоте Кобальт сливается с Ультрамарином (ΔE 11,5 → 2,5; у дейтеранопа 0,3), Пион с Краплаком. Ночной вариант нужен только Пиону (3,02 → 3,24:1). Подписи на тонах не инвертируются: графит/бумага по тону, как в светлой.",
+    "big_areas": "Отдельного приглушённого набора для плиток нет: при Y ≈ 0,14 Абрикос и Охра становятся коричневыми (#985B00) и сливаются с Умброй, а подписи перестают проходить 4,5:1. Тона «Гуаши» приглушены по цветности (C ≤ 0,13) и на #1E1B18 не бликуют (проверено рендером).",
+    "steps": "Ступени в тёмной идут к листу (темнее), как в светлой — к бумаге: самая крупная подкатегория всегда самая контрастная к листу, бледные ступени не светятся. Ступень 2 сразу уходит ниже Y 0,135 (мимо «мёртвой зоны», где ни графит, ни ink не дают 4,5:1), дальше −0,055 L и C ×0,92. Подпись на любой тёмной ступени — ink (4,8–11:1). Цена: глубокие ступени Абрикоса и Охры коричневеют (#6B3E00, #5C4607).",
+    "heat": "Шкала зеркальная светлой: больше трат → светлее (больше «чернил»). Контраст соседних ступеней к листу 1,3 / 1,87 / 2,85 / 9,1 — как в светлой (1,27 / 1,69 / 2,78 / 8,9). Цифры: ink на 0–3, night-on-ink на 4.",
+    "shadows": "Тени чёрные и плотнее (α = .22 + 1,3·α_светлой, ≤ .55); подъём держит светлота поверхности и тонкий светлый контур, цветные тени выбранного образца — чёрные."
+   },
+   "neutrals": {
+    "night-canvas": {
+     "hex": "#13110F",
+     "oklch": "oklch(0.179 0.005 67.5)",
+     "role": "фон экрана (base); light: paper-canvas #F3F0EA"
+    },
+    "night-canvas-elevated": {
+     "hex": "#181513",
+     "oklch": "oklch(0.199 0.006 56.0)",
+     "role": "фон шита/модалки (elevated, HIG: elevated светлее base); light: #F3F0EA внутри role=dialog"
+    },
+    "night-surface": {
+     "hex": "#1E1B18",
+     "oklch": "oklch(0.224 0.007 67.4)",
+     "role": "лист ленты, группы, поля, карточки — и в шитах; light: paper-surface #FDFBF7"
+    },
+    "night-glass": {
+     "hex": "#272320",
+     "oklch": "oklch(0.259 0.008 59.3)",
+     "role": "сплошное стекло: запасной вид при Reduce Transparency (96 %)"
+    },
+    "night-separator": {
+     "hex": "#35322F",
+     "oklch": "oklch(0.319 0.007 67.6)",
+     "role": "волосяные линии, «Все», будущие столбики; light: #DBD7D0"
+    },
+    "night-ink": {
+     "hex": "#EFECE7",
+     "oklch": "oklch(0.944 0.007 80.7)",
+     "role": "основной текст, фокус, главное действие (инверсия графита); light: graphite #221D18"
+    },
+    "night-secondary": {
+     "hex": "#B7B4AE",
+     "oklch": "oklch(0.771 0.009 84.6)",
+     "role": "подписи, неактивные сегменты; light: #5F5A54"
+    },
+    "night-tertiary": {
+     "hex": "#898680",
+     "oklch": "oklch(0.621 0.010 84.6)",
+     "role": "неактивное и будущее (заменяет #7F7B75 и #6F6A64); light: #7F7B75"
+    },
+    "night-placeholder": {
+     "hex": "#96928B",
+     "oklch": "oklch(0.661 0.011 81.8)",
+     "role": "плейсхолдер на стекле (≥ 4,5:1 на стекле); light: #6B665F"
+    },
+    "night-graphic": {
+     "hex": "#78726C",
+     "oklch": "oklch(0.556 0.012 67.6)",
+     "role": "шевроны, контур чекбокса, прошлые столбики, линия «сентябрь» (≥ 3:1); light: #8A857E / #8C857E"
+    },
+    "night-sheet-behind": {
+     "hex": "#252220",
+     "oklch": "oklch(0.255 0.006 56.1)",
+     "role": "выглядывающий родительский шит (Category); light: #8E8A84"
+    },
+    "night-backdrop": {
+     "hex": "#080706",
+     "oklch": "oklch(0.130 0.004 69.8)",
+     "role": "чёрное за стопкой шитов; light: #12100E / #1C1916"
+    },
+    "night-on-ink": {
+     "hex": "#1E1B18",
+     "oklch": "oklch(0.224 0.007 67.4)",
+     "role": "текст/иконка на night-ink (кнопка «+», «Сохранить», концы диапазона, чекбокс); light: #FDFBF7 на графите"
+    }
+   },
+   "semantic": {
+    "night-destructive": {
+     "hex": "#EA6C5C",
+     "oklch": "oklch(0.680 0.159 29.2)",
+     "light": "#B3261E"
+    },
+    "focus-ring": "outline:2px solid #EFECE7;outline-offset:2px",
+    "disabled-arrow": "rgba(239,236,231,.3)"
+   },
+   "gouache": {
+    "krapplak": {
+     "name": "Краплак",
+     "main": "#CE6C8D",
+     "night": null,
+     "darktint": "#46202D",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.9,
+     "stepsDark": [
+      "#CE6C8D",
+      "#A14B69",
+      "#8C3F5A",
+      "#77324B",
+      "#63263D"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#CE6C8D",
+      "ground": "#46202D"
+     },
+     "auraDark": "#46202D"
+    },
+    "kinovar": {
+     "name": "Киноварь",
+     "main": "#D16E5A",
+     "night": null,
+     "darktint": "#47211A",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.84,
+     "stepsDark": [
+      "#D16E5A",
+      "#A54E3D",
+      "#8F4132",
+      "#7A3427",
+      "#66281C"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#D16E5A",
+      "ground": "#47211A"
+     },
+     "auraDark": "#47211A"
+    },
+    "abrikos": {
+     "name": "Абрикос",
+     "main": "#BE7C30",
+     "night": null,
+     "darktint": "#422707",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.87,
+     "stepsDark": [
+      "#BE7C30",
+      "#945A0C",
+      "#804C02",
+      "#6B3E00",
+      "#573200"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#BE7C30",
+      "ground": "#422707"
+     },
+     "auraDark": "#422707"
+    },
+    "okhra": {
+     "name": "Охра",
+     "main": "#967729",
+     "night": null,
+     "darktint": "#3B2B01",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#FDFBF7",
+     "labelOnMainRatio": 4.09,
+     "stepsDark": [
+      "#967729",
+      "#7F641C",
+      "#6D5412",
+      "#5C4607",
+      "#4B3800"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#967729",
+      "ground": "#3B2B01"
+     },
+     "auraDark": "#3B2B01"
+    },
+    "olivka": {
+     "name": "Оливка",
+     "main": "#759242",
+     "night": null,
+     "darktint": "#26330E",
+     "darktintNote": "досчитан: OKLCH L 0,300, C min(0,06; C основного) — как у остальных darktint",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.73,
+     "stepsDark": [
+      "#759242",
+      "#566F26",
+      "#485F1D",
+      "#3B4F12",
+      "#2E3F07"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#759242",
+      "ground": "#26330E"
+     },
+     "auraDark": "#26330E"
+    },
+    "shalfey": {
+     "name": "Шалфей",
+     "main": "#3E9B6B",
+     "night": null,
+     "darktint": "#0C3722",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.86,
+     "stepsDark": [
+      "#3E9B6B",
+      "#1D764C",
+      "#12643F",
+      "#055432",
+      "#004327"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#3E9B6B",
+      "ground": "#0C3722"
+     },
+     "auraDark": "#0C3722"
+    },
+    "viridon": {
+     "name": "Виридон",
+     "main": "#308F8E",
+     "night": null,
+     "darktint": "#003635",
+     "darktintNote": "досчитан: OKLCH L 0,300, C min(0,06; C основного) — как у остальных darktint",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.33,
+     "stepsDark": [
+      "#308F8E",
+      "#177271",
+      "#0C6161",
+      "#025150",
+      "#014040"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#308F8E",
+      "ground": "#003635"
+     },
+     "auraDark": "#003635"
+    },
+    "tseruleum": {
+     "name": "Церулеум",
+     "main": "#277594",
+     "night": null,
+     "darktint": "#003345",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#FDFBF7",
+     "labelOnMainRatio": 5.01,
+     "stepsDark": [
+      "#277594",
+      "#1D6480",
+      "#12546D",
+      "#06455B",
+      "#013548"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#277594",
+      "ground": "#003345"
+     },
+     "auraDark": "#003345"
+    },
+    "kobalt": {
+     "name": "Кобальт",
+     "main": "#4569B4",
+     "night": null,
+     "darktint": "#1E2D4C",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#FDFBF7",
+     "labelOnMainRatio": 5.17,
+     "stepsDark": [
+      "#4569B4",
+      "#395A9D",
+      "#2E4B87",
+      "#233C71",
+      "#182E5D"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#4569B4",
+      "ground": "#1E2D4C"
+     },
+     "auraDark": "#1E2D4C"
+    },
+    "ultramarin": {
+     "name": "Ультрамарин",
+     "main": "#7585D9",
+     "night": null,
+     "darktint": "#252B4C",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.86,
+     "stepsDark": [
+      "#7585D9",
+      "#5562AC",
+      "#485395",
+      "#3B447F",
+      "#2E366B"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#7585D9",
+      "ground": "#252B4C"
+     },
+     "auraDark": "#252B4C"
+    },
+    "ametist": {
+     "name": "Аметист",
+     "main": "#A978C1",
+     "night": null,
+     "darktint": "#392443",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.89,
+     "stepsDark": [
+      "#A978C1",
+      "#825697",
+      "#704982",
+      "#5E3C6F",
+      "#4E2F5C"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#A978C1",
+      "ground": "#392443"
+     },
+     "auraDark": "#392443"
+    },
+    "pion": {
+     "name": "Пион",
+     "main": "#9F5181",
+     "night": "#9F5181",
+     "darktint": "#422135",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#FDFBF7",
+     "labelOnMainRatio": 5.12,
+     "stepsDark": [
+      "#9F5181",
+      "#8A4470",
+      "#76385F",
+      "#632B4E",
+      "#511F3F"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#9F5181",
+      "ground": "#422135"
+     },
+     "auraDark": "#422135"
+    },
+    "umbra": {
+     "name": "Умбра",
+     "main": "#886248",
+     "night": null,
+     "darktint": "#44250C",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#FDFBF7",
+     "labelOnMainRatio": 5.23,
+     "stepsDark": [
+      "#886248",
+      "#75533C",
+      "#634530",
+      "#523725",
+      "#422A19"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#886248",
+      "ground": "#44250C"
+     },
+     "auraDark": "#44250C"
+    },
+    "slanets": {
+     "name": "Сланец",
+     "main": "#798DA3",
+     "night": null,
+     "darktint": "#1E2F42",
+     "darktintNote": "досчитан: OKLCH L 0,300, C min(0,06; C основного) — как у остальных darktint",
+     "labelOnMain": "#221D18",
+     "labelOnMainRatio": 4.89,
+     "stepsDark": [
+      "#798DA3",
+      "#57697C",
+      "#49596A",
+      "#3C4A59",
+      "#2F3B49"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#798DA3",
+      "ground": "#1E2F42"
+     },
+     "auraDark": "#1E2F42"
+    },
+    "grafit": {
+     "name": "Графит",
+     "main": "#797875",
+     "night": null,
+     "darktint": "#2F2E2B",
+     "darktintNote": "из DESIGN.md",
+     "labelOnMain": "#FDFBF7",
+     "labelOnMainRatio": 4.27,
+     "stepsDark": [
+      "#797875",
+      "#686764",
+      "#585755",
+      "#494846",
+      "#3A3A38"
+     ],
+     "labelOnStepsDark": "#EFECE7",
+     "hatchDark": {
+      "stripe": "#797875",
+      "ground": "#2F2E2B"
+     },
+     "auraDark": "#2F2E2B"
+    }
+   },
+   "stepsRule": "ступень 1 = основной (dark); ступень 2: L = min(L1 − 0.055, L при Y 0.135); далее −0.055 L, C ×0.92 на ступень; подпись — ink",
+   "heat": {
+    "dark": [
+     "#1E1B18",
+     "#352F29",
+     "#4D4740",
+     "#68625B",
+     "#C3BCB6"
+    ],
+    "digits": [
+     "#EFECE7",
+     "#EFECE7",
+     "#EFECE7",
+     "#EFECE7",
+     "#1E1B18"
+    ],
+    "contrastToSheet": [
+     1.3,
+     1.87,
+     2.85,
+     9.1
+    ],
+    "light": [
+     "#FDFBF7",
+     "#E6E0DA",
+     "#CAC3BB",
+     "#9F978F",
+     "#4E4640"
+    ]
+   },
+   "glassComposites": {
+    "glass over canvas": "#292521",
+    "glass over surface": "#2D2924",
+    "glass over aura-shalfey": "#263127",
+    "glass over tile-krapplak": "#704751",
+    "glass over tile-slanets": "#4F5459",
+    "glass over heat-4": "#6C6660",
+    "seg-on over glass": "#4B4743",
+    "pro over canvas": "#DDDAD6",
+    "reduced over canvas": "#26221F"
+   },
+   "distinctnessMinDeltaE": {
+    "normal": {
+     "light": {
+      "dE": 6.2,
+      "pair": [
+       "olivka",
+       "shalfey"
+      ]
+     },
+     "dark": {
+      "dE": 6.2,
+      "pair": [
+       "olivka",
+       "shalfey"
+      ]
+     },
+     "equal_Y_0.24_rejected": {
+      "dE": 2.5,
+      "pair": [
+       "kobalt",
+       "ultramarin"
+      ]
+     }
+    },
+    "deutan": {
+     "light": {
+      "dE": 3.5,
+      "pair": [
+       "kinovar",
+       "olivka"
+      ]
+     },
+     "dark": {
+      "dE": 3.5,
+      "pair": [
+       "kinovar",
+       "olivka"
+      ]
+     },
+     "equal_Y_0.24_rejected": {
+      "dE": 0.3,
+      "pair": [
+       "kobalt",
+       "ultramarin"
+      ]
+     }
+    },
+    "protan": {
+     "light": {
+      "dE": 2.9,
+      "pair": [
+       "abrikos",
+       "olivka"
+      ]
+     },
+     "dark": {
+      "dE": 2.9,
+      "pair": [
+       "abrikos",
+       "olivka"
+      ]
+     },
+     "equal_Y_0.24_rejected": {
+      "dE": 1.0,
+      "pair": [
+       "kobalt",
+       "ultramarin"
+      ]
+     }
+    },
+    "tritan": {
+     "light": {
+      "dE": 1.8,
+      "pair": [
+       "tseruleum",
+       "kobalt"
+      ]
+     },
+     "dark": {
+      "dE": 1.8,
+      "pair": [
+       "tseruleum",
+       "kobalt"
+      ]
+     },
+     "equal_Y_0.24_rejected": {
+      "dE": 0.9,
+      "pair": [
+       "okhra",
+       "umbra"
+      ]
+     }
+    }
+   },
+   "contrast": [
+    {
+     "pair": "ink / canvas",
+     "fg": "#EFECE7",
+     "bg": "#13110F",
+     "ratio": 15.99,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / surface",
+     "fg": "#EFECE7",
+     "bg": "#1E1B18",
+     "ratio": 14.55,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / canvas-elevated",
+     "fg": "#EFECE7",
+     "bg": "#181513",
+     "ratio": 15.42,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "secondary / surface",
+     "fg": "#B7B4AE",
+     "bg": "#1E1B18",
+     "ratio": 8.29,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "secondary / canvas",
+     "fg": "#B7B4AE",
+     "bg": "#13110F",
+     "ratio": 9.11,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "secondary / canvas-elevated",
+     "fg": "#B7B4AE",
+     "bg": "#181513",
+     "ratio": 8.79,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "tertiary / surface (неактивное)",
+     "fg": "#898680",
+     "bg": "#1E1B18",
+     "ratio": 4.72,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "tertiary / canvas (будущие дни)",
+     "fg": "#898680",
+     "bg": "#13110F",
+     "ratio": 5.19,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "graphic (шеврон, столбик) / surface",
+     "fg": "#78726C",
+     "bg": "#1E1B18",
+     "ratio": 3.61,
+     "need": 3.0,
+     "ok": true
+    },
+    {
+     "pair": "ink / стекло над canvas",
+     "fg": "#EFECE7",
+     "bg": "#292521",
+     "ratio": 12.91,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / стекло над surface",
+     "fg": "#EFECE7",
+     "bg": "#2D2924",
+     "ratio": 12.26,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / стекло над aura-shalfey",
+     "fg": "#EFECE7",
+     "bg": "#263127",
+     "ratio": 11.49,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / стекло над tile-krapplak",
+     "fg": "#EFECE7",
+     "bg": "#704751",
+     "ratio": 6.58,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / стекло над tile-slanets",
+     "fg": "#EFECE7",
+     "bg": "#4F5459",
+     "ratio": 6.49,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / стекло над heat-4",
+     "fg": "#EFECE7",
+     "bg": "#6C6660",
+     "ratio": 4.81,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "secondary / стекло над canvas (сегменты, таб-бар)",
+     "fg": "#B7B4AE",
+     "bg": "#292521",
+     "ratio": 7.35,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "secondary / стекло над аурой",
+     "fg": "#B7B4AE",
+     "bg": "#263127",
+     "ratio": 6.55,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "placeholder / стекло-in над листом",
+     "fg": "#96928B",
+     "bg": "#2D2924",
+     "ratio": 4.66,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / активная пилюля сегмента",
+     "fg": "#EFECE7",
+     "bg": "#4B4743",
+     "ratio": 7.81,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "on-ink / главное действие (ink .92)",
+     "fg": "#1E1B18",
+     "bg": "#DDDAD6",
+     "ratio": 12.3,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "ink / стекло Reduce Transparency",
+     "fg": "#EFECE7",
+     "bg": "#26221F",
+     "ratio": 13.39,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "destructive / стекло",
+     "fg": "#EA6C5C",
+     "bg": "#292521",
+     "ratio": 4.92,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "destructive / surface",
+     "fg": "#EA6C5C",
+     "bg": "#1E1B18",
+     "ratio": 5.55,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "фокус-кольцо ink / canvas",
+     "fg": "#EFECE7",
+     "bg": "#13110F",
+     "ratio": 15.99,
+     "need": 3.0,
+     "ok": true
+    },
+    {
+     "pair": "фокус-кольцо ink / surface",
+     "fg": "#EFECE7",
+     "bg": "#1E1B18",
+     "ratio": 14.55,
+     "need": 3.0,
+     "ok": true
+    },
+    {
+     "pair": "подпись на Виридон (графит)",
+     "fg": "#221D18",
+     "bg": "#308F8E",
+     "ratio": 4.33,
+     "need": 4.5,
+     "ok": false,
+     "note": "как в светлой: подпись на тоне не инвертируется (DESIGN допускает 4,3)"
+    },
+    {
+     "pair": "цифры на heat-0",
+     "fg": "#EFECE7",
+     "bg": "#1E1B18",
+     "ratio": 14.55,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "цифры на heat-1",
+     "fg": "#EFECE7",
+     "bg": "#352F29",
+     "ratio": 11.21,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "цифры на heat-2",
+     "fg": "#EFECE7",
+     "bg": "#4D4740",
+     "ratio": 7.78,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "цифры на heat-3",
+     "fg": "#EFECE7",
+     "bg": "#68625B",
+     "ratio": 5.11,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "цифры на heat-4",
+     "fg": "#1E1B18",
+     "bg": "#C3BCB6",
+     "ratio": 9.13,
+     "need": 4.5,
+     "ok": true
+    },
+    {
+     "pair": "heat-1 vs heat-0",
+     "fg": "#352F29",
+     "bg": "#1E1B18",
+     "ratio": 1.3,
+     "need": 1.2,
+     "ok": true
+    },
+    {
+     "pair": "heat-2 vs heat-1",
+     "fg": "#4D4740",
+     "bg": "#352F29",
+     "ratio": 1.44,
+     "need": 1.2,
+     "ok": true
+    },
+    {
+     "pair": "heat-3 vs heat-2",
+     "fg": "#68625B",
+     "bg": "#4D4740",
+     "ratio": 1.52,
+     "need": 1.2,
+     "ok": true
+    },
+    {
+     "pair": "heat-4 vs heat-3",
+     "fg": "#C3BCB6",
+     "bg": "#68625B",
+     "ratio": 3.21,
+     "need": 1.2,
+     "ok": true
+    }
+   ],
+   "openQuestions": [
+    "Подписи на тонах не инвертируются и наследуют светлые числа ниже 4,5:1: графит на Виридоне 4,33:1, бумага на Графите 4,27:1, на Охре ≈ 4:1 (бумага 4,09:1). Не решено.",
+    "Громкость тонов на тёмном 3,2–5,0:1 (Церулеум, Кобальт, Умбра, Пион тише) — сознательно: выравнивание ломает различимость соседей по оттенку.",
+    "Глубокие тёмные ступени Абрикоса и Охры коричневеют (#6B3E00, #5C4607); альтернатива «ступени светлее» даёт блик пастели и инверсию иерархии.",
+    "Клавиатура в макетах — имитация системной; значений тёмной клавиатуры iOS 26 у Apple нет, подобраны на глаз.",
+    "Линза «сегодня» на heat-4 (светлая клетка в тёмной, тёмная в светлой): цифры линзы ink/графит теряют контраст — нужен тёмный/светлый текст по клетке."
+   ]
+  }
  },
  "components": [
   {
@@ -1561,7 +2781,7 @@
    "name": "Сегмент периода",
    "kind": "nav",
    "refersTo": "segment-period",
-   "description": "Стеклянный выбор периода под шапкой; активная пилюля белая 92 %. SwiftUI: Picker .segmented внутри glassEffect или своя капсула с glassEffect.",
+   "description": "Стеклянный выбор периода под шапкой; активная пилюля белая 92 %. SwiftUI: Picker .segmented внутри glassEffect или своя капсула с glassEffect. Пятый пункт — свой период (рабочая подпись «Свой»), на главной и в статистике.",
    "html": "<div class=\"ds-st\"><div class=\"ds-seg\" role=\"group\"><button>День</button><button>Неделя</button><button class=\"on\" aria-pressed=\"true\">Месяц</button><button>Год</button></div></div>",
    "css": ".ds-st{padding:16px;width:358px;background:radial-gradient(60% 80% at 10% 0%,rgba(212,242,223,.85),rgba(212,242,223,0)),radial-gradient(60% 80% at 95% 0%,rgba(253,229,206,.9),rgba(253,229,206,0)),#F3F0EA} .ds-seg{display:flex;align-items:center;height:44px;border-radius:22px;padding:0 4px;background:rgba(255,255,255,.42);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.06),inset 0 0 0 .5px rgba(255,255,255,.6),0 8px 24px rgba(30,25,20,.14)} .ds-seg button{flex:1;height:36px;border:0;border-radius:18px;background:transparent;font:600 15px/20px -apple-system,\"SF Pro Text\",system-ui,sans-serif;color:#5F5A54;cursor:pointer;transition:background 160ms cubic-bezier(.23,1,.32,1)} .ds-seg button:hover{color:#221D18} .ds-seg button:focus-visible{outline:2px solid #221D18;outline-offset:2px} .ds-seg .on{background:rgba(255,255,255,.92);color:#221D18;box-shadow:0 2px 8px rgba(30,25,20,.12)}"
   },
@@ -1612,6 +2832,22 @@
    "description": "Заливка дня по шкале графита heat-0…4; сегодня — стеклянная линза поверх клетки.",
    "html": "<div class=\"ds-wk\"><button class=\"ds-cell\" style=\"background:#9F978F;color:#221D18\"><span>1</span><span>64</span></button><button class=\"ds-cell\" style=\"background:#4E4640;color:#FDFBF7\"><span>2</span><span>86</span></button><button class=\"ds-cell\" style=\"background:#9F978F;color:#221D18\"><span>3</span><span>53</span></button><button class=\"ds-cell\" style=\"background:#E6E0DA;color:#221D18\"><span>4</span><span>18</span></button><button class=\"ds-cell\" style=\"background:#9F978F;color:#221D18\"><span>5</span><span>72</span></button><button class=\"ds-cell\" style=\"background:#CAC3BB;color:#221D18\"><span>6</span><span>31</span></button><button class=\"ds-cell ds-today\" aria-current=\"date\" style=\"background:#9F978F\"><span class=\"ds-lens\"><b>8</b><span>57</span></span></button></div>",
    "css": ".ds-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:358px;padding:16px;background:#F3F0EA;font-family:-apple-system,\"SF Pro Text\",system-ui,sans-serif} .ds-cell{position:relative;height:52px;border:0;border-radius:6px;padding:6px 7px 7px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;font:600 13px/16px -apple-system,\"SF Pro Text\",system-ui,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer;box-shadow:inset 0 0 0 .5px rgba(34,29,24,.06),0 1px 2px rgba(34,29,24,.06)} .ds-cell span+span{font-weight:500} .ds-cell:focus-visible{outline:2px solid #221D18;outline-offset:2px} .ds-lens{position:absolute;inset:-6px;border-radius:12px;padding:9px 12px 11px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;color:#221D18;font:500 16px/20px \"Unbounded\",-apple-system,sans-serif;background:linear-gradient(160deg,rgba(255,255,255,.36),rgba(255,255,255,.1) 55%,rgba(255,255,255,.24));backdrop-filter:blur(1.5px) saturate(1.5) brightness(1.08);-webkit-backdrop-filter:blur(1.5px) saturate(1.5) brightness(1.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(34,29,24,.12),inset 0 0 0 .5px rgba(255,255,255,.75),0 10px 22px rgba(30,25,20,.22),0 2px 5px rgba(30,25,20,.14)} .ds-lens b{font:700 16px/20px -apple-system,\"SF Pro Text\",system-ui,sans-serif;text-decoration:underline 2px;text-underline-offset:3px}"
+  },
+  {
+   "name": "Стопка полос (статистика)",
+   "kind": "custom",
+   "refersTo": "strip-row",
+   "description": "Вид «Стопка полос»: строки 56 px сами служат списком групп, отдельного списка под визуализацией нет; раскрытие до подкатегорий — те же строки 56 px.",
+   "html": "<div class=\"ds-stv\"><button class=\"ds-srw\" aria-label=\"Продукты, 142,60 Br, 35%\"><span class=\"ds-spq\" style=\"background:#D4F2DF;color:#005D37\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"4\" y=\"8\" width=\"16\" height=\"12\" rx=\"3\" fill=\"currentColor\"/></svg></span><span class=\"ds-snm\">Продукты<span class=\"ds-spc\">35%</span></span><span class=\"ds-ssum\">142,60</span><span class=\"ds-crd\" style=\"width:310px\"><span class=\"ds-hole\"></span><span class=\"ds-chip\" style=\"width:200px;background:#3E9B6B\"></span><span class=\"ds-chip\" style=\"width:57px;background:#63B688\"></span><span class=\"ds-chip\" style=\"width:32px;background:#83CEA3\"></span></span></button><button class=\"ds-srw\" aria-label=\"Другое, 25,61 Br, 6%, без подкатегорий\"><span class=\"ds-spq\" style=\"background:#EAE9E6;color:#4E4D4A\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\" fill=\"currentColor\"/></svg></span><span class=\"ds-snm\">Другое<span class=\"ds-spc\">6%</span></span><span class=\"ds-ssum\">25,61</span><span class=\"ds-crd\" style=\"width:68px\"><span class=\"ds-hole\"></span><span class=\"ds-chip\" style=\"width:52px;background:repeating-linear-gradient(-45deg,#797875 0,#797875 1.6px,#D9D7D2 1.6px,#D9D7D2 4px)\"></span></span></button></div>",
+   "css": ".ds-stv{position:relative;width:358px;background:#FDFBF7;font-family:-apple-system,system-ui,sans-serif}.ds-srw{position:relative;display:block;width:358px;height:56px;border:0;padding:0;background:none;text-align:left;cursor:pointer}.ds-spq{position:absolute;left:0;top:10px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:transform 160ms cubic-bezier(.23,1,.32,1)}.ds-srw:active .ds-spq{transform:scale(.92)}.ds-srw:focus-visible{outline:2px solid #221D18;outline-offset:2px}.ds-snm{position:absolute;left:48px;top:5px;font-size:15px;line-height:20px;font-weight:600;color:#221D18;white-space:nowrap}.ds-spc{margin-left:6px;font-size:13px;font-weight:500;color:#5F5A54;font-variant-numeric:tabular-nums}.ds-ssum{position:absolute;right:0;top:5px;font-family:Unbounded,-apple-system,sans-serif;font-size:15px;line-height:20px;font-weight:500;color:#221D18;font-variant-numeric:tabular-nums}.ds-crd{position:absolute;left:48px;top:31px;height:18px;box-sizing:border-box;padding:2px 2px 2px 14px;display:flex;gap:2px;background:#FDFBF7;border-radius:8px 3px 3px 8px;box-shadow:0 0 0 .5px rgba(34,29,24,.12),0 1px 2px rgba(34,29,24,.16)}.ds-hole{position:absolute;left:5px;top:7px;width:4px;height:4px;border-radius:2px;background:rgba(34,29,24,.16);box-shadow:inset 0 .5px 1px rgba(34,29,24,.35)}.ds-chip{display:block;flex:none;height:14px;border-radius:1.5px}"
+  },
+  {
+   "name": "Шапка своего периода",
+   "kind": "nav",
+   "refersTo": "range-days",
+   "description": "Свой период на главной и в статистике: дни Unbounded 22/600, месяц Unbounded 17/500 secondary, ▾ ведёт в шит выбора периода; ‹ › шагают на длину диапазона.",
+   "html": "<div class=\"ds-rh\"><button class=\"ds-rb\" aria-label=\"5–7 октября, свой период, выбрать период\"><span class=\"ds-rd\">5–7</span><span class=\"ds-rm\">окт</span><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 9l6 6 6-6\" fill=\"none\" stroke=\"#221D18\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button><div class=\"ds-rn\"><button aria-label=\"Предыдущие 3 дня, 2–4 октября\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M15 6l-6 6 6 6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button><button aria-label=\"Следующие 3 дня, 8–10 октября\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M9 6l6 6-6 6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button></div></div>",
+   "css": ".ds-rh{display:flex;align-items:center;justify-content:space-between;width:358px;height:44px;padding:8px;background:#F3F0EA}.ds-rb{display:flex;align-items:baseline;height:44px;border:0;background:none;color:#221D18;cursor:pointer;white-space:nowrap}.ds-rb svg{align-self:center;margin-left:4px}.ds-rd{font-family:Unbounded,-apple-system,sans-serif;font-size:22px;font-weight:600;letter-spacing:-0.01em;font-variant-numeric:tabular-nums}.ds-rm{font-family:Unbounded,-apple-system,sans-serif;font-size:17px;font-weight:500;color:#5F5A54;margin-left:5px}.ds-rn{display:flex;border-radius:22px;background:rgba(255,255,255,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 0 0 .5px rgba(255,255,255,.6),0 8px 24px rgba(30,25,20,.14)}.ds-rn button{width:44px;height:44px;border:0;background:none;color:#221D18;cursor:pointer}.ds-rn button:disabled{color:rgba(34,29,24,.28)}.ds-rb:focus-visible,.ds-rn button:focus-visible{outline:2px solid #221D18;outline-offset:2px}"
   }
  ],
  "narrative": {
@@ -1642,7 +2878,7 @@
    },
    {
     "name": "Правило подписи",
-    "body": "Текст на основном тоне — графитом или paper-surface, по контрасту. Графит — на Краплаке, Киновари, Абрикосе, Оливке, Шалфее, Виридоне, Ультрамарине, Аметисте, Сланце (4,3–4,9:1). Светлый — на Церулеуме, Кобальте, Пионе, Умбре, Графите (4,3–5,5:1). Белый на светлых тонах даёт только ≈ 3,4:1 — нельзя. На Охре оба варианта ≈ 4:1: подпись не мельче 15 px medium или вынести в легенду.",
+    "body": "Текст на основном тоне — графитом или paper-surface, по контрасту. Графит — на Краплаке, Киновари, Абрикосе, Оливке, Шалфее, Виридоне, Ультрамарине, Аметисте, Сланце (4,3–4,9:1). Светлый — на Церулеуме, Кобальте, Пионе, Умбре, Графите (4,3–5,5:1). Белый на светлых тонах даёт только ≈ 3,4:1 — нельзя. На Охре оба варианта ≈ 4:1: подпись не мельче 15 px medium или вынести в легенду. Подпись на тоне не инвертируется: в тёмной теме — тот же графит или бумага по тону, что и в светлой.",
     "section": "colors"
    },
    {
@@ -1657,7 +2893,7 @@
    },
    {
     "name": "Правило видимого стекла",
-    "body": "Стекло стоит только там, где под ним проходит цветной контент или аура. Текст на стекле — не мельче 15 px semibold (подписи таб-бара 11 px — исключение). При «Понижении прозрачности» стекло становится paper-surface 96 %.",
+    "body": "Стекло стоит только там, где под ним проходит цветной контент или аура. Текст на стекле — не мельче 15 px semibold (подписи таб-бара 11 px — исключение). При «Понижении прозрачности» стекло становится paper-surface 96 % (в тёмной — night-glass 96 %).",
     "section": "elevation"
    },
    {
