@@ -12,11 +12,7 @@ enum BackupFixture {
     static let coffeeNote = "Кофе ☕️ и круассан 🥐 — «вкусно»"
 
     static func makeContainer() throws -> ModelContainer {
-        try ModelContainer(
-            for: Schema(versionedSchema: SchemaV2.self),
-            migrationPlan: ExpenseMigrationPlan.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
+        try ModelContainerFactory.make(inMemory: true)
     }
 
     struct Seed {

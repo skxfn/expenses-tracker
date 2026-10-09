@@ -5,12 +5,7 @@ import Testing
 
 @Suite struct SchemaTests {
     @Test func inMemoryContainerStoresExpenseWithCategory() throws {
-        let schema = Schema(versionedSchema: SchemaV2.self)
-        let container = try ModelContainer(
-            for: schema,
-            migrationPlan: ExpenseMigrationPlan.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
+        let container = try ModelContainerFactory.make(inMemory: true)
         let context = ModelContext(container)
         let food = ExpenseCategory(name: "Еда", iconName: "cart", colorHex: "#34C759", sortOrder: 0)
         context.insert(food)
