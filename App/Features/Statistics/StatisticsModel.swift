@@ -94,7 +94,7 @@ final class StatisticsModel {
     /// Итог периода по всем категориям — для центра диаграммы.
     var periodTotalMinor: Int64 { categoryRows.reduce(0) { $0 + $1.totalMinor } }
 
-    var title: String { period.title(now: now, calendar: engine.calendar) }
+    var title: String { RussianDateFormatter(calendar: engine.calendar, now: now).title(for: period).text }
 
     /// Вперёд можно листать только до периода, в который попадает сегодняшний день.
     var canShowNext: Bool { period.interval.end <= now }
@@ -124,7 +124,7 @@ final class StatisticsModel {
     /// Заголовок предыдущего периода: подпись его итога и линии накопительного графика.
     /// Заголовки, а не «этот/прошлый»: при листании назад «этот месяц» был бы неправдой.
     var previousTitle: String {
-        period.previous(in: engine.calendar).title(now: now, calendar: engine.calendar)
+        RussianDateFormatter(calendar: engine.calendar, now: now).title(for: period.previous(in: engine.calendar)).text
     }
 
     // MARK: - Действия
@@ -211,7 +211,7 @@ final class StatisticsModel {
         switch filter {
         case .all, .uncategorized:
             .uncategorized
-        case .category(let id):
+        case .category(let id), .group(let id):
             source.categories[id] ?? .uncategorized
         }
     }

@@ -112,22 +112,27 @@ import Testing
     // MARK: - ExpenseRecord
 
     @Test func recordFromSwiftDataExpense() throws {
-        let container = try ModelContainer(
-            for: Schema(versionedSchema: SchemaV2.self),
-            migrationPlan: ExpenseMigrationPlan.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
+        let container = try ModelContainerFactory.make(inMemory: true)
         let context = ModelContext(container)
         let category = ExpenseCategory(name: "Еда", iconName: "cart", colorHex: "#34C759", sortOrder: 0)
+        let bread = ExpenseCategory(name: "Хлеб", iconName: "cart", colorHex: "#34C759", sortOrder: 0, parent: category)
         let expense = Expense(amountMinor: 1_250, date: F.now, category: category)
+        let breadExpense = Expense(amountMinor: 300, date: F.now, category: bread)
         let orphan = Expense(amountMinor: 99, date: F.now, category: nil)
         context.insert(category)
+        context.insert(bread)
         context.insert(expense)
+        context.insert(breadExpense)
         context.insert(orphan)
 
         let record = ExpenseRecord(expense)
         #expect(record == ExpenseRecord(id: expense.id, amountMinor: 1_250, date: F.now, categoryID: category.id))
+        #expect(record.groupID == category.id)
+        let breadRecord = ExpenseRecord(breadExpense)
+        #expect(breadRecord.categoryID == bread.id)
+        #expect(breadRecord.groupID == category.id)
         #expect(ExpenseRecord(orphan).categoryID == nil)
+        #expect(ExpenseRecord(orphan).groupID == nil)
     }
 
     @Test func categoryFilterMatches() {
@@ -139,5 +144,13 @@ import Testing
         #expect(!StatsCategoryFilter.category(F.transport).matches(food))
         #expect(StatsCategoryFilter.uncategorized.matches(none))
         #expect(!StatsCategoryFilter.uncategorized.matches(food))
+
+        let bread = UUID()
+        let breadRecord = ExpenseRecord(amountMinor: 1, date: F.now, categoryID: bread, groupID: F.food)
+        #expect(StatsCategoryFilter.group(F.food).matches(breadRecord))
+        #expect(StatsCategoryFilter.group(F.food).matches(food))
+        #expect(!StatsCategoryFilter.group(F.food).matches(none))
+        #expect(!StatsCategoryFilter.category(F.food).matches(breadRecord))
+        #expect(StatsCategoryFilter.category(bread).matches(breadRecord))
     }
 }

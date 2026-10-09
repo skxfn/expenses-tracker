@@ -11,6 +11,13 @@ public struct BackupPayload: Codable, Equatable, Sendable {
     public var currencyCode: String
     public var categories: [CategoryRecord]
     public var expenses: [ExpenseRecord]
+    /// Версия формата файла, если он старый и при чтении переведён в текущий (`import.v1`);
+    /// `nil` — файл текущего формата. В файл не пишется.
+    public internal(set) var convertedFromFormatVersion: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case formatVersion, exportedAt, currencyCode, categories, expenses
+    }
 
     public init(exportedAt: Date, currencyCode: String, categories: [CategoryRecord], expenses: [ExpenseRecord]) {
         self.formatVersion = BackupFormat.currentVersion
@@ -30,6 +37,8 @@ extension BackupPayload {
         public var sortOrder: Int
         public var isArchived: Bool
         public var createdAt: Date
+        /// `nil` — категория верхнего уровня; иначе id родителя из этого же файла.
+        public var parentID: UUID?
 
         public init(
             id: UUID,
@@ -38,7 +47,8 @@ extension BackupPayload {
             colorHex: String,
             sortOrder: Int,
             isArchived: Bool,
-            createdAt: Date
+            createdAt: Date,
+            parentID: UUID? = nil
         ) {
             self.id = id
             self.name = name
@@ -47,6 +57,7 @@ extension BackupPayload {
             self.sortOrder = sortOrder
             self.isArchived = isArchived
             self.createdAt = BackupFormat.normalized(createdAt)
+            self.parentID = parentID
         }
     }
 
@@ -92,7 +103,8 @@ extension BackupPayload.CategoryRecord {
             colorHex: category.colorHex,
             sortOrder: category.sortOrder,
             isArchived: category.isArchived,
-            createdAt: category.createdAt
+            createdAt: category.createdAt,
+            parentID: category.parent?.id
         )
     }
 }

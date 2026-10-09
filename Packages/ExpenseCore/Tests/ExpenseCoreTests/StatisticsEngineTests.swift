@@ -15,8 +15,10 @@ import Testing
         // 1–8 октября; трата 20 октября в среднюю не входит: (3000 + 2000 + 4000 + 1000) / 8.
         #expect(summary.averagedDayCount == 8)
         #expect(summary.averagePerDayMinor == 1_250)
-        #expect(summary.previousTotalMinor == 12_000)
-        #expect(summary.change == 0.25)
+        // «К той же дате»: с 1–8 сентября, а там трат нет.
+        #expect(summary.comparisonInterval == DateInterval(start: F.date(2026, 9, 1), end: F.date(2026, 9, 9)))
+        #expect(summary.previousTotalMinor == 0)
+        #expect(summary.change == nil)
     }
 
     @Test func summaryOfPastMonthUsesAllDays() {
@@ -43,11 +45,8 @@ import Testing
         #expect(food.totalMinor == 12_000)
         #expect(food.count == 3)
         #expect(food.averagePerDayMinor == 875)
-        #expect(food.previousTotalMinor == 10_000)
-        #expect(food.change == 0.2)
-
-        let transport = engine.summary(for: F.october, records: F.records, now: F.now, filter: .category(F.transport))
-        #expect(transport.change == 0)
+        #expect(food.previousTotalMinor == 0)
+        #expect(food.change == nil)
 
         let uncategorized = engine.summary(for: F.october, records: F.records, now: F.now, filter: .uncategorized)
         #expect(uncategorized.totalMinor == 1_000)
@@ -90,7 +89,7 @@ import Testing
         (Int64(5), 0, Int64(0))
     ])
     func divideRoundedHalfAwayFromZero(value: Int64, divisor: Int, expected: Int64) {
-        #expect(StatisticsEngine.divideRounded(value, by: divisor) == expected)
+        #expect(Money.divideRounded(value, by: divisor) == expected)
     }
 
     // MARK: - Категории

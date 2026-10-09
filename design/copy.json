@@ -3554,6 +3554,40 @@
      "rewritten": false
     },
     {
+     "id": "settings.about.licenses",
+     "element": "строка «Лицензии» и заголовок экрана",
+     "context": "Раздел «О приложении»: одна строка вместо «Лицензия иконок» (settings.about.icons), ведёт на экран с двумя блоками — иконки и шрифт, у каждого полный текст лицензии. Тот же текст — заголовок экрана.",
+     "current": "Лицензия иконок",
+     "proposed": "Лицензии",
+     "alternatives": [],
+     "why": "Лицензий две — MingCute (Apache 2.0) и Unbounded (OFL); строка называет экран целиком. Рекомендация INTEGRATION §8 п. 8.",
+     "ref": "design/INTEGRATION.md §8 п. 8",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "Лицензии",
+     "rewritten": false
+    },
+    {
+     "id": "settings.licenses.fonts",
+     "element": "экран лицензий: шрифт",
+     "context": "Второй блок экрана «Лицензии», под строкой — полный текст OFL (App/Resources/Fonts/OFL.txt). Построен как settings.licenses.",
+     "current": "",
+     "proposed": "Шрифт сумм и месяцев — Unbounded, лицензия SIL Open Font License 1.1.",
+     "alternatives": [
+      "Шрифт — Unbounded, лицензия SIL Open Font License 1.1."
+     ],
+     "why": "В copy.json не было текста для Unbounded (INTEGRATION §8 п. 8). Unbounded в приложении — только суммы и название месяца (DESIGN.md), поэтому «сумм и месяцев».",
+     "ref": "design/INTEGRATION.md §8 п. 8",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "Шрифт сумм и месяцев — Unbounded, лицензия SIL Open Font License 1.1.",
+     "rewritten": false
+    },
+    {
      "id": "currency.title",
      "element": "заголовок выбора валюты",
      "context": "Настройки → Валюта (макета нет).",

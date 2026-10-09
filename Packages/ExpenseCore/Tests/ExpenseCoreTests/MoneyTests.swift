@@ -97,6 +97,76 @@ struct MoneyTests {
     }
 }
 
+/// Режимы показа сумм (design/INTEGRATION.md §5.2) на `ru_RU`. `_` в ожиданиях — U+00A0.
+struct MoneyFormatterStyleTests {
+    private let byn = MoneyFormatter(currencyCode: "BYN", locale: Locale(identifier: "ru_RU"))
+
+    private func format(_ minor: Int64, _ style: MoneyFormatter.Style) -> String {
+        byn.string(fromMinor: minor, style: style).replacingOccurrences(of: "\u{00A0}", with: "_")
+    }
+
+    @Test func phraseUsesBrAndDropsZeroCents() {
+        #expect(format(3_800, .phrase) == "38_Br")
+        #expect(format(41_230, .phrase) == "412,30_Br")
+        #expect(format(120_050, .phrase) == "1_200,50_Br")
+        #expect(byn.string(fromMinor: 3_800) == byn.string(fromMinor: 3_800, style: .phrase))
+    }
+
+    @Test func plainAlwaysHasTwoDigitsWithoutSymbol() {
+        #expect(format(3_800, .plain) == "38,00")
+        #expect(format(5, .plain) == "0,05")
+        #expect(format(123_450, .plain) == "1_234,50")
+    }
+
+    @Test func approximateRoundsToWholeUnits() {
+        #expect(format(74_240, .approximate) == "≈_742_Br")
+        #expect(format(74_250, .approximate) == "≈_743_Br")
+        #expect(format(160_000, .approximate) == "≈_1_600_Br")
+    }
+
+    @Test func differenceUsesMagnitudeAndWholeUnitsFromThousand() {
+        #expect(format(-3_800, .difference) == "38_Br")
+        #expect(format(2_380, .difference) == "23,80_Br")
+        #expect(format(99_999, .difference) == "999,99_Br")
+        #expect(format(100_000, .difference) == "1_000_Br")
+        #expect(format(-103_850, .difference) == "1_039_Br")
+        #expect(!format(.min, .difference).isEmpty)
+    }
+
+    @Test(arguments: [
+        (Int64(6_410), "64,10"),
+        (9_999, "99,99"),
+        (10_000, "100"),
+        (99_999, "1_000"),
+        (100_000, "1_000"),
+        (123_449, "1_234"),
+        (999_960, "10_тыс"),
+        (1_234_567, "12_тыс"),
+        (1_250_000, "13_тыс")
+    ])
+    func calendarCell(minor: Int64, expected: String) {
+        #expect(format(minor, .calendarCell) == expected)
+    }
+
+    @Test func noNarrowOrRegularSpacesInRussianOutput() {
+        let samples = [Int64(1), 99_999, 123_456_789].flatMap { minor in
+            [MoneyFormatter.Style.phrase, .plain, .approximate, .difference, .calendarCell].map {
+                byn.string(fromMinor: minor, style: $0)
+            }
+        }
+        for sample in samples {
+            #expect(!sample.unicodeScalars.contains { $0 == " " || $0 == "\u{202F}" }, "\(sample)")
+        }
+    }
+
+    @Test func belarusianRegionKeepsSystemSymbol() {
+        let ruBY = MoneyFormatter(currencyCode: "BYN", locale: Locale(identifier: "ru_BY"))
+        #expect(ruBY.string(fromMinor: 3_800) == "38\u{00A0}Br")
+        let usd = MoneyFormatter(currencyCode: "USD", locale: Locale(identifier: "ru_RU"))
+        #expect(usd.string(fromMinor: 3_800) == "38\u{00A0}$")
+    }
+}
+
 struct CurrencySettingsTests {
     @Test(arguments: [("ru_BY", "BYN"), ("en_US", "USD"), ("de_DE", "EUR"), ("ru", "BYN")])
     func defaultCodeComesFromRegion(identifier: String, expected: String) {

@@ -18,17 +18,18 @@ struct ExpenseDaySection: Identifiable {
 struct ExpensesListContent {
     let sections: [ExpenseDaySection]
     let monthTotalMinor: Int64
-    /// «Октябрь 2026 г.»
+    /// «Октябрь»
     let monthTitle: String
 
     /// - Parameter expenses: отсортированы от новых к старым.
     init(expenses: [Expense], now: Date = .now, calendar: Calendar = .autoupdatingCurrent) {
+        let dates = RussianDateFormatter(calendar: calendar, now: now)
         let byDay = Dictionary(grouping: expenses) { calendar.startOfDay(for: $0.date) }
         sections = byDay
             .map { day, items in
                 ExpenseDaySection(
                     day: day,
-                    title: StatsPeriod.current(.day, now: day, calendar: calendar).title(now: now, calendar: calendar),
+                    title: dates.title(for: .current(.day, now: day, calendar: calendar)).text,
                     expenses: items,
                     totalMinor: items.reduce(0) { $0 + $1.amountMinor }
                 )
@@ -39,6 +40,6 @@ struct ExpensesListContent {
         monthTotalMinor = expenses.reduce(0) { total, expense in
             month.contains(expense.date) ? total + expense.amountMinor : total
         }
-        monthTitle = month.title(now: now, calendar: calendar)
+        monthTitle = dates.title(for: month).text
     }
 }

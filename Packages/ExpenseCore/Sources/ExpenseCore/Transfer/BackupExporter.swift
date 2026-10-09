@@ -12,10 +12,11 @@ public enum BackupExporter {
         try BackupFormat.makeEncoder().encode(makePayload(from: context, currencyCode: currencyCode, exportedAt: exportedAt))
     }
 
-    /// Имя файла по умолчанию: `expenses-backup-YYYY-MM-DD.json` (дата по григорианскому календарю в `timeZone`).
+    /// Имя файла по умолчанию: «Траты YYYY-MM-DD» (`app.backupFileName`, дата по григорианскому
+    /// календарю в `timeZone`). Без расширения: `.fileExporter` сам дописывает `.json` по типу.
     public static func defaultFileName(for date: Date = .now, timeZone: TimeZone = .current) -> String {
         let day = Date.ISO8601FormatStyle(dateSeparator: .dash, timeZone: timeZone).year().month().day()
-        return "expenses-backup-\(date.formatted(day)).json"
+        return "Траты \(date.formatted(day))"
     }
 
     /// Порядок записей стабильный, чтобы одинаковые данные давали одинаковый файл.

@@ -49,4 +49,38 @@ public enum Money {
         guard !multiplyOverflow, !addOverflow, total > 0 else { return nil }
         return total
     }
+
+    /// Целочисленное деление с округлением половины от нуля. При `divisor <= 0` — 0.
+    static func divideRounded(_ value: Int64, by divisor: Int) -> Int64 {
+        guard divisor > 0 else { return 0 }
+        let divisor = Int64(divisor)
+        let quotient = value / divisor
+        let remainder = value % divisor
+        guard remainder.magnitude * 2 >= divisor.magnitude else { return quotient }
+        return quotient + (value < 0 ? -1 : 1)
+    }
+
+    /// Округление до целых единиц валюты (половина — от нуля): `74_250` → `74_300`.
+    static func roundedToWholeUnits(_ minor: Int64) -> Int64 {
+        divideRounded(minor, by: Int(minorUnitsPerMajor)) * minorUnitsPerMajor
+    }
+
+    /// Округление до `digits` значащих цифр в целых единицах, но не мельче единицы:
+    /// `158_000` (1 580) → `160_000` (1 600) при двух цифрах; `8_745` (87,45) → `8_700` (87).
+    static func roundedToSignificantDigits(_ minor: Int64, digits: Int) -> Int64 {
+        var step = minorUnitsPerMajor
+        var limit = minorUnitsPerMajor
+        for _ in 0..<max(digits, 1) {
+            let (next, overflow) = limit.multipliedReportingOverflow(by: 10)
+            guard !overflow else { return roundedToWholeUnits(minor) }
+            limit = next
+        }
+        while minor.magnitude >= limit.magnitude {
+            let (nextLimit, overflow) = limit.multipliedReportingOverflow(by: 10)
+            guard !overflow else { break }
+            step *= 10
+            limit = nextLimit
+        }
+        return divideRounded(minor, by: Int(step)) * step
+    }
 }

@@ -1,24 +1,28 @@
 /// Шаблон категории без привязки к хранилищу.
 public struct CategoryTemplate: Hashable, Sendable {
     public let name: String
+    /// Имя иконки MingCute.
     public let iconName: String
-    public let colorHex: String
+    public let tone: GouacheTone
+
+    /// Цвет в данных — основной hex тона.
+    public var colorHex: String { tone.mainHex }
 }
 
-/// Базовые категории, которые создаются при первом запуске.
+/// Базовые категории, которые создаются при первом запуске (`design/migration.json` → `defaultCategories`).
 public enum DefaultCategories {
     public static let all: [CategoryTemplate] = [
-        CategoryTemplate(name: "Продукты", iconName: "cart.fill", colorHex: "#2E9D63"),
-        CategoryTemplate(name: "Кафе и рестораны", iconName: "fork.knife", colorHex: "#DD6B20"),
-        CategoryTemplate(name: "Транспорт", iconName: "bus.fill", colorHex: "#3E7BE6"),
-        CategoryTemplate(name: "Жильё и ЖКХ", iconName: "house.fill", colorHex: "#A0674B"),
-        CategoryTemplate(name: "Связь и интернет", iconName: "wifi", colorHex: "#0B93B8"),
-        CategoryTemplate(name: "Здоровье", iconName: "cross.case.fill", colorHex: "#E5484D"),
-        CategoryTemplate(name: "Развлечения", iconName: "theatermasks.fill", colorHex: "#8E4EC6"),
-        CategoryTemplate(name: "Одежда", iconName: "tshirt.fill", colorHex: "#D6409F"),
-        CategoryTemplate(name: "Подписки", iconName: "repeat.circle.fill", colorHex: "#5B5BD6"),
-        CategoryTemplate(name: "Подарки", iconName: "gift.fill", colorHex: "#C2185B"),
-        CategoryTemplate(name: "Образование", iconName: "graduationcap.fill", colorHex: "#B8860B"),
-        CategoryTemplate(name: "Другое", iconName: "ellipsis.circle.fill", colorHex: "#8B8D98")
+        CategoryTemplate(name: "Продукты", iconName: "basket-fill", tone: .shalfey),
+        CategoryTemplate(name: "Кафе", iconName: "fork-knife-fill", tone: .abrikos),
+        CategoryTemplate(name: "Транспорт", iconName: "bus-fill", tone: .kobalt),
+        CategoryTemplate(name: "Дом", iconName: "home-4-fill", tone: .umbra),
+        CategoryTemplate(name: "Связь", iconName: "wifi-fill", tone: .tseruleum),
+        CategoryTemplate(name: "Здоровье", iconName: "capsule-fill", tone: .kinovar),
+        CategoryTemplate(name: "Развлечения", iconName: "celebrate-fill", tone: .ametist),
+        CategoryTemplate(name: "Одежда", iconName: "t-shirt-fill", tone: .pion),
+        CategoryTemplate(name: "Подписки", iconName: "repeat-fill", tone: .ultramarin),
+        CategoryTemplate(name: "Подарки", iconName: "gift-fill", tone: .krapplak),
+        CategoryTemplate(name: "Образование", iconName: "mortarboard-fill", tone: .okhra),
+        CategoryTemplate(name: "Другое", iconName: "more-3-fill", tone: .grafit)
     ]
 }
