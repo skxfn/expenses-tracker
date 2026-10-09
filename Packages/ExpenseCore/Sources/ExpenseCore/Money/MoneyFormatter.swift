@@ -59,9 +59,9 @@ public struct MoneyFormatter: Sendable {
 
     /// Разница во фразе от 1 000 единиц — целыми.
     static let differenceWholeUnitsFromMinor: Int64 = 100_000
-    /// Клетка календаря: копейки — только до 1 000 (design/INTEGRATION.md §5.2).
-    /// В design/copy.json → `cal.cell.amount.why` граница другая — 100; согласовать с владельцем.
-    static let calendarCellWholeUnitsFromMinor: Int64 = 100_000
+    /// Клетка календаря: копейки — только до 100 (design/copy.json → `cal.cell.amount.why`;
+    /// тексты главнее INTEGRATION.md §5.2, где указано 1 000).
+    static let calendarCellWholeUnitsFromMinor: Int64 = 10_000
     /// Клетка календаря: от 10 000 — «тыс».
     static let calendarCellThousandsFromMinor: Int64 = 1_000_000
 
