@@ -3,7 +3,14 @@ import Foundation
 /// Параметры JSON-формата резервной копии: версия, кодировщики, представление дат.
 enum BackupFormat {
     /// Текущая версия формата. Повышать только при несовместимом изменении структуры файла.
-    static let currentVersion = 1
+    /// 2 — подкатегории (`parentID`), цвета «Гуаши», иконки MingCute. Формат 1 читается с переводом.
+    static let currentVersion = 2
+
+    /// Самая старая версия, которую приложение читает.
+    static let oldestReadableVersion = 1
+
+    /// Ключи с датами: ошибка в них — «неверная дата» (`error.backup.detail.badDate`).
+    static let dateKeys: Set<String> = ["exportedAt", "date", "createdAt", "updatedAt"]
 
     /// ISO 8601 в UTC с миллисекундами: `2026-10-08T09:15:42.120Z`.
     /// При чтении принимает и даты без долей секунды, и со смещением (`+03:00`).

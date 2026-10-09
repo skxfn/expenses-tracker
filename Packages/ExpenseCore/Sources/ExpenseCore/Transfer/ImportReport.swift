@@ -30,6 +30,8 @@ public struct ImportReport: Equatable, Sendable {
     public var expenses = Counts()
     /// Расходы, чья категория не нашлась ни в файле, ни (при `.merge`) в базе: загружены без категории.
     public var expensesWithMissingCategory = 0
+    /// Файл прошлого формата: цвета и иконки категорий переведены на новые (`import.v1`).
+    public var isFromPreviousFormat = false
     /// Валюта из файла. Применять ли её — решает UI.
     public let currencyCode: String
 

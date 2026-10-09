@@ -18,7 +18,7 @@ struct ExpenseStoreTests {
     // MARK: - Расходы
 
     @Test func addExpenseTrimsNoteAndSaves() throws {
-        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: "#2E9D63")
+        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
         let date = Date(timeIntervalSince1970: 1_000)
 
         let expense = try store.addExpense(amountMinor: 1250, date: date, note: "  обед \n", category: food)
@@ -40,8 +40,8 @@ struct ExpenseStoreTests {
     }
 
     @Test func updateExpenseChangesFieldsAndUpdatedAt() throws {
-        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: "#2E9D63")
-        let taxi = try store.addCategory(name: "Такси", iconName: "car.fill", colorHex: "#3E7BE6")
+        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
+        let taxi = try store.addCategory(name: "Такси", iconName: "car.fill", colorHex: GouacheTone.kobalt.mainHex)
         let expense = try store.addExpense(amountMinor: 100, date: .now, category: food)
         expense.updatedAt = .distantPast
         let newDate = Date(timeIntervalSince1970: 5_000)
@@ -68,7 +68,7 @@ struct ExpenseStoreTests {
     }
 
     @Test func deleteExpenseKeepsCategory() throws {
-        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: "#2E9D63")
+        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
         let expense = try store.addExpense(amountMinor: 100, date: .now, category: food)
 
         try store.deleteExpense(expense)
@@ -110,8 +110,8 @@ struct ExpenseStoreTests {
     // MARK: - Категории
 
     @Test func addCategoryTrimsNameAndAppendsToEnd() throws {
-        let first = try store.addCategory(name: "  Еда ", iconName: "cart.fill", colorHex: "#2E9D63")
-        let second = try store.addCategory(name: "Такси", iconName: "car.fill", colorHex: "#3E7BE6")
+        let first = try store.addCategory(name: "  Еда ", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
+        let second = try store.addCategory(name: "Такси", iconName: "car.fill", colorHex: GouacheTone.kobalt.mainHex)
 
         #expect(first.name == "Еда")
         #expect(first.sortOrder == 0)
@@ -122,29 +122,29 @@ struct ExpenseStoreTests {
     @Test(arguments: ["", "   ", "\n"])
     func addCategoryRejectsEmptyName(name: String) throws {
         #expect(throws: ExpenseStoreError.emptyCategoryName) {
-            try store.addCategory(name: name, iconName: "cart.fill", colorHex: "#2E9D63")
+            try store.addCategory(name: name, iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
         }
     }
 
     @Test func addCategoryRejectsDuplicateIgnoringCase() throws {
-        try store.addCategory(name: "Продукты", iconName: "cart.fill", colorHex: "#2E9D63")
+        try store.addCategory(name: "Продукты", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
 
         #expect(throws: ExpenseStoreError.duplicateCategoryName("пРОДУКТЫ")) {
-            try store.addCategory(name: " пРОДУКТЫ ", iconName: "bag.fill", colorHex: "#3E7BE6")
+            try store.addCategory(name: " пРОДУКТЫ ", iconName: "bag.fill", colorHex: GouacheTone.kobalt.mainHex)
         }
         #expect(try store.allCategories().count == 1)
     }
 
     @Test func addCategoryAllowsNameOfArchivedCategory() throws {
-        let old = try store.addCategory(name: "Кофе", iconName: "cup.and.saucer.fill", colorHex: "#A0674B")
+        let old = try store.addCategory(name: "Кофе", iconName: "cup.and.saucer.fill", colorHex: GouacheTone.umbra.mainHex)
         try store.archiveCategory(old)
 
-        let new = try store.addCategory(name: "кофе", iconName: "cup.and.saucer.fill", colorHex: "#A0674B")
+        let new = try store.addCategory(name: "кофе", iconName: "cup.and.saucer.fill", colorHex: GouacheTone.umbra.mainHex)
 
         #expect(try store.activeCategories().map(\.id) == [new.id])
     }
 
-    @Test(arguments: ["2E9D63", "#2E9D6", "#GGGGGG", ""])
+    @Test(arguments: ["2E9D63", "#2E9D6", "#GGGGGG", "", "#2E9D63"])
     func addCategoryRejectsInvalidColor(hex: String) throws {
         #expect(throws: ExpenseStoreError.invalidColorHex(hex)) {
             try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: hex)
@@ -152,24 +152,24 @@ struct ExpenseStoreTests {
     }
 
     @Test func updateCategoryKeepsOwnNameButRejectsOthers() throws {
-        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: "#2E9D63")
-        try store.addCategory(name: "Такси", iconName: "car.fill", colorHex: "#3E7BE6")
+        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
+        try store.addCategory(name: "Такси", iconName: "car.fill", colorHex: GouacheTone.kobalt.mainHex)
 
-        try store.updateCategory(food, name: "ЕДА", iconName: "basket.fill", colorHex: "#DD6B20")
+        try store.updateCategory(food, name: "ЕДА", iconName: "basket.fill", colorHex: GouacheTone.abrikos.mainHex)
         #expect(food.name == "ЕДА")
         #expect(food.iconName == "basket.fill")
-        #expect(food.colorHex == "#DD6B20")
+        #expect(food.colorHex == GouacheTone.abrikos.mainHex)
 
         #expect(throws: ExpenseStoreError.duplicateCategoryName("такси")) {
-            try store.updateCategory(food, name: "такси", iconName: "cart.fill", colorHex: "#2E9D63")
+            try store.updateCategory(food, name: "такси", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
         }
         #expect(food.name == "ЕДА")
     }
 
     @Test func archiveHidesCategoryAndUnarchiveMovesItToEnd() throws {
-        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: "#2E9D63")
-        let taxi = try store.addCategory(name: "Такси", iconName: "car.fill", colorHex: "#3E7BE6")
-        let gifts = try store.addCategory(name: "Подарки", iconName: "gift.fill", colorHex: "#C2185B")
+        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
+        let taxi = try store.addCategory(name: "Такси", iconName: "car.fill", colorHex: GouacheTone.kobalt.mainHex)
+        let gifts = try store.addCategory(name: "Подарки", iconName: "gift.fill", colorHex: GouacheTone.krapplak.mainHex)
 
         try store.archiveCategory(food)
         #expect(try store.activeCategories().map(\.id) == [taxi.id, gifts.id])
@@ -180,9 +180,9 @@ struct ExpenseStoreTests {
     }
 
     @Test func unarchiveRejectsNameTakenByActiveCategory() throws {
-        let old = try store.addCategory(name: "Кофе", iconName: "cup.and.saucer.fill", colorHex: "#A0674B")
+        let old = try store.addCategory(name: "Кофе", iconName: "cup.and.saucer.fill", colorHex: GouacheTone.umbra.mainHex)
         try store.archiveCategory(old)
-        try store.addCategory(name: "КОФЕ", iconName: "cup.and.saucer.fill", colorHex: "#A0674B")
+        try store.addCategory(name: "КОФЕ", iconName: "cup.and.saucer.fill", colorHex: GouacheTone.umbra.mainHex)
 
         #expect(throws: ExpenseStoreError.duplicateCategoryName("Кофе")) {
             try store.unarchiveCategory(old)
@@ -198,7 +198,7 @@ struct ExpenseStoreTests {
     ])
     func moveCategoriesFollowsOnMoveSemantics(source: IndexSet, destination: Int, expected: [String]) throws {
         for name in ["A", "B", "C", "D"] {
-            try store.addCategory(name: name, iconName: "tag.fill", colorHex: "#8B8D98")
+            try store.addCategory(name: name, iconName: "tag.fill", colorHex: GouacheTone.grafit.mainHex)
         }
 
         try store.moveCategories(fromOffsets: source, toOffset: destination)
@@ -207,9 +207,9 @@ struct ExpenseStoreTests {
     }
 
     @Test func moveCategoriesKeepsArchivedAfterActive() throws {
-        let archived = try store.addCategory(name: "Архив", iconName: "tag.fill", colorHex: "#8B8D98")
+        let archived = try store.addCategory(name: "Архив", iconName: "tag.fill", colorHex: GouacheTone.grafit.mainHex)
         for name in ["A", "B", "C"] {
-            try store.addCategory(name: name, iconName: "tag.fill", colorHex: "#8B8D98")
+            try store.addCategory(name: name, iconName: "tag.fill", colorHex: GouacheTone.grafit.mainHex)
         }
         try store.archiveCategory(archived)
 
@@ -221,8 +221,8 @@ struct ExpenseStoreTests {
     }
 
     @Test func deleteCategoryReassignsExpenses() throws {
-        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: "#2E9D63")
-        let other = try store.addCategory(name: "Другое", iconName: "tag.fill", colorHex: "#8B8D98")
+        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
+        let other = try store.addCategory(name: "Другое", iconName: "tag.fill", colorHex: GouacheTone.grafit.mainHex)
         let expense = try store.addExpense(amountMinor: 100, date: .now, category: food)
         expense.updatedAt = .distantPast
 
@@ -235,7 +235,7 @@ struct ExpenseStoreTests {
     }
 
     @Test func deleteCategoryWithoutTargetLeavesExpensesUncategorized() throws {
-        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: "#2E9D63")
+        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
         try store.addExpense(amountMinor: 100, date: .now, category: food)
         try store.addExpense(amountMinor: 200, date: .now, category: food)
 
@@ -248,7 +248,7 @@ struct ExpenseStoreTests {
     }
 
     @Test func deleteCategoryRejectsItselfAsTarget() throws {
-        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: "#2E9D63")
+        let food = try store.addCategory(name: "Еда", iconName: "cart.fill", colorHex: GouacheTone.shalfey.mainHex)
 
         #expect(throws: ExpenseStoreError.invalidReassignTarget) {
             try store.deleteCategory(food, reassignTo: food)
@@ -284,7 +284,7 @@ struct ExpenseStoreTests {
 
     @Test func seedSkipsWhenCategoriesAlreadyExist() throws {
         let temporary = try TemporaryDefaults()
-        try store.addCategory(name: "Своя", iconName: "tag.fill", colorHex: "#8B8D98")
+        try store.addCategory(name: "Своя", iconName: "tag.fill", colorHex: GouacheTone.grafit.mainHex)
 
         try store.seedDefaultCategoriesIfNeeded(defaults: temporary.defaults)
 

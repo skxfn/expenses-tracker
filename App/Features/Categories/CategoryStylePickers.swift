@@ -1,7 +1,7 @@
 import SwiftUI
 import ExpenseCore
 
-/// Свотчи цветов из `CategoryPalette`.
+/// Свотчи цветов «Гуаши» (`GouacheTone`).
 struct ColorSwatchPicker: View {
     @Binding var selection: String
 
@@ -9,7 +9,7 @@ struct ColorSwatchPicker: View {
 
     var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: size + 10), spacing: 8)], spacing: 8) {
-            ForEach(Array(CategoryPalette.colors.enumerated()), id: \.element) { index, hex in
+            ForEach(Array(GouacheTone.allCases.map(\.mainHex).enumerated()), id: \.element) { index, hex in
                 let isSelected = hex.caseInsensitiveCompare(selection) == .orderedSame
                 Button {
                     selection = hex
@@ -30,7 +30,7 @@ struct ColorSwatchPicker: View {
                         }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Цвет \(index + 1) из \(CategoryPalette.colors.count)")
+                .accessibilityLabel("Цвет \(index + 1) из \(GouacheTone.allCases.count)")
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
