@@ -5,7 +5,7 @@ import Testing
 
 @Suite struct SchemaTests {
     @Test func inMemoryContainerStoresExpenseWithCategory() throws {
-        let schema = Schema(versionedSchema: SchemaV1.self)
+        let schema = Schema(versionedSchema: SchemaV2.self)
         let container = try ModelContainer(
             for: schema,
             migrationPlan: ExpenseMigrationPlan.self,

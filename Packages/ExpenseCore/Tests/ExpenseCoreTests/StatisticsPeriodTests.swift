@@ -113,7 +113,7 @@ import Testing
 
     @Test func recordFromSwiftDataExpense() throws {
         let container = try ModelContainer(
-            for: Schema(versionedSchema: SchemaV1.self),
+            for: Schema(versionedSchema: SchemaV2.self),
             migrationPlan: ExpenseMigrationPlan.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )

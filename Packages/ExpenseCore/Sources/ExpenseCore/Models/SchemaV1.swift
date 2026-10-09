@@ -75,12 +75,3 @@ public enum SchemaV1: VersionedSchema {
         }
     }
 }
-
-public typealias ExpenseCategory = SchemaV1.ExpenseCategory
-public typealias Expense = SchemaV1.Expense
-
-/// План миграций. Новую версию схемы добавлять сюда вместе со стадией миграции.
-public enum ExpenseMigrationPlan: SchemaMigrationPlan {
-    public static var schemas: [any VersionedSchema.Type] { [SchemaV1.self] }
-    public static var stages: [MigrationStage] { [] }
-}
