@@ -442,6 +442,16 @@ components:
 ### Period Picker
 Шит: готовые периоды капсулами, строка «С … → По …» (SF 17 semibold) и «· N дней ≈ сумма», календарь на листе. Концы диапазона — графитовые круги 48 px с текстом paper-surface, середина — полоса графит 10 %.
 
+### Motion & Haptics
+Движение тихое и короткое: уход быстрее появления, пружины без отскока. Полные параметры лежат в `.impeccable/design.json` → `extensions.motion` и `extensions.haptics`.
+- **Общие токены:** press — scale 0,97, `.easeOut(duration: 0.12)` (в HTML-макетах 160 мс; не для стекла с `.interactive()`); select — `.snappy(duration: 0.22)`; morph — `.spring(duration: 0.4, bounce: 0.12)`; enter — `.spring(duration: 0.32, bounce: 0)`; exit — `.easeOut(duration: 0.18)`; number — `.snappy(duration: 0.25)` + `.contentTransition(.numericText(value:))` + `.monospacedDigit()`.
+- **Визуализации категорий:** раскрытие группы ≈ 480–560 мс, `.spring(response: 0.5, dampingFraction: 0.86)` (кривая (.32,.72,0,1)). Оттенки подкатегорий проявляются со стаггером 0,14 + 0,06·i с, `.spring(response: 0.35, dampingFraction: 0.9)`. Сворачивание быстрее: за 120 мс гаснут оттенки, затем форма, `.spring(response: 0.35, dampingFraction: 0.9)` (≈ 340–420 мс). Смена вида — 320 мс, `.blurReplace` + `.scale(0.97)`, `.smooth(duration: 0.3)`. Пилюля сегмента и переключателя едет через `matchedGeometryEffect`, `.spring(response: 0.32, dampingFraction: 0.86)`. Подсказка дня на графике — `.snappy(duration: 0.24)`.
+- **Запись:** шит открывается зумом из «+» (`.navigationTransition(.zoom(sourceID:in:))` + `matchedTransitionSource`). После «Сохранить» новая строка влетает сверху с подсветкой tint категории 12 % (гаснет за 0,8 с), итог прокручивает цифры. «Ещё одна»: сумма улетает вверх (y −24, opacity 0, blur 4, 0,22 с easeOut), пилюля пакета пересчитывается, клавиатура не прячется. Сохранение без суммы — тряска keyframes x 0, −8, 8, −5, 5, 0 за 0,3 с.
+- **Удаление:** строка схлопывается, появляется стеклянный тост «Удалено · Отменить» на 4 с; таймер на паузе, пока палец на тосте. Удаление фиксируется по таймеру, уходу в фон или следующему удалению.
+- **Без анимации:** набор цифр суммы, переключение вкладок, появление клавиатуры, переходы в настройках, обычный скролл.
+- **Haptics (`.sensoryFeedback`):** `.selection` — дискретный выбор (категория, дата, период, день, цвет, иконка, перебор сегментов); `.impact(weight: .light, intensity: 0.7)` — быстрая сумма, «Отменить»; `.impact(weight: .medium)` — «Ещё одна», long press; `.success` — «Сохранить»; `.error` — сохранение без суммы; `.warning` — удаление категории.
+- **Reduce Motion:** вместо всего перечисленного — только opacity 160–200 мс; тряска, полёт и стаггер отключаются.
+
 ## Do's and Don'ts
 
 ### Do:

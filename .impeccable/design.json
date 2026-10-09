@@ -1360,18 +1360,111 @@
   "motion": [
    {
     "name": "press",
-    "value": "160ms cubic-bezier(.23,1,.32,1)",
-    "purpose": "Отклик нажатия: scale .97 плитки, .985 строки, .94 кружки; при «Уменьшении движения» отключён."
+    "value": "scale 0.97, 120ms ease-out (HTML: 160ms cubic-bezier(.23,1,.32,1))",
+    "swiftUI": ".easeOut(duration: 0.12)",
+    "purpose": "Отклик нажатия; плитки .97, строки .985, кружки .94. Не для стекла с .interactive()."
    },
    {
-    "name": "swatch-select",
-    "value": "translateY(-8px) + цветная тень",
-    "purpose": "Выбор образца категории (длительность в макетах не задана)."
+    "name": "select",
+    "value": "220ms snappy",
+    "swiftUI": ".snappy(duration: 0.22)",
+    "purpose": "Дискретный выбор: образец, дата, период."
+   },
+   {
+    "name": "morph",
+    "value": "400ms, bounce 0.12",
+    "swiftUI": ".spring(duration: 0.4, bounce: 0.12)",
+    "purpose": "Смена формы/геометрии."
+   },
+   {
+    "name": "enter",
+    "value": "320ms, bounce 0",
+    "swiftUI": ".spring(duration: 0.32, bounce: 0)",
+    "purpose": "Появление."
+   },
+   {
+    "name": "exit",
+    "value": "180ms ease-out",
+    "swiftUI": ".easeOut(duration: 0.18)",
+    "purpose": "Уход — быстрее появления."
+   },
+   {
+    "name": "number",
+    "value": "250ms snappy + numericText",
+    "swiftUI": ".snappy(duration: 0.25) + .contentTransition(.numericText(value:)) + .monospacedDigit()",
+    "purpose": "Смена сумм и итогов."
+   },
+   {
+    "name": "viz-expand",
+    "value": "≈480–560ms, cubic-bezier(.32,.72,0,1)",
+    "swiftUI": ".spring(response: 0.5, dampingFraction: 0.86)",
+    "purpose": "Раскрытие группы в статистике (все четыре вида)."
+   },
+   {
+    "name": "viz-shades-stagger",
+    "value": "delay 0.14 + 0.06·i s",
+    "swiftUI": ".spring(response: 0.35, dampingFraction: 0.9).delay(0.14 + 0.06 * i)",
+    "purpose": "Проявление оттенков подкатегорий."
+   },
+   {
+    "name": "viz-collapse",
+    "value": "оттенки гаснут 120ms, затем форма; итого ≈340–420ms",
+    "swiftUI": ".spring(response: 0.35, dampingFraction: 0.9)",
+    "purpose": "Сворачивание группы."
+   },
+   {
+    "name": "viz-switch",
+    "value": "320ms: opacity + scale 0.97 + blur 6px",
+    "swiftUI": ".transition(.blurReplace.combined(with: .scale(0.97))) + .smooth(duration: 0.3)",
+    "purpose": "Смена вида визуализации."
+   },
+   {
+    "name": "segment-pill",
+    "value": "matchedGeometryEffect",
+    "swiftUI": ".spring(response: 0.32, dampingFraction: 0.86)",
+    "purpose": "Пилюля сегмента и переключателя."
+   },
+   {
+    "name": "chart-tooltip",
+    "value": "240ms snappy",
+    "swiftUI": ".snappy(duration: 0.24)",
+    "purpose": "Подсказка дня на графике."
    },
    {
     "name": "add-sheet-open",
-    "value": "зум из круга «+»",
-    "purpose": "Открытие шита записи; SwiftUI .navigationTransition(.zoom(sourceID:in:)). Параметры пружины в макетах не заданы."
+    "value": "zoom из круга «+»",
+    "swiftUI": ".navigationTransition(.zoom(sourceID:in:)) + .matchedTransitionSource(id:in:)",
+    "purpose": "Открытие шита записи."
+   },
+   {
+    "name": "save-reward",
+    "value": "новая строка влетает сверху, подсветка tint категории 12% гаснет за 0.8s; итог прокручивает цифры",
+    "swiftUI": "enter + number; подсветка .easeOut(duration: 0.8)",
+    "purpose": "Награда после «Сохранить» (вместе с haptic .success)."
+   },
+   {
+    "name": "another-one",
+    "value": "сумма: y −24, opacity 0, blur 4, 220ms ease-out; пилюля пакета считает; клавиатура остаётся",
+    "swiftUI": ".easeOut(duration: 0.22)",
+    "purpose": "«Ещё одна»."
+   },
+   {
+    "name": "error-shake",
+    "value": "keyframes x: 0, −8, 8, −5, 5, 0 за 0.3s",
+    "swiftUI": ".keyframeAnimator",
+    "purpose": "Сохранение без суммы (с haptic .error)."
+   },
+   {
+    "name": "delete-undo",
+    "value": "строка схлопывается; стеклянный тост «Удалено · Отменить» 4s, таймер на паузе под пальцем; фиксация по таймеру, уходу в фон или следующему удалению",
+    "swiftUI": "exit + enter для тоста",
+    "purpose": "Удаление траты."
+   },
+   {
+    "name": "reduce-motion",
+    "value": "только opacity 160–200ms",
+    "swiftUI": ".easeOut(duration: 0.18) по opacity",
+    "purpose": "Замена всех движений при Reduce Motion; тряска, полёт и стаггер отключаются."
    }
   ],
   "breakpoints": [
@@ -1406,7 +1499,46 @@
     "Другое": "more-3"
    },
    "dark": "плашка darktint, иконка цветом tint"
-  }
+  },
+  "motionNone": [
+   "набор цифр суммы",
+   "переключение вкладок",
+   "появление клавиатуры",
+   "переходы в настройках",
+   "обычный скролл"
+  ],
+  "haptics": [
+   {
+    "name": "selection",
+    "swiftUI": ".sensoryFeedback(.selection, trigger:)",
+    "when": "Дискретный выбор: категория, дата, период, день, цвет, иконка, перебор сегментов."
+   },
+   {
+    "name": "impact-light",
+    "swiftUI": ".sensoryFeedback(.impact(weight: .light, intensity: 0.7), trigger:)",
+    "when": "Быстрая сумма, «Отменить»."
+   },
+   {
+    "name": "impact-medium",
+    "swiftUI": ".sensoryFeedback(.impact(weight: .medium), trigger:)",
+    "when": "«Ещё одна», long press."
+   },
+   {
+    "name": "success",
+    "swiftUI": ".sensoryFeedback(.success, trigger:)",
+    "when": "«Сохранить»."
+   },
+   {
+    "name": "error",
+    "swiftUI": ".sensoryFeedback(.error, trigger:)",
+    "when": "Сохранение без суммы (с тряской)."
+   },
+   {
+    "name": "warning",
+    "swiftUI": ".sensoryFeedback(.warning, trigger:)",
+    "when": "Удаление категории."
+   }
+  ]
  },
  "components": [
   {
