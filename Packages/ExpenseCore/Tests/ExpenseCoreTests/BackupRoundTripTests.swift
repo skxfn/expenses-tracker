@@ -52,6 +52,19 @@ enum BackupFixture {
         return Seed(food: food, archived: archived, coffee: coffee, repair: repair, uncategorized: uncategorized)
     }
 
+    /// Подкатегория, как её создаёт `ExpenseStore`: тон родителя, связь — после insert.
+    @discardableResult
+    static func addSubcategory(_ name: String, to parent: ExpenseCategory, in context: ModelContext) throws -> ExpenseCategory {
+        let subcategory = ExpenseCategory(
+            name: name, iconName: "fork-knife-fill", colorHex: parent.colorHex, sortOrder: 10,
+            createdAt: baseDate.addingTimeInterval(5)
+        )
+        context.insert(subcategory)
+        subcategory.parent = parent
+        try context.save()
+        return subcategory
+    }
+
     static func payload(of context: ModelContext, currencyCode: String = "BYN") throws -> BackupPayload {
         try BackupExporter.makePayload(from: context, currencyCode: currencyCode, exportedAt: exportedAt)
     }
@@ -109,7 +122,9 @@ enum BackupFixture {
         let json = try #require(String(data: data, encoding: .utf8))
 
         #expect(json.contains("\n  \"categories\" : ["))
-        #expect(json.contains("\"formatVersion\" : 1"))
+        #expect(json.contains("\"formatVersion\" : 2"))
+        // У категорий верхнего уровня `parentID` в файл не пишется.
+        #expect(!json.contains("parentID"))
         #expect(json.contains("\"currencyCode\" : \"BYN\""))
         #expect(json.contains("\"exportedAt\" : \"2025-10-02T12:13:20.988Z\""))
         #expect(json.contains("\"createdAt\" : \"2025-10-01T08:26:40.123Z\""))
@@ -143,7 +158,7 @@ enum BackupFixture {
     @Test func importAcceptsIsoDatesWithoutFractionOrWithOffset() throws {
         let json = """
         {
-          "formatVersion": 1, "exportedAt": "2026-10-08T12:00:00Z", "currencyCode": "EUR", "categories": [],
+          "formatVersion": 2, "exportedAt": "2026-10-08T12:00:00Z", "currencyCode": "EUR", "categories": [],
           "expenses": [{
             "id": "8E2A7C55-3D0B-4F0E-9C61-2B1A50F1D001", "amountMinor": 500, "note": "",
             "date": "2026-10-08T15:30:00.5+03:00", "createdAt": "2026-10-08T12:00:00Z", "updatedAt": "2026-10-08T12:00:00Z"
@@ -161,7 +176,87 @@ enum BackupFixture {
         let minsk = try #require(TimeZone(identifier: "Europe/Minsk"))
         // 2026-10-08 22:30 UTC — в Минске уже 9 октября.
         let date = Date(timeIntervalSince1970: 1_791_498_600)
-        #expect(BackupExporter.defaultFileName(for: date, timeZone: minsk) == "expenses-backup-2026-10-09.json")
-        #expect(BackupExporter.defaultFileName(for: date, timeZone: .gmt) == "expenses-backup-2026-10-08.json")
+        #expect(BackupExporter.defaultFileName(for: date, timeZone: minsk) == "Траты 2026-10-09")
+        #expect(BackupExporter.defaultFileName(for: date, timeZone: .gmt) == "Траты 2026-10-08")
+    }
+
+    // MARK: - Формат 2: подкатегории
+
+    @Test func subcategoriesSurviveExportAndImport() throws {
+        let sourceContext = ModelContext(try BackupFixture.makeContainer())
+        let seed = try BackupFixture.seed(sourceContext)
+        let lunch = try BackupFixture.addSubcategory("Обеды", to: seed.food, in: sourceContext)
+        seed.coffee.category = lunch
+        try sourceContext.save()
+        let data = try BackupExporter.exportData(from: sourceContext, currencyCode: "BYN", exportedAt: BackupFixture.exportedAt)
+
+        let decoded = try BackupImporter.decode(data)
+        #expect(decoded.convertedFromFormatVersion == nil)
+        #expect(decoded.categories.first { $0.id == lunch.id }?.parentID == seed.food.id)
+
+        let target = try BackupFixture.makeContainer()
+        let report = try BackupImporter.apply(decoded, to: ModelContext(target), mode: .replace)
+        #expect(report.categories == .init(added: 3))
+        #expect(!report.isFromPreviousFormat)
+        #expect(try BackupFixture.storedPayload(of: target) == decoded)
+        let stored = try ModelContext(target).fetch(FetchDescriptor<ExpenseCategory>())
+        let food = try #require(stored.first { $0.id == seed.food.id })
+        #expect(food.children.map(\.id) == [lunch.id])
+
+        // Повторная загрузка того же файла слиянием ничего не меняет.
+        let again = try BackupImporter.apply(decoded, to: ModelContext(target), mode: .merge)
+        #expect(again.categories == .init(unchanged: 3))
+        #expect(again.expenses == .init(unchanged: 3))
+        #expect(try BackupFixture.storedPayload(of: target) == decoded)
+    }
+
+    // MARK: - Формат 1
+
+    /// Копия версии 1.0: цвета и иконки переводятся по migration.json, имена — нет, все категории верхнего уровня.
+    @Test func version1FileIsConvertedToCurrentFormat() throws {
+        let json = """
+        {
+          "formatVersion": 1, "exportedAt": "2026-10-08T12:00:00.000Z", "currencyCode": "BYN",
+          "categories": [
+            { "id": "1E2A7C55-3D0B-4F0E-9C61-2B1A50F1D001", "name": "Кафе и рестораны", "iconName": "fork.knife",
+              "colorHex": "#DD6B20", "sortOrder": 0, "isArchived": false, "createdAt": "2026-01-01T10:00:00.000Z" },
+            { "id": "1E2A7C55-3D0B-4F0E-9C61-2B1A50F1D002", "name": "Продукты", "iconName": "cart.fill",
+              "colorHex": "#2E9D63", "sortOrder": 1, "isArchived": false, "createdAt": "2026-01-01T10:00:00.000Z" },
+            { "id": "1E2A7C55-3D0B-4F0E-9C61-2B1A50F1D003", "name": "Хобби", "iconName": "star.fill",
+              "colorHex": "#FFCC00", "sortOrder": 2, "isArchived": true, "createdAt": "2026-01-01T10:00:00.000Z" }
+          ],
+          "expenses": [
+            { "id": "8E2A7C55-3D0B-4F0E-9C61-2B1A50F1D001", "amountMinor": 1250, "note": "Обед",
+              "categoryID": "1E2A7C55-3D0B-4F0E-9C61-2B1A50F1D001", "date": "2026-10-08T12:00:00.000Z",
+              "createdAt": "2026-10-08T12:00:00.000Z", "updatedAt": "2026-10-08T12:00:00.000Z" }
+          ]
+        }
+        """
+
+        let payload = try BackupImporter.decode(Data(json.utf8))
+
+        #expect(payload.formatVersion == BackupFormat.currentVersion)
+        #expect(payload.convertedFromFormatVersion == 1)
+        #expect(payload.categories.map(\.name) == ["Кафе и рестораны", "Продукты", "Хобби"])
+        #expect(payload.categories.map(\.colorHex) == [GouacheTone.abrikos, .shalfey, .okhra].map(\.mainHex))
+        #expect(payload.categories.map(\.iconName) == ["fork-knife-fill", "basket-fill", "more-3-fill"])
+        #expect(payload.categories.allSatisfy { $0.parentID == nil })
+        #expect(payload.categories.last?.isArchived == true)
+
+        let container = try BackupFixture.makeContainer()
+        let report = try BackupImporter.apply(payload, to: ModelContext(container), mode: .replace)
+        #expect(report.isFromPreviousFormat)
+        #expect(report.categories == .init(added: 3))
+        #expect(report.expenses == .init(added: 1))
+        #expect(report.expensesWithMissingCategory == 0)
+
+        // Экспорт после импорта — уже формат 2, повторный импорт его не переводит.
+        let exported = try BackupExporter.exportData(
+            from: ModelContext(container), currencyCode: "BYN", exportedAt: BackupFixture.exportedAt
+        )
+        let reread = try BackupImporter.decode(exported)
+        #expect(reread.convertedFromFormatVersion == nil)
+        #expect(reread.categories == (try BackupFixture.storedPayload(of: container)).categories)
+        #expect(Set(reread.categories.map(\.iconName)) == Set(payload.categories.map(\.iconName)))
     }
 }

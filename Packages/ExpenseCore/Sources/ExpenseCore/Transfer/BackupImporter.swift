@@ -5,6 +5,8 @@ import SwiftData
 public enum BackupImporter {
     /// Читает и проверяет файл, хранилище не трогает: результат можно показать пользователю
     /// (дата, валюта, число записей) до выбора режима импорта.
+    /// Файл формата 1 переводится в текущий (`convertedFromFormatVersion`): все категории — верхнего
+    /// уровня, цвета и иконки — по таблицам `design/migration.json`, имена не меняются.
     public static func decode(_ data: Data) throws(BackupError) -> BackupPayload {
         let decoder = BackupFormat.makeDecoder()
         // Версию читаем отдельно: файл новой версии может не совпадать по структуре с текущей.
@@ -12,15 +14,19 @@ public enum BackupImporter {
         do {
             version = try decoder.decode(VersionProbe.self, from: data).formatVersion
         } catch {
-            throw .unreadableFile(details: details(for: error))
+            // Без `formatVersion` (или с ним не того типа) — JSON, но не наш файл.
+            throw .unreadableFile(reason(for: error) == .notJSON ? .notJSON : .notBackup)
         }
-        guard version == BackupFormat.currentVersion else { throw .unsupportedFormatVersion(version) }
+        try checkVersion(version)
 
-        let payload: BackupPayload
+        var payload: BackupPayload
         do {
             payload = try decoder.decode(BackupPayload.self, from: data)
         } catch {
-            throw .unreadableFile(details: details(for: error))
+            throw .unreadableFile(reason(for: error))
+        }
+        if version < BackupFormat.currentVersion {
+            payload = convertedFromVersion1(payload)
         }
         try validate(payload)
         return payload
@@ -57,19 +63,49 @@ public enum BackupImporter {
         return report
     }
 
+    /// Payload текущего формата без дублей id, нулевых сумм и с иерархией глубины не больше 1:
+    /// родитель подкатегории есть в файле, это не она сама и он верхнего уровня.
     static func validate(_ payload: BackupPayload) throws(BackupError) {
-        guard payload.formatVersion == BackupFormat.currentVersion else {
-            throw .unsupportedFormatVersion(payload.formatVersion)
+        try checkVersion(payload.formatVersion)
+        guard payload.formatVersion == BackupFormat.currentVersion else { throw .unsupportedFormat }
+
+        var categoriesByID: [UUID: BackupPayload.CategoryRecord] = [:]
+        for category in payload.categories {
+            guard categoriesByID.updateValue(category, forKey: category.id) == nil else {
+                throw .duplicateCategoryID(category.id)
+            }
         }
-        var categoryIDs = Set<UUID>()
-        for category in payload.categories where !categoryIDs.insert(category.id).inserted {
-            throw .duplicateCategoryID(category.id)
+        for category in payload.categories {
+            guard let parentID = category.parentID else { continue }
+            guard parentID != category.id, let parent = categoriesByID[parentID], parent.parentID == nil else {
+                throw .invalidParent(categoryID: category.id)
+            }
         }
         var expenseIDs = Set<UUID>()
         for expense in payload.expenses {
             guard expenseIDs.insert(expense.id).inserted else { throw .duplicateExpenseID(expense.id) }
             guard expense.amountMinor > 0 else { throw .nonPositiveAmount(expenseID: expense.id) }
         }
+    }
+
+    /// Формат 1 → текущий: все категории верхнего уровня, цвета и иконки — по таблицам
+    /// `design/migration.json` (как при миграции хранилища V1 → V2), имена не меняются.
+    static func convertedFromVersion1(_ payload: BackupPayload) -> BackupPayload {
+        let categories = payload.categories.map { record in
+            var record = record
+            record.parentID = nil
+            record.colorHex = LegacyCatalogMigration.colorHex(forLegacy: record.colorHex)
+            record.iconName = LegacyCatalogMigration.iconName(forLegacy: record.iconName, categoryName: record.name)
+            return record
+        }
+        var converted = BackupPayload(
+            exportedAt: payload.exportedAt,
+            currencyCode: payload.currencyCode,
+            categories: categories,
+            expenses: payload.expenses
+        )
+        converted.convertedFromFormatVersion = payload.formatVersion
+        return converted
     }
 }
 
@@ -80,14 +116,35 @@ private extension BackupImporter {
         let formatVersion: Int
     }
 
+    /// Новее текущей — `newerFormat`, старше первой — `unsupportedFormat`.
+    static func checkVersion(_ version: Int) throws(BackupError) {
+        guard version <= BackupFormat.currentVersion else { throw .newerFormat }
+        guard version >= BackupFormat.oldestReadableVersion else { throw .unsupportedFormat }
+    }
+
     static func applyRecords(of payload: BackupPayload, mode: ImportMode, in context: ModelContext) throws -> ImportReport {
         var report = ImportReport(currencyCode: payload.currencyCode)
+        report.isFromPreviousFormat = payload.convertedFromFormatVersion != nil
         let storedCategories = indexByID(try context.fetch(FetchDescriptor<ExpenseCategory>()), id: \.id)
         let storedExpenses = indexByID(try context.fetch(FetchDescriptor<Expense>()), id: \.id)
 
+        // Два прохода: сначала категории верхнего уровня, затем подкатегории — их родитель уже загружен.
         var importedCategories: [UUID: ExpenseCategory] = [:]
-        for record in payload.categories {
-            importedCategories[record.id] = upsert(record, existing: storedCategories[record.id], in: context, counts: &report.categories)
+        let topLevelFirst = payload.categories.filter { $0.parentID == nil } + payload.categories.filter { $0.parentID != nil }
+        for record in topLevelFirst {
+            // Родитель проверен в validate: он есть в файле и идёт в первом проходе.
+            let parent = record.parentID.flatMap { importedCategories[$0] }
+            importedCategories[record.id] = upsert(
+                record, parent: parent, existing: storedCategories[record.id], in: context, counts: &report.categories
+            )
+        }
+        // Категория из файла стала подкатегорией, а в базе у неё остались свои подкатегории, которых
+        // нет в файле (только при слиянии): глубина была бы 2 — такие переходят к её родителю.
+        for category in importedCategories.values {
+            guard let parent = category.parent else { continue }
+            for child in Array(category.children) {
+                child.parent = parent
+            }
         }
 
         // При замене категории не из файла будут удалены — ссылаться на них нельзя.
@@ -120,6 +177,7 @@ private extension BackupImporter {
 
     static func upsert(
         _ record: BackupPayload.CategoryRecord,
+        parent: ExpenseCategory?,
         existing: ExpenseCategory?,
         in context: ModelContext,
         counts: inout ImportReport.Counts
@@ -134,7 +192,9 @@ private extension BackupImporter {
                 isArchived: record.isArchived,
                 createdAt: record.createdAt
             )
+            // Связь — после insert: так новый объект уже принадлежит контексту родителя.
             context.insert(category)
+            category.parent = parent
             counts.added += 1
             return category
         }
@@ -147,6 +207,7 @@ private extension BackupImporter {
             category.sortOrder = record.sortOrder
             category.isArchived = record.isArchived
             category.createdAt = record.createdAt
+            category.parent = parent
             counts.updated += 1
         }
         return category
@@ -203,27 +264,19 @@ private extension BackupImporter {
         Dictionary(models.map { (id($0), $0) }, uniquingKeysWith: { first, _ in first })
     }
 
-    /// Человекочитаемая причина ошибки декодирования, например «нет поля «expenses[2].date»».
-    static func details(for error: any Error) -> String {
-        guard let error = error as? DecodingError else { return error.localizedDescription }
+    /// Причина ошибки декодирования для `error.backup.detail.*`.
+    static func reason(for error: any Error) -> BackupError.UnreadableReason {
+        guard let error = error as? DecodingError else { return .notJSON }
         switch error {
-        case .keyNotFound(let key, let context):
-            return "нет поля «\(path(context.codingPath + [key]))»"
         case .dataCorrupted(let context) where context.codingPath.isEmpty:
-            return "файл повреждён или это не JSON"
+            return .notJSON
+        case .keyNotFound:
+            return .missingField
         case .typeMismatch(_, let context), .valueNotFound(_, let context), .dataCorrupted(let context):
-            return context.codingPath.isEmpty
-                ? "это не резервная копия трат"
-                : "неверное значение поля «\(path(context.codingPath))»"
+            guard let key = context.codingPath.last else { return .notBackup }
+            return BackupFormat.dateKeys.contains(key.stringValue) ? .badDate : .badValue
         @unknown default:
-            return error.localizedDescription
+            return .badValue
         }
-    }
-
-    static func path(_ codingPath: [any CodingKey]) -> String {
-        let path = codingPath
-            .map { key in key.intValue.map { "[\($0)]" } ?? ".\(key.stringValue)" }
-            .joined()
-        return String(path.trimmingPrefix("."))
     }
 }

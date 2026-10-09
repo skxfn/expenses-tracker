@@ -202,4 +202,77 @@ import Testing
         #expect(!context.hasChanges)
         #expect(try BackupFixture.storedPayload(of: container) == before)
     }
+
+    // MARK: - Подкатегории
+
+    /// Слияние меняет иерархию: категория уходит в подкатегории новой, подкатегория поднимается.
+    /// Подкатегория из базы, которой нет в файле, переходит к новому родителю — глубина не больше 1.
+    @Test func mergeAppliesHierarchyAndKeepsDepthOne() throws {
+        let container = try BackupFixture.makeContainer()
+        let context = ModelContext(container)
+        let seed = try BackupFixture.seed(context)
+        let lunch = try BackupFixture.addSubcategory("Обеды", to: seed.food, in: context)
+        let snack = try BackupFixture.addSubcategory("Перекусы", to: seed.food, in: context)
+
+        let drinks = newCategory("Еда и напитки")
+        var food = BackupPayload.CategoryRecord(seed.food)
+        food.parentID = drinks.id
+        var promoted = BackupPayload.CategoryRecord(lunch)
+        promoted.parentID = nil
+        let file = BackupPayload(exportedAt: .now, currencyCode: "BYN", categories: [food, promoted, drinks], expenses: [])
+
+        let report = try BackupImporter.apply(file, to: context, mode: .merge)
+
+        #expect(report.categories == .init(added: 1, updated: 2))
+        let stored = byID(try ModelContext(container).fetch(FetchDescriptor<ExpenseCategory>()), id: \.id)
+        #expect(stored[seed.food.id]?.parent?.id == drinks.id)
+        #expect(stored[lunch.id]?.parent == nil)
+        #expect(stored[snack.id]?.parent?.id == drinks.id)
+        #expect(stored.values.allSatisfy { $0.parent?.parent == nil })
+        #expect(stored[seed.food.id]?.children.isEmpty == true)
+    }
+
+    @Test func replaceRemovesSubcategoriesMissingFromFile() throws {
+        let container = try BackupFixture.makeContainer()
+        let context = ModelContext(container)
+        let seed = try BackupFixture.seed(context)
+        try BackupFixture.addSubcategory("Обеды", to: seed.food, in: context)
+        let file = BackupPayload(
+            exportedAt: .now, currencyCode: "BYN",
+            categories: [BackupPayload.CategoryRecord(seed.food)],
+            expenses: [BackupPayload.ExpenseRecord(seed.coffee)]
+        )
+
+        let report = try BackupImporter.apply(file, to: context, mode: .replace)
+
+        #expect(report.categories == .init(unchanged: 1, deleted: 2))
+        let stored = try BackupFixture.storedPayload(of: container)
+        #expect(stored.categories == file.categories)
+        #expect(stored.expenses == file.expenses)
+    }
+
+    @Test func failureRestoresHierarchy() throws {
+        let container = try BackupFixture.makeContainer()
+        let context = ModelContext(container)
+        let seed = try BackupFixture.seed(context)
+        let lunch = try BackupFixture.addSubcategory("Обеды", to: seed.food, in: context)
+        let before = try BackupFixture.payload(of: context)
+
+        let drinks = newCategory("Еда и напитки")
+        var food = BackupPayload.CategoryRecord(seed.food)
+        food.parentID = drinks.id
+        var promoted = BackupPayload.CategoryRecord(lunch)
+        promoted.parentID = nil
+        let file = BackupPayload(exportedAt: .now, currencyCode: "BYN", categories: [drinks, food, promoted], expenses: [])
+
+        #expect(throws: InjectedFailure.self) {
+            try BackupImporter.apply(file, to: context, mode: .merge, beforeCommit: { throw InjectedFailure() })
+        }
+
+        #expect(!context.hasChanges)
+        #expect(lunch.parent?.id == seed.food.id)
+        #expect(seed.food.parent == nil)
+        #expect(seed.food.children.map(\.id) == [lunch.id])
+        #expect(try BackupFixture.storedPayload(of: container) == before)
+    }
 }
