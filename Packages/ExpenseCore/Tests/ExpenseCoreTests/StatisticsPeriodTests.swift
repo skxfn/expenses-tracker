@@ -112,11 +112,7 @@ import Testing
     // MARK: - ExpenseRecord
 
     @Test func recordFromSwiftDataExpense() throws {
-        let container = try ModelContainer(
-            for: Schema(versionedSchema: SchemaV2.self),
-            migrationPlan: ExpenseMigrationPlan.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
+        let container = try ModelContainerFactory.make(inMemory: true)
         let context = ModelContext(container)
         let category = ExpenseCategory(name: "Еда", iconName: "cart", colorHex: "#34C759", sortOrder: 0)
         let bread = ExpenseCategory(name: "Хлеб", iconName: "cart", colorHex: "#34C759", sortOrder: 0, parent: category)

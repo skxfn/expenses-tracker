@@ -18,6 +18,8 @@
 - Дизайн (скилл impeccable) — холст https://claude.ai/artifact/Wkh9EydSQCAbkH1tYXHPDB, страницы «Итерация 2», «План интерфейса», «Итерация 1». Выбрано направление «Образцы»: бумага #F3F0EA + графит #221D18, цифры — Unbounded, UI — SF, цвет несут только данные. Продуктовый контекст для скилла — `PRODUCT.md`.
 - Палитра категорий — «Гуашь» (12 цветов одной громкости; значения — доска «Палитра «Гуашь» и иконки» на холсте) вместо `CategoryPalette`: большие площади только тинтами, насыщенный — мелкими элементами. Старые hex в данных и бэкапах переводить по таблице «старый → новый» (это замена значений, не новая схема).
 - Иконки категорий — MingCute Fill (Apache 2.0) вместо SF Symbols; в данных лежат имена SF Symbols — нужна таблица соответствий при запуске и в импортёре.
+- Иконки категорий в данных — имена MingCute = имена ассетов (`CategoryIconCatalog`, 77 шт.; 14 имён вне `migration.json` подобраны сверкой контуров макета `Obr-Category` с Iconify). Цвет категории — только основной тон `GouacheTone` (у подкатегории = тон родителя). Ступень оттенка подкатегории — позиция по `sortOrder` среди сестёр (архивные держат место), `index % 5`; перенос → в конец.
+- Резервная копия — формат 2; формат 1 переводится при чтении (`ImportReport.isFromPreviousFormat` → строка `import.v1`). Ошибки чтения — `BackupError.UnreadableReason`, `rawValue` → id `error.backup.detail.<rawValue>`.
 - Deployment target — iOS 26: Liquid Glass на всём «хроме», без `#available` и запасного вида.
 - Решения по экранам: тап по иконке категории на обзоре главного → статистика категории (там — анимация раскрытия); быстрые суммы фиксированные 5/10/20/50/100 и прибавляются к введённой; своя калькуляторная клавиатура отвергнута — системная цифровая.
 - Свой период — на главной и в статистике (пятый пункт сегмента): ‹ › сдвигают на длину диапазона (5–7 окт → 2–4 окт), сравнение — с предыдущим диапазоном той же длины. В виде «Стопка полос» отдельного списка групп нет: полосы сами список (имя, %, сумма).
@@ -39,7 +41,8 @@
 - SwiftData: `transaction {}` при ошибке не откатывает — нужен явный `rollback()`, после него заново выбрать модели (старые ссылки падают «model instance was invalidated»).
 - Даты в бэкапе — через `BackupFormat` (ISO 8601 с округлением до мс). `.iso8601`/наивный `ISO8601FormatStyle` теряют доли секунды и сдвигают дату на 1 мс за цикл.
 - `DateInterval.contains` включает `end` — для периодов не использовать.
-- Тестовые контейнеры — только через `ModelContainerFactory.make(inMemory: true)` или актуальную схему: контейнер на `SchemaV1` при typealias на V2 падает «Failed to cast model … to Expense».
+- Контейнеры (и в тестах) — только через `ModelContainerFactory` (`make(inMemory:)`, `make(storeURL:)`): там лок — параллельное открытие хранилищ одной схемы роняет Core Data (`_generateTriggerSQL`); контейнер на `SchemaV1` при typealias на V2 падает «Failed to cast model … to Expense».
+- Тестовое хранилище V1 писать через Core Data (`NSManagedObjectModel.makeManagedObjectModel(for: SchemaV1.models)` + `newBackgroundContext`), не классами `SchemaV1`: рядом с V2 SwiftData путает сущности и падает на `save`.
 - SideStore сверяет sha256, размер и version/build `.ipa` с `source.json`: ассет релиза не перезаливать без `update_source.py`.
 - Без подписи entitlements в `.app` не встраиваются — `build_ipa.sh` проверяет `CODE_SIGN_ENTITLEMENTS` проекта. `-showBuildSettings` — только с `-target` (со схемой без iOS-платформы падает).
 - Симулятор: `xcodebuild -scheme Expenses -destination 'platform=iOS Simulator,id=<udid>' -derivedDataPath <scratch>`; сборка через `-target … CODE_SIGNING_ALLOWED=NO` ставится, но `simctl launch` на ней зависает. В DEBUG: `-demoData YES` (демо-траты в пустую базу), `-debugTab statistics|settings`.
@@ -52,4 +55,3 @@
 - Swift Charts на iOS 17: свой тип `AxisContent` объявить нельзя — общие оси через функцию `some AxisContent`.
 - Устройство пользователя — iOS 27. SideStore нужен ≥ 0.7.0-alpha (0.6.4 и старше не логинятся после изменений Apple в сент. 2026). На iOS 27 шорткат «Refresh All Apps» может падать с ADI -45061 — обход: SideStore → Settings → User Customizations → Reset adi.db (SideStore#1596).
 - SideStore может дописать к Bundle ID `.<TeamID>`: ничего не хардкодить по bundle ID; смена Apple ID = новое пустое приложение (данные — только через бэкап).
-- Новые SF Symbols — только доступные в iOS ≤ 17.0 (сверка по `CoreGlyphs.bundle/.../name_availability.plist` в `CatalogTests`); `NSImage(systemSymbolName:)` на свежем macOS этого не гарантирует.
