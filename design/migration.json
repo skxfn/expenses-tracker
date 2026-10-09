@@ -1,0 +1,519 @@
+{
+  "version": 1,
+  "colors": [
+    {
+      "old": "#E5484D",
+      "new": "kinovar",
+      "newHex": "#D16E5A",
+      "note": "красный. ΔE_ok 7,3, Δh 10°"
+    },
+    {
+      "old": "#DD6B20",
+      "new": "abrikos",
+      "newHex": "#BE7C30",
+      "note": "оранжевый; по ΔE ближе kinovar (5,3), но он занят красным, а «Кафе» по DESIGN.md — Абрикос. ΔE_ok 6,1, Δh 18°"
+    },
+    {
+      "old": "#B8860B",
+      "new": "okhra",
+      "newHex": "#967729",
+      "note": "янтарный; по ΔE ближе abrikos (3,8), по оттенку и смыслу — Охра («Образование»). ΔE_ok 7,5, Δh 5°"
+    },
+    {
+      "old": "#789A2B",
+      "new": "olivka",
+      "newHex": "#759242",
+      "note": "оливковый. ΔE_ok 3,5, Δh 1°"
+    },
+    {
+      "old": "#2E9D63",
+      "new": "shalfey",
+      "newHex": "#3E9B6B",
+      "note": "зелёный. ΔE_ok 1,8, Δh 2°"
+    },
+    {
+      "old": "#109C8B",
+      "new": "viridon",
+      "newHex": "#308F8E",
+      "note": "бирюзовый. ΔE_ok 4,1, Δh 13°"
+    },
+    {
+      "old": "#0B93B8",
+      "new": "tseruleum",
+      "newHex": "#277594",
+      "note": "голубой; по ΔE ближе viridon (6,2), по оттенку — Церулеум. ΔE_ok 9,2, Δh 4°"
+    },
+    {
+      "old": "#3E7BE6",
+      "new": "kobalt",
+      "newHex": "#4569B4",
+      "note": "синий; по ΔE ближе ultramarin (7,2), по оттенку — Кобальт. ΔE_ok 8,4, Δh 3°"
+    },
+    {
+      "old": "#5B5BD6",
+      "new": "ultramarin",
+      "newHex": "#7585D9",
+      "note": "индиго; по ΔE ближе kobalt (7,1), по оттенку — Ультрамарин («Подписки»). ΔE_ok 11,6, Δh 4°"
+    },
+    {
+      "old": "#8E4EC6",
+      "new": "ametist",
+      "newHex": "#A978C1",
+      "note": "фиолетовый. ΔE_ok 11,6, Δh 8°"
+    },
+    {
+      "old": "#D6409F",
+      "new": "pion",
+      "newHex": "#9A4C7C",
+      "note": "розовый; по ΔE ближе krapplak (9,6), по оттенку — Пион («Одежда»). ΔE_ok 12,5, Δh 2°"
+    },
+    {
+      "old": "#C2185B",
+      "new": "krapplak",
+      "newHex": "#CE6C8D",
+      "note": "малиновый; по ΔE ближе pion (10,0) из-за светлоты, по оттенку — Краплак («Подарки»). ΔE_ok 14,3, Δh 6°"
+    },
+    {
+      "old": "#A0674B",
+      "new": "umbra",
+      "newHex": "#886248",
+      "note": "коричневый. ΔE_ok 4,6, Δh 9°"
+    },
+    {
+      "old": "#5F7C8A",
+      "new": "slanets",
+      "newHex": "#798DA3",
+      "note": "сланцевый; по ΔE ближе grafit (4,3), по смыслу и оттенку — Сланец. ΔE_ok 6,8, Δh 22°"
+    },
+    {
+      "old": "#8B8D98",
+      "new": "grafit",
+      "newHex": "#797875",
+      "note": "серый (C 0,016 — нейтраль); по ΔE ближе slanets (2,9). ΔE_ok 7,6, Δh не значим (серый)"
+    }
+  ],
+  "colorFallbackRule": "Сначала точное совпадение со списком colors (без учёта регистра). Иначе перевести hex в OKLCH: если цветность C < 0,03 — grafit; иначе — тон с минимальным расстоянием в плоскости a/b OKLab (ΔE без светлоты: √(Δa²+Δb²)) среди 14 тонов без grafit — это ближайший оттенок, взвешенный цветностью: приглушённые голубоватые уходят в slanets, коричневатые — в umbra, насыщенные — по оттенку. Невалидный hex — grafit. Правило на 15 старых цветах даёт ту же таблицу, кроме #DD6B20 (по правилу kinovar).",
+  "icons": [
+    {
+      "sfSymbol": "cart.fill",
+      "mingcute": "shopping-cart-1-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "basket.fill",
+      "mingcute": "basket-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "bag.fill",
+      "mingcute": "shopping-bag-1-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "fork.knife",
+      "mingcute": "fork-knife-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "cup.and.saucer.fill",
+      "mingcute": "teacup-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "takeoutbag.and.cup.and.straw.fill",
+      "mingcute": "fries-fill",
+      "note": "фастфуд навынос → «Картофель фри» из каталога; ближе по рисунку drink-fill (стакан с трубочкой), вне каталога"
+    },
+    {
+      "sfSymbol": "wineglass.fill",
+      "mingcute": "wineglass-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "birthday.cake.fill",
+      "mingcute": "cake-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "car.fill",
+      "mingcute": "car-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "bus.fill",
+      "mingcute": "bus-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "tram.fill",
+      "mingcute": "train-fill",
+      "note": "трамвая нет; «Поезд» из каталога (вид спереди — train-2-fill, вне каталога)"
+    },
+    {
+      "sfSymbol": "bicycle",
+      "mingcute": "bike-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "fuelpump.fill",
+      "mingcute": "gas-station-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "parkingsign.circle.fill",
+      "mingcute": "parking-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "airplane",
+      "mingcute": "airplane-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "suitcase.rolling.fill",
+      "mingcute": "suitcase-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "house.fill",
+      "mingcute": "home-4-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "sofa.fill",
+      "mingcute": "sofa-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "lightbulb.fill",
+      "mingcute": "bulb-fill",
+      "note": "в каталоге — «Электричество»"
+    },
+    {
+      "sfSymbol": "bolt.fill",
+      "mingcute": "bulb-fill",
+      "note": "по смыслу «Электричество» (в каталоге — лампа); совпадает с lightbulb.fill. Молния — flash-fill, вне каталога"
+    },
+    {
+      "sfSymbol": "drop.fill",
+      "mingcute": "drop-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "flame.fill",
+      "mingcute": "flame-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "washer.fill",
+      "mingcute": "wash-machine-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "wrench.and.screwdriver.fill",
+      "mingcute": "tool-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "wifi",
+      "mingcute": "wifi-fill",
+      "note": "тело на обводке (stroke 3, fill none), а не на заливке — в макетах рисуется так же"
+    },
+    {
+      "sfSymbol": "iphone",
+      "mingcute": "cellphone-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "laptopcomputer",
+      "mingcute": "laptop-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "tv.fill",
+      "mingcute": "tv-1-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "headphones",
+      "mingcute": "headphone-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "antenna.radiowaves.left.and.right",
+      "mingcute": "signal-fill",
+      "note": "антенны с волнами нет; мобильная связь — столбики сигнала; вне каталога. Альтернатива radio-fill"
+    },
+    {
+      "sfSymbol": "cross.case.fill",
+      "mingcute": "first-aid-kit-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "pills.fill",
+      "mingcute": "capsule-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "heart.fill",
+      "mingcute": "heart-fill",
+      "note": "вне каталога; heartbeat-fill («Пульс») — только линия пульса, без сердца"
+    },
+    {
+      "sfSymbol": "stethoscope",
+      "mingcute": "stethoscope-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "dumbbell.fill",
+      "mingcute": "barbell-fill",
+      "note": "рисунок — гантель"
+    },
+    {
+      "sfSymbol": "figure.run",
+      "mingcute": "run-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "leaf.fill",
+      "mingcute": "leaf-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "theatermasks.fill",
+      "mingcute": "celebrate-fill",
+      "note": "театральных масок в MingCute нет; хлопушка — иконка «Развлечений» по умолчанию. Альтернатива ticket-fill"
+    },
+    {
+      "sfSymbol": "film.fill",
+      "mingcute": "movie-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "music.note",
+      "mingcute": "music-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "gamecontroller.fill",
+      "mingcute": "game-2-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "ticket.fill",
+      "mingcute": "ticket-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "book.fill",
+      "mingcute": "book-2-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "paintpalette.fill",
+      "mingcute": "palette-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "beach.umbrella.fill",
+      "mingcute": "umbrella-2-fill",
+      "note": "пляжный зонт; вне каталога (umbrella-fill — зонт от дождя)"
+    },
+    {
+      "sfSymbol": "tshirt.fill",
+      "mingcute": "t-shirt-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "eyeglasses",
+      "mingcute": "eyeglass-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "scissors",
+      "mingcute": "scissors-fill",
+      "note": "вне каталога: в copy.json есть «Стрижка», в Obr-Category её нет"
+    },
+    {
+      "sfSymbol": "comb.fill",
+      "mingcute": "hair-fill",
+      "note": "расчёски нет; уход за волосами (причёска); вне каталога. Альтернатива scissors-fill"
+    },
+    {
+      "sfSymbol": "sparkles",
+      "mingcute": "sparkles-fill",
+      "note": "вне каталога; по смыслу «Косметика» было бы lipstick-fill"
+    },
+    {
+      "sfSymbol": "gift.fill",
+      "mingcute": "gift-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "person.2.fill",
+      "mingcute": "group-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "figure.and.child.holdinghands",
+      "mingcute": "baby-carriage-fill",
+      "note": "взрослого с ребёнком нет; «Коляска» из каталога (дети)"
+    },
+    {
+      "sfSymbol": "teddybear.fill",
+      "mingcute": "bear-fill",
+      "note": "голова плюшевого мишки; вне каталога. Альтернатива toy-horse-fill"
+    },
+    {
+      "sfSymbol": "pawprint.fill",
+      "mingcute": "paw-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "graduationcap.fill",
+      "mingcute": "mortarboard-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "creditcard.fill",
+      "mingcute": "bank-card-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "banknote.fill",
+      "mingcute": "cash-fill",
+      "note": "вне каталога (в каталоге «Копилка» — pig-money-fill)"
+    },
+    {
+      "sfSymbol": "building.columns.fill",
+      "mingcute": "bank-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "briefcase.fill",
+      "mingcute": "briefcase-fill",
+      "note": "вне каталога макета"
+    },
+    {
+      "sfSymbol": "doc.text.fill",
+      "mingcute": "bill-fill",
+      "note": "«Чек» из каталога; document-fill в Iconify скрыт (hidden)"
+    },
+    {
+      "sfSymbol": "repeat.circle.fill",
+      "mingcute": "repeat-fill",
+      "note": ""
+    },
+    {
+      "sfSymbol": "tag.fill",
+      "mingcute": "tag-fill",
+      "note": "вне каталога; было значением по умолчанию в форме новой категории"
+    },
+    {
+      "sfSymbol": "ellipsis.circle.fill",
+      "mingcute": "more-3-fill",
+      "note": ""
+    }
+  ],
+  "iconFallback": "more-3-fill",
+  "iconFallbackNote": "Для имени SF Symbol не из списка icons (в т. ч. из чужого бэкапа): more-3-fill — нейтральные «Три точки» из каталога, как у «Другого»; цвет категории при этом остаётся своим.",
+  "defaultCategories": [
+    {
+      "oldName": "Продукты",
+      "newName": "Продукты",
+      "tone": "shalfey",
+      "icon": "basket-fill",
+      "oldIcon": "cart.fill",
+      "oldColor": "#2E9D63"
+    },
+    {
+      "oldName": "Кафе и рестораны",
+      "newName": "Кафе",
+      "tone": "abrikos",
+      "icon": "fork-knife-fill",
+      "oldIcon": "fork.knife",
+      "oldColor": "#DD6B20"
+    },
+    {
+      "oldName": "Транспорт",
+      "newName": "Транспорт",
+      "tone": "kobalt",
+      "icon": "bus-fill",
+      "oldIcon": "bus.fill",
+      "oldColor": "#3E7BE6"
+    },
+    {
+      "oldName": "Жильё и ЖКХ",
+      "newName": "Дом",
+      "tone": "umbra",
+      "icon": "home-4-fill",
+      "oldIcon": "house.fill",
+      "oldColor": "#A0674B"
+    },
+    {
+      "oldName": "Связь и интернет",
+      "newName": "Связь",
+      "tone": "tseruleum",
+      "icon": "wifi-fill",
+      "oldIcon": "wifi",
+      "oldColor": "#0B93B8"
+    },
+    {
+      "oldName": "Здоровье",
+      "newName": "Здоровье",
+      "tone": "kinovar",
+      "icon": "capsule-fill",
+      "oldIcon": "cross.case.fill",
+      "oldColor": "#E5484D"
+    },
+    {
+      "oldName": "Развлечения",
+      "newName": "Развлечения",
+      "tone": "ametist",
+      "icon": "celebrate-fill",
+      "oldIcon": "theatermasks.fill",
+      "oldColor": "#8E4EC6"
+    },
+    {
+      "oldName": "Одежда",
+      "newName": "Одежда",
+      "tone": "pion",
+      "icon": "t-shirt-fill",
+      "oldIcon": "tshirt.fill",
+      "oldColor": "#D6409F"
+    },
+    {
+      "oldName": "Подписки",
+      "newName": "Подписки",
+      "tone": "ultramarin",
+      "icon": "repeat-fill",
+      "oldIcon": "repeat.circle.fill",
+      "oldColor": "#5B5BD6"
+    },
+    {
+      "oldName": "Подарки",
+      "newName": "Подарки",
+      "tone": "krapplak",
+      "icon": "gift-fill",
+      "oldIcon": "gift.fill",
+      "oldColor": "#C2185B"
+    },
+    {
+      "oldName": "Образование",
+      "newName": "Образование",
+      "tone": "okhra",
+      "icon": "mortarboard-fill",
+      "oldIcon": "graduationcap.fill",
+      "oldColor": "#B8860B"
+    },
+    {
+      "oldName": "Другое",
+      "newName": "Другое",
+      "tone": "grafit",
+      "icon": "more-3-fill",
+      "oldIcon": "ellipsis.circle.fill",
+      "oldColor": "#8B8D98"
+    }
+  ],
+  "defaultCategoriesRule": "Переименовывать только непереименованные (copy.json, default.rename.note): имя категории совпадает с oldName (после trim, без учёта регистра) и newName не занято другой категорией (иначе имя оставить). Иконку icon ставить, только если iconName категории всё ещё равен oldIcon; иначе — по таблице icons. Цвет — всегда по таблице colors (для oldColor она даёт tone)."
+}
