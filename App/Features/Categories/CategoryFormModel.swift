@@ -22,8 +22,8 @@ final class CategoryFormModel {
         self.category = category
         categoryID = category?.id
         name = category?.name ?? ""
-        iconName = category?.iconName ?? "tag.fill"
-        colorHex = category?.colorHex ?? CategoryPalette.colors.first ?? CategoryAppearance.uncategorized.colorHex
+        iconName = category?.iconName ?? "tag-fill"
+        colorHex = category?.colorHex ?? GouacheTone.allCases.first?.mainHex ?? CategoryAppearance.uncategorized.colorHex
         isArchived = category?.isArchived ?? false
         expenseCount = category?.expenses.count ?? 0
     }

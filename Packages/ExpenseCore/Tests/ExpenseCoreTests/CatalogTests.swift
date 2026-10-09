@@ -1,88 +1,116 @@
 import Foundation
 import Testing
 @testable import ExpenseCore
-#if canImport(AppKit)
-import AppKit
-#endif
 
 struct CatalogTests {
     // MARK: - Базовые категории
 
-    @Test func defaultCategoriesAreUniqueAndUseCatalogs() {
+    @Test func defaultCategoriesMatchMigrationJSON() throws {
+        let migration = try #require(try RepositoryFiles.json("design/migration.json") as? [String: Any])
+        let entries = try #require(migration["defaultCategories"] as? [[String: String]])
+
+        #expect(DefaultCategories.all.map(\.name) == entries.map { $0["newName"] })
+        #expect(DefaultCategories.all.map(\.tone.rawValue) == entries.map { $0["tone"] })
+        #expect(DefaultCategories.all.map(\.iconName) == entries.map { $0["icon"] })
+    }
+
+    @Test func defaultCategoriesAreUniqueAndUseCatalog() {
         let all = DefaultCategories.all
         #expect(all.count == 12)
         #expect(Set(all.map { $0.name.lowercased() }).count == all.count)
-        #expect(Set(all.map(\.colorHex)).count == all.count)
+        #expect(Set(all.map(\.tone)).count == all.count)
         for template in all {
-            #expect(CategoryIconCatalog.allSymbols.contains(template.iconName), "\(template.name)")
-            #expect(CategoryPalette.colors.contains(template.colorHex), "\(template.name)")
+            #expect(CategoryIconCatalog.contains(template.iconName), "\(template.name)")
+            #expect(template.colorHex == template.tone.mainHex)
         }
     }
 
     // MARK: - Иконки
 
-    @Test func iconCatalogHasUniqueSymbolsAndTitles() {
-        let symbols = CategoryIconCatalog.allSymbols
-        #expect((50...70).contains(symbols.count))
-        #expect(Set(symbols).count == symbols.count)
+    @Test func iconCatalogHasNineGroupsWithUniqueNames() throws {
+        let names = CategoryIconCatalog.allNames
+        #expect(Set(names).count == names.count)
+        #expect(CategoryIconCatalog.groups.map(\.titleKey) == (1...9).map { "cat.icon.group.\($0)" })
+        #expect(CategoryIconCatalog.groups.allSatisfy { $0.icons.count >= 6 })
+        #expect(names.allSatisfy { $0.hasSuffix("-fill") && !$0.contains(".") })
 
-        let titles = CategoryIconCatalog.groups.map(\.title)
-        #expect(Set(titles).count == titles.count)
-        #expect(CategoryIconCatalog.groups.allSatisfy { !$0.title.isEmpty && !$0.symbols.isEmpty })
+        // Подзаголовки групп — одна строка copy.json через « · ».
+        let titles = try #require(try RepositoryFiles.copyFinals()["cat.icon.groups"])
+        #expect(titles.components(separatedBy: " · ").count == CategoryIconCatalog.groups.count)
     }
 
-    #if canImport(AppKit)
-    @Test func allIconsExistInSFSymbols() {
-        for name in CategoryIconCatalog.allSymbols {
-            #expect(NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil, "\(name)")
+    /// Каталог покрывает все иконки, в которые переводятся данные прошлой версии.
+    @Test func iconCatalogContainsEveryMigrationIcon() throws {
+        let migration = try #require(try RepositoryFiles.json("design/migration.json") as? [String: Any])
+        let icons = try #require(migration["icons"] as? [[String: String]]).compactMap { $0["mingcute"] }
+        let defaults = try #require(migration["defaultCategories"] as? [[String: String]]).compactMap { $0["icon"] }
+        let fallback = try #require(migration["iconFallback"] as? String)
+
+        for name in icons + defaults + [fallback] {
+            #expect(CategoryIconCatalog.contains(name), "\(name)")
         }
     }
 
-    /// Метаданные SF Symbols системы: имя → год выпуска → версия iOS.
-    /// Проверяет, что иконки не новее iOS 17 (на маке может стоять более новый набор символов).
-    @Test(.enabled(if: FileManager.default.fileExists(atPath: Self.symbolAvailabilityPath)))
-    func allIconsAvailableOnIOS17() throws {
-        let data = try Data(contentsOf: URL(fileURLWithPath: Self.symbolAvailabilityPath))
-        let plist = try #require(
-            try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-        )
-        let symbols = try #require(plist["symbols"] as? [String: String])
-        let releases = try #require(plist["year_to_release"] as? [String: [String: String]])
+    /// Ключи VoiceOver совпадают со строками `cat.icon.name.*` в copy.json; ключей без строки —
+    /// ровно иконки, добавленные ради данных прошлой версии (их нет в макете).
+    @Test func iconAccessibilityKeysMatchCopyJSON() throws {
+        let copyKeys = try Self.expandedIconNameKeys(try RepositoryFiles.copyFinals())
+        let catalogIcons = CategoryIconCatalog.groups.flatMap(\.icons)
+        let keys = catalogIcons.map(\.accessibilityKey)
 
-        for name in CategoryIconCatalog.allSymbols {
-            let iOSVersion = symbols[name].flatMap { releases[$0]?["iOS"] }
-            let version = try #require(iOSVersion, "Нет данных о доступности \(name)")
-            #expect(
-                version.compare("17.0", options: .numeric) != .orderedDescending,
-                "\(name) появился в iOS \(version)"
-            )
+        #expect(Set(keys).count == keys.count)
+        #expect(copyKeys.count == 60)
+        #expect(copyKeys.isSubset(of: Set(keys)))
+
+        let migration = try #require(try RepositoryFiles.json("design/migration.json") as? [String: Any])
+        let migrationIcons = Set(try #require(migration["icons"] as? [[String: String]]).compactMap { $0["mingcute"] })
+        for icon in catalogIcons where !copyKeys.contains(icon.accessibilityKey) {
+            #expect(migrationIcons.contains(icon.name), "\(icon.name) нет ни в макете, ни в migration.json")
         }
     }
 
-    static let symbolAvailabilityPath =
-        "/System/Library/CoreServices/CoreGlyphs.bundle/Contents/Resources/name_availability.plist"
-    #endif
-
-    // MARK: - Палитра
-
-    @Test func paletteColorsAreValidAndUnique() {
-        let colors = CategoryPalette.colors
-        #expect((12...16).contains(colors.count))
-        #expect(Set(colors.map { $0.uppercased() }).count == colors.count)
-        for hex in colors {
-            #expect(HexColor.isValid(hex), "\(hex)")
+    /// Ассеты MingCute лежат в `App/Resources/Assets.xcassets/Categories/<имя>.imageset`.
+    @Test(.disabled("ассеты MingCute добавляет агент фундамента"))
+    func everyCatalogIconHasImageset() {
+        let folder = RepositoryFiles.root.appending(path: "App/Resources/Assets.xcassets/Categories")
+        for name in CategoryIconCatalog.allNames {
+            let path = folder.appending(path: "\(name).imageset").path(percentEncoded: false)
+            #expect(FileManager.default.fileExists(atPath: path), "\(name)")
         }
     }
 
-    /// Контраст не ниже 3:1 (WCAG для графики) и к белому, и к чёрному фону.
-    @Test func paletteColorsReadableInLightAndDarkThemes() throws {
-        for hex in CategoryPalette.colors {
-            let luminance = try relativeLuminance(hex)
-            let onWhite = 1.05 / (luminance + 0.05)
-            let onBlack = (luminance + 0.05) / 0.05
-            #expect(onWhite >= 3, "\(hex) на белом: \(onWhite)")
-            #expect(onBlack >= 3, "\(hex) на чёрном: \(onBlack)")
+    /// `cat.icon.name.<группа>.<номер>` из id copy.json: `1.*` (все по порядку), `6.1` (одна),
+    /// `8.1-3` (диапазон); `*` после явных номеров занимает оставшиеся номера по порядку.
+    static func expandedIconNameKeys(_ finals: [String: String]) throws -> Set<String> {
+        let prefix = "cat.icon.name."
+        var explicit: [Int: [Int]] = [:]
+        var rest: [Int: Int] = [:]
+        for (id, final) in finals where id.hasPrefix(prefix) {
+            let parts = id.dropFirst(prefix.count).split(separator: ".")
+            let group = try #require(Int(parts[0]), "\(id)")
+            let count = final.components(separatedBy: " · ").count
+            switch parts[1] {
+            case "*":
+                rest[group] = count
+            case let range where range.contains("-"):
+                let bounds = range.split(separator: "-").compactMap { Int($0) }
+                try #require(bounds.count == 2 && bounds[1] - bounds[0] + 1 == count, "\(id)")
+                explicit[group, default: []] += Array(bounds[0]...bounds[1])
+            default:
+                explicit[group, default: []].append(try #require(Int(parts[1]), "\(id)"))
+            }
         }
+        var keys = Set<String>()
+        for group in Set(explicit.keys).union(rest.keys) {
+            var numbers = Set(explicit[group] ?? [])
+            var next = 1
+            for _ in 0..<(rest[group] ?? 0) {
+                while numbers.contains(next) { next += 1 }
+                numbers.insert(next)
+            }
+            keys.formUnion(numbers.map { "\(prefix)\(group).\($0)" })
+        }
+        return keys
     }
 
     // MARK: - HexColor
@@ -102,13 +130,5 @@ struct CatalogTests {
         #expect(rgb.red == 1)
         #expect(rgb.green == 128.0 / 255)
         #expect(rgb.blue == 0)
-    }
-
-    private func relativeLuminance(_ hex: String) throws -> Double {
-        let rgb = try #require(HexColor.components(hex))
-        func linear(_ value: Double) -> Double {
-            value <= 0.04045 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
-        }
-        return 0.2126 * linear(rgb.red) + 0.7152 * linear(rgb.green) + 0.0722 * linear(rgb.blue)
     }
 }

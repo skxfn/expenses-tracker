@@ -27,8 +27,8 @@ struct CategoryFormView: View {
                     ColorSwatchPicker(selection: $model.colorHex)
                 }
                 ForEach(CategoryIconCatalog.groups) { group in
-                    Section(group.title) {
-                        IconGridPicker(symbols: group.symbols, colorHex: model.colorHex, selection: $model.iconName)
+                    Section(LocalizedStringKey(group.titleKey)) {
+                        IconGridPicker(symbols: group.icons.map(\.name), colorHex: model.colorHex, selection: $model.iconName)
                     }
                 }
                 if model.isEditing {
