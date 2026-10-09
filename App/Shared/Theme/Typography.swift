@@ -27,6 +27,8 @@ nonisolated extension TypeStyle {
     static let currencyTotal = unbounded(size: 20, weight: .medium, relativeTo: .largeTitle)
     /// Итог в центре кольца, 28/500.
     static let amountRingTotal = unbounded(size: 28, weight: .medium, relativeTo: .title, base: Tokens.TypeScale.amountTotal)
+    /// «Br» в центре кольца: в токенах нет, по макету `02-home-ring` ≈ половина кегля итога.
+    static let currencyRingTotal = unbounded(size: 14, weight: .medium, relativeTo: .title)
     /// Месяц в шапке, 28/600.
     static let monthTitle = unbounded(Tokens.TypeScale.monthTitle, relativeTo: .title)
     /// Год рядом с месяцем, Unbounded 500 20 (secondary).

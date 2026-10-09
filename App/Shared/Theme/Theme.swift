@@ -18,6 +18,15 @@ extension Color {
         })
     }
 
+    /// Полупрозрачный цвет по теме.
+    nonisolated init(light: UInt32, lightAlpha: Double, dark: UInt32, darkAlpha: Double) {
+        self.init(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(rgb: dark, alpha: darkAlpha)
+                : UIColor(rgb: light, alpha: lightAlpha)
+        })
+    }
+
     nonisolated init(_ pair: TokenPair) {
         self.init(light: pair.light, dark: pair.dark)
     }
@@ -72,6 +81,29 @@ nonisolated enum Theme {
 
     /// Неактивная стрелка ‹ › (DESIGN.md: графит 28 %, в тёмной — ink 30 %).
     static let disabledArrowOpacity: Double = 0.3
+
+    // MARK: Полупрозрачные роли (design.json → glass, shadows)
+
+    /// Активная пилюля сегмента: бумага 92 % / rgba(255,250,244,.16) (`segment-active-dark`).
+    static let segmentPill = Color(
+        light: Tokens.Neutral.surface.light, lightAlpha: 0.92,
+        dark: 0xFFFAF4, darkAlpha: 0.16
+    )
+    /// Активная вкладка таб-бара: графит 8 % / ink 10 % (`tab-active-dark`).
+    static let tabPill = Color(
+        light: Tokens.Neutral.ink.light, lightAlpha: 0.08,
+        dark: Tokens.Neutral.ink.dark, darkAlpha: 0.10
+    )
+    /// Волосяной контур бумажных предметов (группа, образец): графит 6 % / белый 6 % (shadows → dark-rule).
+    static let hairlineOutline = Color(
+        light: Tokens.Paper.graphite, lightAlpha: 0.06,
+        dark: 0xFFFFFF, darkAlpha: 0.06
+    )
+    /// Светлая линия по верхнему краю листа — только в тёмной (`sheet-dark`: inset 0 .5px rgba(255,255,255,.07)).
+    static let sheetHighlight = Color(
+        light: 0xFFFFFF, lightAlpha: 0,
+        dark: 0xFFFFFF, darkAlpha: 0.07
+    )
 
     // MARK: Шкала heat
 
