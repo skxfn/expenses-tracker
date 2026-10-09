@@ -7,8 +7,10 @@
 Проверяет:
   - каталог совпадает с тем, что выдаёт gen_strings.py (руками не правлен, не устарел);
   - каждый id из copy.json покрыт: ключ, разбиение, общая фраза (alias) или пропуск с причиной;
-  - строки каталога, подставленные примерами из SPEC, дают `final` дословно (с неразрывными пробелами),
-    а варианты из risk/context встречаются там, откуда взяты;
+  - строки каталога, подставленные примерами из SPEC, дают `final` дословно (с неразрывными пробелами,
+    разметка выделения `**` не учитывается), а варианты из risk/context встречаются там, откуда взяты;
+  - разметка `**…**` — только у ключей gen_strings.EMPHASIZED и парная; других знаков Markdown
+    в строках нет (SwiftUI `Text("ключ")` разбирает Markdown в любой строке каталога);
   - нет лишних и недостающих ключей; плюрализация — полные формы ru (one/few/many/other);
   - строк из `dropped` и запрещённых слов (§5.1, D1) нет;
   - каталог компилируется `xcstringstool` (если есть Xcode).
@@ -36,6 +38,8 @@ FORBIDDEN = [
     (re.compile(r"[Бб]экап"), "«резервная копия» (glossary)"),
     (re.compile(r"[Гг]рупп"), "слово «группа» не используется (D1)"),
 ]
+EMPHASIS = "**"
+MARKDOWN = re.compile(r"[*_`\[\]\\~]")  # после удаления парных ** таких знаков быть не должно
 SPECIFIER = re.compile(r"%(?:(\d+)\$)?(@|lld|%)")
 SUBSTITUTION = re.compile(r"%#@(\w+)@")
 PLURAL_FORMS = ("one", "few", "many", "other")
@@ -97,6 +101,30 @@ def render(entry, args):
 
 def nbsp(s):
     return s.replace(g.NB, " ")
+
+
+def plain(s):
+    """Текст без разметки выделения — так его видит пользователь."""
+    return s.replace(EMPHASIS, "")
+
+
+def check_markup(strings, errors):
+    marked = set()
+    for key, entry in strings.items():
+        for value in values(entry):
+            if EMPHASIS in value:
+                marked.add(key)
+                marks = [m.start() for m in re.finditer(re.escape(EMPHASIS), value)]
+                # Markdown не выделит «** текст» и «текст **»: внутри пары пробел у края недопустим.
+                broken = len(marks) % 2 or any(
+                    value[o + 2:o + 3].isspace() or value[c - 1:c].isspace() or c == o + 2
+                    for o, c in zip(marks[::2], marks[1::2]))
+                if broken:
+                    errors.append(f"{key}: непарная или оторванная пробелом разметка в «{value}»")
+            if MARKDOWN.search(plain(value)):
+                errors.append(f"{key}: знак Markdown в «{value}» — SwiftUI Text разберёт его как разметку")
+    for key in sorted(marked ^ set(g.EMPHASIZED)):
+        errors.append(f"{key}: разметка ** {'есть, но ключа нет в EMPHASIZED' if key in marked else 'в EMPHASIZED, но в строке её нет'}")
 
 
 def check_structure(key, entry, errors):
@@ -205,14 +233,14 @@ def main():
                 errors.append(f"{item['id']}: пропуск без причины")
             continue
         try:
-            actual = spec.expect(t)
+            actual = plain(spec.expect(t))
             expected = item["final"]
             same = nbsp(actual) == nbsp(expected) if spec.nbsp_fix else actual == expected
             if not same:
                 errors.append(f"{item['id']}: каталог даёт {actual!r}, в final {expected!r}")
             for also in spec.also:
                 text, where = also(t, item)
-                if nbsp(text) not in nbsp(where):
+                if nbsp(plain(text)) not in nbsp(where):
                     errors.append(f"{item['id']}: вариант {text!r} не найден в {where!r}")
         except (KeyError, ValueError, IndexError) as e:
             errors.append(f"{item['id']}: {e.args[0] if e.args else e!r}")
@@ -232,6 +260,7 @@ def main():
                 if pattern.search(value):
                     errors.append(f"{key}: «{value}» — {why}")
 
+    check_markup(strings, errors)
     compile_check(strings, errors)
 
     if errors:

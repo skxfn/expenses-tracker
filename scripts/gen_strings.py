@@ -13,9 +13,10 @@
   - подстановки ({Категория}, {сумма}, пример «38 Br» и т. п.) → `%@`, позиционно `%1$@`, если их несколько;
   - количества → `%lld` с плюрализацией ru (one / few / many / other);
   - данные без текста (даты, числа, имена) → без ключа, собираются в коде;
-  - составные фразы (сравнение с прошлым периодом) → шаблон + ключи фраз-отсылок.
+  - составные фразы (сравнение с прошлым периодом) → шаблон + ключи фраз-отсылок;
+  - выделенная часть фразы → разметка `**…**` (только ключи из EMPHASIZED), вывод — `L10n.attributed`.
 Для каждого id в SPEC есть `expect`: сборка `final` из ключей каталога. check_copy.py проверяет,
-что каталог воспроизводит `final` дословно (вместе с неразрывными пробелами).
+что каталог воспроизводит `final` дословно (вместе с неразрывными пробелами, без `**`).
 """
 import json
 from pathlib import Path
@@ -156,6 +157,23 @@ def a11y(id, label, hint, label_example=(), label_args="", hint_example=(), **la
 
 DATE = "%@ — короткая дата D7 («8 окт»)"
 
+# Ключи с выделением `**…**`: часть фразы набрана SF 600 графитом, остальное — обычным/secondary
+# (DESIGN.md «Callout», макеты design/mockups/light). Выводить через L10n.attributed.
+# «по аналогии» — вариант того же места, который на макетах не нарисован.
+EMPHASIZED = {
+    "home.compare": "01-home, 02-home-ring, 04-stats, 05-stats-range: «38 Br меньше»",
+    "home.compare.more": "по аналогии с home.compare: «38 Br больше»",
+    "feed.dayHeader.today": "01-home, DESIGN.md «Заголовок дня»: «Сегодня» графитом, дата secondary",
+    "feed.dayHeader.yesterday": "01-home: «Вчера» графитом, дата secondary",
+    "cal.summary": "09-calendar, context «сумма полужирным»: «412,30 Br»",
+    "stats.cats.caption.group": "04-stats, 05-stats-range: «Продукты: 35%»",
+    "stats.cats.caption.sub": "04-stats-map-drill: «Супермаркет: 69%»",
+    "stats.habits.insight.day": "04-stats: «по пятницам»",
+    "stats.habits.insight.weekend": "04-stats: «В будни»",
+    "stats.habits.insight.weekendMore": "по аналогии с weekend: «В выходные»",
+    "stats.habits.insight.even": "по аналогии: вывод «почти поровну»",
+}
+
 # --- Главная ---------------------------------------------------------------
 
 split("period.segment.day-year", " · ",
@@ -170,10 +188,10 @@ skip("header.title.year", "данные: номер года")
 
 # Сравнение с прошлым периодом (D5): шаблон × фраза-отсылка. Отсылки — из правила D5 в voice.
 custom("home.compare",
-       {"home.compare": Key("на %1$@ меньше, чем %2$@", args="%1$@ — разница со знаком валюты, во фразе («38 Br»); %2$@ — отсылка home.compare.*.current/past или range.compare"),
+       {"home.compare": Key("на **%1$@ меньше**, чем %2$@", args="%1$@ — разница со знаком валюты, во фразе («38 Br»); %2$@ — отсылка home.compare.*.current/past или range.compare"),
         "home.compare.month.current": Key("в прошлом месяце")},
        lambda t: t("home.compare", f"38{NB}Br", t("home.compare.month.current")))
-custom("home.compare.more", {"home.compare.more": Key("на %1$@ больше, чем %2$@", args="как у home.compare")},
+custom("home.compare.more", {"home.compare.more": Key("на **%1$@ больше**, чем %2$@", args="как у home.compare")},
        lambda t: t("home.compare.more", f"38{NB}Br", t("home.compare.month.current")), kind="fmt")
 custom("home.compare.same", {"home.compare.same": Key("примерно как %@", args="%@ — отсылка (см. home.compare)")},
        lambda t: t("home.compare.same", t("home.compare.month.current")), kind="fmt")
@@ -214,8 +232,8 @@ custom("home.empty.period",
              lambda t, it: (t("home.empty.period.day.past", "6 окт"), it["context"]),
              lambda t, it: (t("home.empty.period.range.past", "2", "4 окт"), it["context"]),
              lambda t, it: (t("home.empty.period.in.past", "2025"), it["context"])])
-fmt("feed.dayHeader.today", "Сегодня · %@", f"чт, 8{NB}окт", args="%@ — короткая дата с днём недели D7")
-fmt("feed.dayHeader.yesterday", "Вчера · %@", f"ср, 7{NB}окт", args="%@ — короткая дата с днём недели D7")
+fmt("feed.dayHeader.today", "**Сегодня** · %@", f"чт, 8{NB}окт", args="%@ — короткая дата с днём недели D7")
+fmt("feed.dayHeader.yesterday", "**Вчера** · %@", f"ср, 7{NB}окт", args="%@ — короткая дата с днём недели D7")
 skip("feed.dayHeader.other", "данные: короткая дата с днём недели D7 («Вт, 6 окт»)")
 skip("feed.row.noNote", "данные: заголовок — имя подкатегории (или категории), подпись — имя категории")
 skip("onboarding.hints", "пометка: подсказок первого запуска нет")
@@ -266,7 +284,7 @@ split("picker.noCategories", " · ",
 
 skip("cal.header.month", "данные: месяц и год (год серым — отдельный Text)")
 custom("cal.summary",
-       {"cal.summary": Key("%1$@ за %#@days@ · больше всего %3$@", subs={"days": (2, DAY)},
+       {"cal.summary": Key("**%1$@** за %#@days@ · больше всего %3$@", subs={"days": (2, DAY)},
                            args="%1$@ — итог со знаком валюты; %2$lld — число дней; %3$@ — дата D7")},
        lambda t: t("cal.summary", f"412,30{NB}Br", 8, f"2{NB}окт"), kind="fmt")
 alias("cal.summary.empty",
@@ -303,9 +321,9 @@ custom("stats.summary.meta",
        {"stats.summary.meta": Key("%#@count@ · в среднем %2$@ в день", subs={"count": (1, TRATA)},
                                   args="%1$lld — число трат; %2$@ — средняя со знаком валюты")},
        lambda t: t("stats.summary.meta", 18, f"51,54{NB}Br"), kind="fmt")
-fmt("stats.cats.caption.group", f"Больше всего{NB}— %1$@: %2$@", "{Категория}", "{доля}%",
+fmt("stats.cats.caption.group", f"Больше всего{NB}— **%1$@: %2$@**", "{Категория}", "{доля}%",
     args="%1$@ — имя категории; %2$@ — доля D7 («35%», «<1%»)")
-fmt("stats.cats.caption.sub", f"Больше всего{NB}— %1$@: %2$@", "{Подкатегория}", "{доля}%",
+fmt("stats.cats.caption.sub", f"Больше всего{NB}— **%1$@: %2$@**", "{Подкатегория}", "{доля}%",
     args="%1$@ — имя подкатегории; %2$@ — доля D7")
 custom("stats.center.meta",
        {"stats.center.meta": Key("%1$@ · %#@count@", subs={"count": (2, TRATA)},
@@ -325,11 +343,12 @@ split("stats.pace.note.variants", " · ",
 split("stats.pace.legend", " · ", "октябрь", "сентябрь", ("stats.pace.legend.forecast", Key("прогноз")),
       note="названия периодов — данные")
 fmt("stats.habits.note", "в среднем за день, %@", "Br", args="%@ — знак валюты")
-fmt("stats.habits.insight.day", "Больше всего тратится %@", "по пятницам",
+fmt("stats.habits.insight.weekend", "**В будни** тратится больше, чем в выходные")
+fmt("stats.habits.insight.day", "Больше всего тратится **%@**", "по пятницам",
     args="%@ — «по» + день недели в дательном мн. ч. («по пятницам»)")
 split("stats.habits.insight.variants", " · ",
-      ("stats.habits.insight.weekendMore", Key("В выходные тратится больше, чем в будни")),
-      ("stats.habits.insight.even", Key(f"В будни и в выходные{NB}— почти поровну")))
+      ("stats.habits.insight.weekendMore", Key("**В выходные** тратится больше, чем в будни")),
+      ("stats.habits.insight.even", Key(f"В будни и в выходные{NB}— **почти поровну**")))
 fmt("stats.year.heading", f"%@{NB}по дням", "2026", args="%@ — год")
 split("stats.year.months", " · ", *((f"stats.year.months.{i}", Key(m)) for i, m in enumerate(
     ("Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"), 1)))
@@ -661,6 +680,8 @@ def comment(item, key, k):
         text = f"copy.json {item['id']}: {text}"
     if k.args:
         text += f". Аргументы: {k.args}"
+    if key in EMPHASIZED:
+        text += ". Выделение **…** — SF 600 графитом, выводить через L10n.attributed"
     return text
 
 
