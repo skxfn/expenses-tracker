@@ -10,13 +10,18 @@ struct ExpensesApp: App {
 
     var body: some Scene {
         WindowGroup {
-            switch launchState {
-            case .ready(let container):
-                ContentView()
-                    .modelContainer(container)
-            case .failed(let failure):
-                StoreErrorView(failure: failure)
+            Group {
+                switch launchState {
+                case .ready(let container):
+                    ContentView()
+                        .modelContainer(container)
+                case .failed(let failure):
+                    StoreErrorView(failure: failure)
+                }
             }
+            #if DEBUG
+            .debugShowcase()
+            #endif
         }
     }
 }
