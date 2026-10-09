@@ -211,7 +211,7 @@ final class StatisticsModel {
         switch filter {
         case .all, .uncategorized:
             .uncategorized
-        case .category(let id):
+        case .category(let id), .group(let id):
             source.categories[id] ?? .uncategorized
         }
     }
