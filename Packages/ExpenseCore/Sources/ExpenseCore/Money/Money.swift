@@ -4,6 +4,9 @@ import Foundation
 /// Масштаб фиксирован для любой валюты приложения.
 public enum Money {
     public static let minorUnitsPerMajor: Int64 = 100
+    /// Наибольшая сумма одной траты: 99 999 999 999,99 (11 целых знаков поля). Сумма даже ~900 тыс.
+    /// таких трат помещается в `Int64` — итоги статистики складываются без переполнения.
+    public static let maxAmountMinor: Int64 = 9_999_999_999_999
 
     /// `1250` → `12.5`. Точно, без двоичной погрешности.
     public static func major(fromMinor minor: Int64) -> Decimal {

@@ -39,6 +39,13 @@ struct ExpenseStoreTests {
         #expect(try store.expense(id: id) == nil)
     }
 
+    @Test func addExpenseRejectsAmountAboveLimit() throws {
+        #expect(throws: ExpenseStoreError.invalidAmount) {
+            try store.addExpense(amountMinor: Money.maxAmountMinor + 1, date: .now, category: nil)
+        }
+        #expect(try store.addExpense(amountMinor: Money.maxAmountMinor, date: .now, category: nil).amountMinor == Money.maxAmountMinor)
+    }
+
     @Test(arguments: [Int64(0), -1, -10_000])
     func addExpenseRejectsNonPositiveAmount(amount: Int64) throws {
         #expect(throws: ExpenseStoreError.invalidAmount) {

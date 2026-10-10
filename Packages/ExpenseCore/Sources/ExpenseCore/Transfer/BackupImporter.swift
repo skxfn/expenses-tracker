@@ -85,6 +85,8 @@ public enum BackupImporter {
         for expense in payload.expenses {
             guard expenseIDs.insert(expense.id).inserted else { throw .duplicateExpenseID(expense.id) }
             guard expense.amountMinor > 0 else { throw .nonPositiveAmount(expenseID: expense.id) }
+            // Больше предела одной траты — иначе итоги статистики переполнят `Int64` и приложение упадёт.
+            guard expense.amountMinor <= Money.maxAmountMinor else { throw .unreadableFile(.badValue) }
         }
     }
 

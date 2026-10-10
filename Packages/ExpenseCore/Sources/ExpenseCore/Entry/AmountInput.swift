@@ -8,10 +8,10 @@ public enum AmountInput {
     public static let decimalSeparator: Character = ","
     /// Знаков после запятой — minor-единицы.
     public static let fractionDigits = 2
-    /// Целых знаков в поле. Больше не нужно, а предел держит сумму далеко от переполнения `Int64`.
-    public static let maxIntegerDigits = 16
-    /// Наибольшая сумма поля: `maxIntegerDigits` девяток и 99 сотых.
-    public static let maxMinor: Int64 = 999_999_999_999_999_999
+    /// Целых знаков в поле: 11 — до 99 999 999 999,99 (`Money.maxAmountMinor`).
+    public static let maxIntegerDigits = 11
+    /// Наибольшая сумма поля — предел одной траты.
+    public static let maxMinor: Int64 = Money.maxAmountMinor
     /// Быстрые суммы, целые единицы валюты (DESIGN.md → Chips, AGENTS.md: фиксированные).
     public static let quickAmounts: [Int64] = [5, 10, 20, 50, 100]
 
