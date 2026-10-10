@@ -84,10 +84,15 @@ nonisolated enum Theme {
 
     // MARK: Полупрозрачные роли (design.json → glass, shadows)
 
-    /// Активная пилюля сегмента: бумага 92 % / rgba(255,250,244,.16) (`segment-active-dark`).
+    /// Активная пилюля сегмента: белая 92 % (`segment-period` → `.on`) / rgba(255,250,244,.16) (`segment-active-dark`).
     static let segmentPill = Color(
-        light: Tokens.Neutral.surface.light, lightAlpha: 0.92,
+        light: 0xFFFFFF, lightAlpha: 0.92,
         dark: 0xFFFAF4, darkAlpha: 0.16
+    )
+    /// Главное действие (`pro`): графит 88 % под стеклом / night-ink 92 % (`pro-dark`) — tint prominent-стекла.
+    static let prominent = Color(
+        light: Tokens.Neutral.ink.light, lightAlpha: 0.88,
+        dark: Tokens.Neutral.ink.dark, darkAlpha: 0.92
     )
     /// Активная вкладка таб-бара: графит 8 % / ink 10 % (`tab-active-dark`).
     static let tabPill = Color(
