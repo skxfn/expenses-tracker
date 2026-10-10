@@ -93,15 +93,22 @@ public struct RussianDateFormatter: Sendable {
         }
     }
 
-    /// К чему прогноз: неделя — «к воскресенью» (последний день недели по `calendar.firstWeekday`),
-    /// месяц и год — «к 31 октября», «к 31 декабря». `nil` — у «Дня» и своего периода темпа нет.
+    /// К чему прогноз, в дательном без предлога (предлог — в строке `stats.pace.note` «к %@ при текущем темпе»):
+    /// неделя — «воскресенью» (последний день недели по `calendar.firstWeekday`), месяц и год — «31 октября»,
+    /// «31 декабря». `nil` — у «Дня» и своего периода темпа нет.
     public func paceTarget(for period: StatsPeriod) -> String? {
         let lastDay = lastDayStart(of: period.interval)
         switch period.kind {
-        case .week: return "к " + RussianWords.weekday(calendar.component(.weekday, from: lastDay), .dativeSingular)
-        case .month, .year: return "к " + dayMonth(lastDay)
+        case .week: return RussianWords.weekday(calendar.component(.weekday, from: lastDay), .dativeSingular)
+        case .month, .year: return dayMonth(lastDay)
         case .day, nil: return nil
         }
+    }
+
+    /// Начало часа: «9:00», «14:00» — подписи вида «День» («По часам»).
+    public func hour(_ date: Date) -> String {
+        let parts = calendar.dateComponents([.hour, .minute], from: date)
+        return "\(parts.hour ?? 0):" + String(format: "%02d", parts.minute ?? 0)
     }
 
     // MARK: - Внутреннее
