@@ -44,6 +44,10 @@
 - Пожелания пользователя к дизайну: добавление как в Spendly, главный как в Monefy (кольцо с иконками + лента), редактор категории как в EZ Money Tracker, красивый календарь отдельной вкладкой, статистика S1–S4 все, свой произвольный период и на главном, иконки категорий — из библиотек (не эмодзи).
 - ИИ-запись трат (текст, фото чека; в проработке с 2026-10-10): только облачная LLM, работающая из РБ без VPN и с оплатой из РБ — OpenAI, Claude, Gemini исключены (требование владельца); OpenRouter, GigaChat (только резиденты РФ), Mistral тоже. Кандидаты — DeepSeek `deepseek-flash` (текст и картинки), Qwen-VL, GLM-4.6V; все OpenAI-совместимые.
 
+- Экраны: период — `App/Features/Period` (у каждого экрана свой `PeriodSelection`; «Свой» без диапазона открывает шит; готовые периоды применяются сразу, «Прошлый месяц» = вид «Месяц»). Оболочка: корни вкладок без навигационной панели, пуши — `AppRoute` + `NavigationLink(value:)`, таб-бар прячется при пуше, зум шита только из «+» (`.add(date: nil)`).
+- Календарь: месяц без шита (‹ › и свайп), раскладка — `MonthGrid` в Core, пороги шкалы — `MoneyFormatter.Style.wholeUnits`; будущие дни без трат не выбираются. Линза «сегодня» — `.clear`, подкрашенный цветом клетки, с тенью снаружи (иначе на светлых клетках не видна).
+- Запись траты: логика — Core `Entry/` (`AmountInput`, `EntryDate`, `ExpenseDraft`, `EntryBatch`, `SwatchRow`); ошибки Core в UI — только через `UserFacingError.message(for:)` (тексты copy.json).
+- DEBUG-аргументы: `-demoData YES`, `-debugTab expenses|calendar|statistics`, `-debugPeriod YES|day|week|year|range|past|sheet`, `-debugRoute settings`, `-debugToast YES`, `-debugAdd YES`, `-debugSheet add|edit|filled`, `-debugSubsheet picker|date|batch`, `-debugScreen settings|category|categories`, `-currencyCode BYN`, `-debugShowcase …`.
 ## Ловушки
 - Xcode 26: без установленной iOS-платформы (`xcodebuild -downloadPlatform iOS`) сборка по схеме падает «iOS 26.5 is not installed»; `-target Expenses -sdk iphoneos` при этом собирается.
 - SwiftData: `transaction {}` при ошибке не откатывает — нужен явный `rollback()`, после него заново выбрать модели (старые ссылки падают «model instance was invalidated»).
@@ -67,3 +71,8 @@
 - Устройство пользователя — iOS 27. SideStore нужен ≥ 0.7.0-alpha (0.6.4 и старше не логинятся после изменений Apple в сент. 2026). На iOS 27 шорткат «Refresh All Apps» может падать с ADI -45061 — обход: SideStore → Settings → User Customizations → Reset adi.db (SideStore#1596).
 - SideStore может дописать к Bundle ID `.<TeamID>`: ничего не хардкодить по bundle ID; смена Apple ID = новое пустое приложение (данные — только через бэкап).
 - Apple Foundation Models не знает русского (и в iOS 27) — разбирать трату на устройстве нечем. Vision OCR по-русски — только `.accurate` с `ru` первым в `recognitionLanguages`; русская речь — `DictationTranscriber`, не `SpeechTranscriber` (проверено на macOS 26). QR белорусского чека — только 24-символьный УИ без даты и суммы; позиции отдаёт лишь `ch.info-center.by` за reCAPTCHA, API нет.
+- `ScrollPosition.scrollTo` в `onAppear` у `LazyVStack` промахивается — начальную позицию задавать в `State(initialValue: ScrollPosition(id:anchor:))`.
+- Системная «Назад» в iOS 26 — только стрелка в круге; капсулу «‹ Траты» из макета ею не получить.
+- `period.range.meta` уже содержит «≈» — сумму давать `.phrase` от `Money.roundedToWholeUnits`, не `.approximate`.
+- iOS 26.5: панель `ToolbarItem(.keyboard)` со скрытым общим фоном не входит в safe area клавиатуры — под неё свой отступ (`ExpenseEntryView`); проверить на iOS 27. Клавиатура шита записи остаётся поверх дочернего шита, пока не снять фокус.
+- Симулятор под нагрузкой (load average сотни): `simctl launch` зависает — `shutdown`, `boot`, `bootstatus`. Ввод через MCP-симулятор (`text`) переключает его на аппаратную клавиатуру.
