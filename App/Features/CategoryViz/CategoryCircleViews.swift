@@ -35,11 +35,13 @@ struct HomeCategoryRing<Phrase: View>: View {
                     size: .ringTotal,
                     currency: money.currencySymbol
                 )
+                .minimumScaleFactor(VizMetrics.centerAmountMinScale)
+                .frame(maxWidth: RingMetrics.home.centerWidth)
                 phrase()
                     .typeStyle(.footnote)
                     .foregroundStyle(Theme.secondary)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: VizMetrics.homeCenterTextWidth)
+                    .frame(maxWidth: RingMetrics.home.centerWidth)
             }
             .accessibilityElement(children: .combine)
         }
@@ -65,7 +67,7 @@ struct CategoryRingView: View {
             showsGrain: false,
             onSelect: select
         ) {
-            StatsCircleCenter(data: data, expanded: data.expandedGroup(expandedID)) { expandedID = nil }
+            StatsCircleCenter(data: data, expanded: data.expandedGroup(expandedID), ring: .stats) { expandedID = nil }
         }
         .accessibilityLabel(Text(verbatim: L10n.format("stats.ring.a11y", VizText.sharesList(data))))
     }
@@ -94,7 +96,7 @@ struct CategorySunView: View {
             showsGrain: false,
             onSelect: select
         ) {
-            StatsCircleCenter(data: data, expanded: data.expandedGroup(expandedID)) { expandedID = nil }
+            StatsCircleCenter(data: data, expanded: data.expandedGroup(expandedID), ring: .sunInner) { expandedID = nil }
         }
         .accessibilityLabel(Text(verbatim: L10n.format("stats.sun.a11y", VizText.sharesList(data))))
     }
@@ -366,7 +368,7 @@ struct VizDisc: View {
                     .foregroundStyle(CategoryPaint.onArea(tone))
             case .more(let more):
                 Circle().fill(VizPaint.moreFill)
-                VizMiniSwatches(more: more, limit: 3)
+                VizMiniSwatches(more: more, limit: VizMiniSwatches.count(fitting: 2 * radius - 2 * VizMetrics.miniSwatchGap))
             case .hatch(let tone):
                 HatchFill(tone: tone).clipShape(Circle())
             }
@@ -391,6 +393,7 @@ struct VizDisc: View {
 private struct StatsCircleCenter: View {
     let data: CategoryVizData
     let expanded: CategoryVizGroup?
+    let ring: RingMetrics
     let onBack: () -> Void
 
     @Environment(\.moneyFormatter) private var money
@@ -410,6 +413,7 @@ private struct StatsCircleCenter: View {
                     .transition(.opacity)
             }
         }
+        .frame(maxWidth: ring.centerWidth)
     }
 
     private var totalCenter: some View {
@@ -419,6 +423,7 @@ private struct StatsCircleCenter: View {
                 value: Double(data.totalMinor),
                 size: .ringTotal
             )
+            .minimumScaleFactor(VizMetrics.centerAmountMinScale)
             Text(verbatim: L10n.format("stats.center.meta", money.currencySymbol, data.count))
                 .typeStyle(.footnote)
                 .foregroundStyle(Theme.secondary)
@@ -436,12 +441,12 @@ private struct StatsCircleCenter: View {
                 value: Double(group.totalMinor),
                 size: .ringTotal
             )
+            .minimumScaleFactor(VizMetrics.centerAmountMinScale)
             Text(verbatim: VizText.name(group))
                 .typeStyle(.callout)
                 .foregroundStyle(CategoryPaint.onArea(group.tone))
                 .lineLimit(1)
         }
-        .frame(width: 2 * RingMetrics.sunInner.inner - Theme.Spacing.lg)
         .contentShape(Circle())
     }
 }

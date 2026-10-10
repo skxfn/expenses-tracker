@@ -19,6 +19,9 @@ nonisolated enum VizMetrics {
     static let tilePadding: CGFloat = 10
     /// Иконка в углу плитки.
     static let tileIcon: CGFloat = 20
+    /// Крупная сумма (Unbounded 28) — только у оттенка от этой доли категории (`04-stats-map-drill`:
+    /// «Супермаркет 69%» крупно, «Рынок 20%» — 15).
+    static let largeAmountMinShare = 0.4
     /// Мини-образец цвета внутри «Ещё N».
     static let miniSwatch: CGFloat = 8
     static let miniSwatchGap: CGFloat = 3
@@ -62,8 +65,9 @@ nonisolated enum VizMetrics {
 
     /// Иконка категории в центре раскрытого круга.
     static let centerIcon: CGFloat = 26
-    /// Ширина текста в центре кольца на главной (фраза переносится).
-    static let homeCenterTextWidth: CGFloat = 150
+    /// Итог в центре кольца ужимается до 0,8, если не помещается (длинная сумма, обозначение «BYN»;
+    /// INTEGRATION §3.3.1).
+    static let centerAmountMinScale: CGFloat = 0.8
     /// Переключатель видов в статистике (copy.json `stats.cats.heading`: 184 px).
     static let viewSwitcherWidth: CGFloat = 184
 }
@@ -89,6 +93,9 @@ nonisolated struct RingMetrics: Sendable {
 
     /// Высота поля, в которое помещаются кольцо и диски.
     var fieldHeight: CGFloat { 2 * (discOrbit + discRadius) }
+
+    /// Ширина содержимого в центре круга: внутренний диаметр без полей 6.
+    var centerWidth: CGFloat { 2 * inner - Theme.Spacing.md }
 
     /// Угловой зазор между сегментами: линейный зазор по средней линии кольца.
     func gapAngle(_ gap: CGFloat = Theme.Spacing.segmentGap) -> Double {
@@ -138,10 +145,16 @@ struct VizPartFill: View {
     }
 }
 
-/// Мини-образцы цветов свёрнутых категорий («Ещё N»).
+/// Мини-образцы цветов свёрнутых категорий («Ещё N»): первые `limit` по сумме.
 struct VizMiniSwatches: View {
     let more: CategoryVizMore
     var limit = 4
+
+    /// Сколько образцов помещается в ширину `width` (не меньше одного, не больше `maximum`).
+    static func count(fitting width: CGFloat, maximum: Int = 4) -> Int {
+        let step = VizMetrics.miniSwatch + VizMetrics.miniSwatchGap
+        return min(max(Int((width + VizMetrics.miniSwatchGap) / step), 1), maximum)
+    }
 
     var body: some View {
         HStack(spacing: VizMetrics.miniSwatchGap) {
@@ -151,6 +164,7 @@ struct VizMiniSwatches: View {
                     .frame(width: VizMetrics.miniSwatch, height: VizMetrics.miniSwatch)
             }
         }
+        .fixedSize()
         .accessibilityHidden(true)
     }
 }

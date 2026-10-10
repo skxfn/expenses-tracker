@@ -15,6 +15,7 @@ struct CategoryVizShowcase: View {
     @State private var expandedID: UUID?
     private let isScreenshot: Bool
     private let toggles: Bool
+    private let tilesLevel: CategoryTilesLevel
 
     init(defaults: UserDefaults = .standard) {
         let requested = defaults.string(forKey: "vizView").flatMap(VizShowcasePage.init(rawValue:))
@@ -27,6 +28,7 @@ struct CategoryVizShowcase: View {
         _expandedID = State(initialValue: expands ? VizDemo.data(dataset).groups.first(where: \.isExpandable)?.id : nil)
         isScreenshot = requested != nil
         toggles = defaults.bool(forKey: "vizToggle")
+        tilesLevel = defaults.string(forKey: "vizLevel") == "categories" ? .categories : .subcategories
     }
 
     private var data: CategoryVizData { VizDemo.data(dataset) }
@@ -99,10 +101,10 @@ struct CategoryVizShowcase: View {
         case .home:
             VStack(alignment: .leading, spacing: Theme.Spacing.md) {
                 AmountText(
-                    text: MoneyFormatter(currencyCode: "BYN", locale: .app).string(fromMinor: data.totalMinor, style: .plain),
+                    text: money.string(fromMinor: data.totalMinor, style: .plain),
                     value: Double(data.totalMinor),
                     size: .total,
-                    currency: "Br"
+                    currency: money.currencySymbol
                 )
                 CategoryTilesView(homeData: data, periodName: "октябрь") { selected = $0 }
                 selection
@@ -113,13 +115,15 @@ struct CategoryVizShowcase: View {
         case .homeRing:
             VStack(spacing: Theme.Spacing.md) {
                 HomeCategoryRing(data: data, periodName: "октябрь", onSelect: { selected = $0 }) {
-                    Text(VizDemo.phrase)
+                    Text(VizDemo.phrase(money: money))
                 }
                 selection
             }
             .padding(.horizontal, Theme.Spacing.screen)
         case .tiles, .strips, .sun, .ring:
-            StatsCategorySection(data: data, view: $statsView, expandedID: $expandedID, periodName: "октябрь")
+            StatsCategorySection(
+                data: data, view: $statsView, expandedID: $expandedID, periodName: "октябрь", tilesLevel: tilesLevel
+            )
                 .padding(Theme.Spacing.screen)
                 .padding(.top, Theme.Spacing.sm)
                 .paperSheetBackground()
@@ -127,6 +131,7 @@ struct CategoryVizShowcase: View {
     }
 
     @State private var selected: CategoryVizItemID?
+    @Environment(\.moneyFormatter) private var money
 
     @ViewBuilder
     private var selection: some View {
@@ -192,8 +197,9 @@ enum VizDemoDataset: String, CaseIterable {
 }
 
 enum VizDemo {
-    static var phrase: AttributedString {
-        var text = L10n.attributed("home.compare", "38\u{00A0}Br", String(localized: "home.compare.month.current"))
+    static func phrase(money: MoneyFormatter) -> AttributedString {
+        let difference = money.string(fromMinor: 3_800, style: .difference)
+        var text = L10n.attributed("home.compare", difference, String(localized: "home.compare.month.current"))
         for run in text.runs where run.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
             text[run.range].inlinePresentationIntent = nil
             text[run.range].font = TypeStyle.footnote.font.weight(.semibold)

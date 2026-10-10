@@ -159,7 +159,8 @@ struct CategoryTilesView: View {
                 let corners = level == .subcategories
                     ? TileCorners.tile
                     : TileCorners(of: rect, in: container, outer: Theme.Radius.tile, inner: Theme.Radius.chipInner)
-                PartTile(part: part, tone: group.tone, corners: corners, size: rect.size, text: text)
+                PartTile(part: part, tone: group.tone, corners: corners, size: rect.size, text: text,
+                         allowsLargeAmount: level == .subcategories && part.share >= VizMetrics.largeAmountMinShare)
                     .frame(width: rect.width, height: rect.height)
                     .offset(x: rect.minX, y: rect.minY)
                     .animation(motion.shape, value: motionKey)
@@ -199,7 +200,7 @@ private struct ItemTile: View {
                     percent: mode == .stats ? VizText.percent(group.share) : nil,
                     amount: text.amount(group.totalMinor),
                     color: VizPaint.label(group),
-                    allowsLargeAmount: mode == .stats,
+                    allowsLargeAmount: false,
                     size: size
                 )
             case .more(let more):
@@ -278,6 +279,7 @@ private struct PartTile: View {
     let corners: TileCorners
     let size: CGSize
     let text: VizText
+    let allowsLargeAmount: Bool
 
     var body: some View {
         let shape = corners.shape
@@ -291,7 +293,7 @@ private struct PartTile: View {
                     percent: VizText.percent(part.share),
                     amount: text.amount(part.totalMinor),
                     color: VizPaint.label(part, tone: tone),
-                    allowsLargeAmount: true,
+                    allowsLargeAmount: allowsLargeAmount,
                     size: size
                 )
             }
@@ -318,7 +320,7 @@ private struct TileLabels: View {
     let percent: String?
     let amount: String
     let color: Color
-    /// Крупная сумма (Unbounded 28), если помещается: большие плитки в статистике (`04-stats-map-drill`).
+    /// Крупная сумма (Unbounded 28), если помещается: оттенки раскрытой категории (`04-stats-map-drill`).
     let allowsLargeAmount: Bool
     let size: CGSize
 
@@ -364,7 +366,7 @@ private struct TileLabels: View {
                 }
             }
             if bottom != .none {
-                Spacer(minLength: Theme.Spacing.xs)
+                Spacer(minLength: 0)
                 bottomView(bottom)
             }
         }
@@ -377,7 +379,7 @@ private struct TileLabels: View {
             CategoryIconImage(name: name)
                 .frame(width: VizMetrics.tileIcon, height: VizMetrics.tileIcon)
         case .swatches(let more):
-            VizMiniSwatches(more: more)
+            VizMiniSwatches(more: more, limit: VizMiniSwatches.count(fitting: content.width))
                 .frame(height: VizMetrics.tileIcon)
         }
     }
@@ -395,11 +397,18 @@ private struct TileLabels: View {
         case .nameAndAmount(let large):
             VStack(alignment: .leading, spacing: 0) {
                 if let name {
+                    let style: TypeStyle = large ? .callout : .footnoteStrong
                     Text(verbatim: name)
-                        .typeStyle(large ? .callout : .footnoteStrong)
+                        .typeStyle(style)
                         .lineLimit(2)
                         .frame(width: content.width, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
+                    // Имя переносится только по словам: вариант не подходит, если длинное слово шире плитки.
+                    Text(verbatim: Self.longestWord(in: name))
+                        .typeStyle(style)
+                        .fixedSize()
+                        .frame(height: 0)
+                        .hidden()
                 }
                 amountText(large: large)
             }
@@ -410,6 +419,11 @@ private struct TileLabels: View {
         case .none:
             EmptyView()
         }
+    }
+
+    private static func longestWord(in text: String) -> String {
+        let words = text.split(separator: " ").map(String.init)
+        return words.max { $0.count < $1.count } ?? text
     }
 
     private func amountText(large: Bool) -> some View {

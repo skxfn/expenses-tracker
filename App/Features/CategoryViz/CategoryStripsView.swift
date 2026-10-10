@@ -129,7 +129,11 @@ struct CategoryStripsView: View {
                         .fill(VizPaint.moreFill)
                         .strokeBorder(VizPaint.moreOutline, lineWidth: Theme.Size.hairline)
                         .frame(width: Theme.Size.plaque, height: Theme.Size.plaque)
-                        .overlay { VizMiniSwatches(more: more) }
+                        .overlay {
+                            VizMiniSwatches(more: more, limit: VizMiniSwatches.count(
+                                fitting: Theme.Size.plaque - 2 * VizMetrics.miniSwatchGap
+                            ))
+                        }
                 },
                 title: VizText.moreTitle(more),
                 titleWeight: .semibold,

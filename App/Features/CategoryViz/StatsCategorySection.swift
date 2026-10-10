@@ -13,10 +13,25 @@ struct StatsCategorySection: View {
     @Binding var view: StatsCategoryView
     @Binding var expandedID: UUID?
     /// Период для VoiceOver: «октябрь».
-    var periodName: String = ""
+    var periodName: String
 
-    @State private var level: CategoryTilesLevel = .subcategories
+    @State private var level: CategoryTilesLevel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// - Parameter tilesLevel: уровень раскрытых «Плиток» при появлении (по макету — «Подкатегории»).
+    init(
+        data: CategoryVizData,
+        view: Binding<StatsCategoryView>,
+        expandedID: Binding<UUID?>,
+        periodName: String = "",
+        tilesLevel: CategoryTilesLevel = .subcategories
+    ) {
+        self.data = data
+        _view = view
+        _expandedID = expandedID
+        self.periodName = periodName
+        _level = State(initialValue: tilesLevel)
+    }
 
     private var expanded: CategoryVizGroup? { data.expandedGroup(expandedID) }
 

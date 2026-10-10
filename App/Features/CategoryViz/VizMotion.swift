@@ -17,12 +17,17 @@ nonisolated struct VizMotion {
         reduceMotion ? nil : (isExpanded ? Motion.vizShadesOut : Motion.vizCollapse)
     }
 
-    /// Основа раскрытой части (основной тон под оттенками) прячется, когда проявился последний оттенок,
-    /// и сразу возвращается при сворачивании — иначе в зазорах между оттенками виден основной тон.
+    /// Основа раскрытой части (основной тон под оттенками) прячется, когда последний оттенок проявился
+    /// целиком, и сразу возвращается при сворачивании — иначе в зазорах между оттенками виден основной тон,
+    /// а одновременное гашение основы и проявление оттенков даёт «вылинявший» кадр.
     func base(lastShadeIndex: Int) -> Animation? {
-        guard !reduceMotion else { return nil }
-        return isExpanded ? Motion.vizShade(index: max(lastShadeIndex, 0)) : nil
+        guard !reduceMotion, isExpanded else { return nil }
+        let shadesSettled = 0.14 + 0.06 * Double(max(lastShadeIndex, 0)) + Self.shadeDuration
+        return Motion.vizShadesOut.delay(shadesSettled)
     }
+
+    /// Длительность проявления оттенка: `viz-shades` — пружина с response 0,35.
+    private static let shadeDuration = 0.35
 }
 
 extension View {
