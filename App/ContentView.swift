@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var router = AppRouter(tab: ContentView.initialTab)
     @State private var pendingDeletion = PendingDeletion()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         TabView(selection: $router.tab) {
@@ -31,6 +32,9 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { pendingDeletion.commitNow() }
         }
+        #if DEBUG
+        .task { router.sheet = ExpenseSheetDebug.requestedMode(context: modelContext).map(AppSheet.expense) ?? router.sheet }
+        #endif
         .environment(router)
         .environment(pendingDeletion)
         .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app))
