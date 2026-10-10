@@ -14,6 +14,9 @@ struct ExpensesApp: App {
                 switch launchState {
                 case .ready(let container):
                     ContentView()
+                        #if DEBUG
+                        .debugScreen()
+                        #endif
                         .modelContainer(container)
                 case .failed(let failure):
                     StoreErrorView(failure: failure)
