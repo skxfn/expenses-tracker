@@ -1,122 +1,173 @@
+import SwiftData
 import SwiftUI
 import ExpenseCore
 
-/// Импорт резервной копии: сведения о файле → выбор режима → отчёт и вопрос о валюте.
+/// Восстановление из копии (шит в стиле настроек, `import.*`): сведения о файле → «Объединить с текущими»
+/// или «Заменить всё» (с подтверждением) → отчёт и вопрос о валюте. Для файла формата 1 — строка `import.v1`.
 struct ImportView: View {
     @Bindable var session: ImportSession
 
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @State private var isConfirmingReplace = false
+    @State private var replaceCounts: ReplaceCounts?
+
+    /// Сколько удалится при замене — для текста подтверждения.
+    private struct ReplaceCounts {
+        let expenses: Int
+        let categories: Int
+    }
 
     var body: some View {
         NavigationStack {
-            Form {
-                if let report = session.report {
-                    reportSections(report)
-                } else {
-                    previewSections
-                }
-            }
-            .navigationTitle(session.report == nil ? "Импорт" : "Импорт завершён")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if session.report == nil {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Отмена") { dismiss() }
-                    }
-                } else {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Готово") { dismiss() }
+            ScrollView {
+                VStack(alignment: .leading, spacing: SettingsLayout.groupSpacing) {
+                    if let report = session.report {
+                        reportContent(report)
+                    } else {
+                        previewContent
                     }
                 }
+                .padding(.horizontal, Theme.Spacing.screen)
+                .padding(.vertical, Theme.Spacing.lg)
             }
-            .errorAlert($session.errorMessage)
+            .background(Theme.canvasElevated)
+            .sheetHeader(
+                session.report == nil ? "import.title" : "import.titleDone",
+                onClose: { dismiss() },
+                confirm: session.report == nil ? nil : SheetConfirmAction(title: "import.done") { dismiss() }
+            )
         }
+        .failureAlert($session.alert)
     }
 
-    // MARK: - До импорта
+    // MARK: - До восстановления
 
     @ViewBuilder
-    private var previewSections: some View {
+    private var previewContent: some View {
         let payload = session.payload
-        Section {
-            LabeledContent("Создан", value: payload.exportedAt.formatted(date: .long, time: .shortened))
-            LabeledContent("Валюта", value: CurrencyOption.displayName(for: payload.currencyCode))
-            LabeledContent("Категорий", value: payload.categories.count.formatted())
-            LabeledContent("Расходов", value: payload.expenses.count.formatted())
-        } header: {
-            Text("Файл")
-        } footer: {
-            if payload.currencyCode != currencyCode {
-                Text("Валюта в файле отличается от текущей (\(currencyCode)). После импорта можно будет выбрать, какую оставить.")
+        let fileCurrency = CurrencyOption(code: payload.currencyCode)
+        let footer = payload.currencyCode == currencyCode ? nil : L10n.format("import.currencyDiff", payload.currencyCode)
+        SettingsFootnoted(footer) {
+            SettingsGroup(header: "import.file") {
+                SettingsRow("import.created", value: dateFormatter.dayMonth(payload.exportedAt))
+                SettingsRow("import.currency", value: fileCurrency.nameWithCode)
+                SettingsRow("import.categories", value: number(payload.categories.count))
+                SettingsRow("import.expenses", value: number(payload.expenses.count))
             }
         }
 
-        Section {
-            Button("Объединить") {
-                session.apply(.merge, context: modelContext)
-            }
-        } footer: {
-            Text("Новые записи добавятся, совпадающие обновятся данными из файла. Ничего не удалится.")
+        modeButton("import.merge", footer: "import.mergeFooter", kind: .glass) {
+            session.apply(.merge, context: modelContext)
         }
-
-        Section {
-            Button("Заменить всё", role: .destructive) {
-                isConfirmingReplace = true
+        modeButton("import.replace", footer: "import.replaceFooter", kind: .destructive) {
+            replaceCounts = ReplaceCounts(
+                expenses: (try? modelContext.fetchCount(FetchDescriptor<Expense>())) ?? 0,
+                categories: (try? modelContext.fetchCount(FetchDescriptor<ExpenseCategory>())) ?? 0
+            )
+        }
+        .confirmationDialog(
+            "import.replaceConfirm",
+            isPresented: Binding(get: { replaceCounts != nil }, set: { if !$0 { replaceCounts = nil } }),
+            titleVisibility: .visible,
+            presenting: replaceCounts
+        ) { _ in
+            Button("import.replaceConfirmButton", role: .destructive) {
+                session.apply(.replace, context: modelContext)
             }
-            .confirmationDialog(
-                "Заменить все данные?",
-                isPresented: $isConfirmingReplace,
-                titleVisibility: .visible
-            ) {
-                Button("Удалить текущие и загрузить из файла", role: .destructive) {
-                    session.apply(.replace, context: modelContext)
-                }
-            } message: {
-                Text("Все текущие категории и расходы будут удалены. Отменить это нельзя.")
-            }
-        } footer: {
-            Text("Текущие категории и расходы удалятся и заменятся данными из файла.")
+        } message: { counts in
+            Text(verbatim: L10n.format("import.replaceConfirmMessage", counts.expenses, counts.categories))
         }
     }
 
-    // MARK: - После импорта
+    private func modeButton(
+        _ title: LocalizedStringKey,
+        footer: LocalizedStringKey,
+        kind: GlassCapsuleButtonStyle.Kind,
+        action: @escaping () -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            Button(title, action: action)
+                .buttonStyle(.glassCapsule(kind))
+            Text(footer)
+                .typeStyle(.footnote)
+                .foregroundStyle(Theme.secondary)
+                .padding(.horizontal, Theme.Spacing.lg)
+        }
+    }
+
+    // MARK: - После восстановления
 
     @ViewBuilder
-    private func reportSections(_ report: ImportReport) -> some View {
-        if session.needsCurrencyDecision(currentCode: currencyCode) {
-            Section {
-                Text("В файле: \(CurrencyOption(code: report.currencyCode).name) (\(report.currencyCode)). В приложении: \(CurrencyOption(code: currencyCode).name) (\(currencyCode)). Суммы при смене не пересчитываются.")
-                Button("Использовать \(report.currencyCode)") {
-                    currencyCode = report.currencyCode
-                    session.answerCurrencyQuestion()
-                }
-                Button("Оставить \(currencyCode)") {
-                    session.answerCurrencyQuestion()
-                }
-            } header: {
-                Text("Валюта")
+    private func reportContent(_ report: ImportReport) -> some View {
+        if report.isFromPreviousFormat {
+            SettingsGroup {
+                messageRow(String(localized: "import.v1"))
             }
         }
-        countsSection("Категории", counts: report.categories)
-        countsSection("Расходы", counts: report.expenses)
-        if report.expensesWithMissingCategory > 0 {
-            Section {
-                Text("Расходов без категории: \(report.expensesWithMissingCategory) — их категория не нашлась ни в файле, ни в приложении.")
+        if session.needsCurrencyDecision(currentCode: currencyCode) {
+            currencyQuestion(fileCode: report.currencyCode)
+        }
+        countsGroup("import.reportCategories", counts: report.categories)
+        let missing = report.expensesWithMissingCategory
+        SettingsFootnoted(missing > 0 ? L10n.format("import.missingCategory", missing) : nil) {
+            countsGroup("import.reportExpenses", counts: report.expenses)
+        }
+    }
+
+    private func currencyQuestion(fileCode: String) -> some View {
+        let file = CurrencyOption(code: fileCode)
+        let current = CurrencyOption(code: currencyCode)
+        return SettingsGroup(header: "import.currencyHeader") {
+            messageRow(L10n.format("import.currencyQuestion", file.name, file.code, current.name, current.code))
+            actionRow(L10n.format("import.useCurrency", file.code)) {
+                currencyCode = file.code
+                session.answerCurrencyQuestion()
+            }
+            actionRow(L10n.format("import.keepCurrency", current.code)) {
+                session.answerCurrencyQuestion()
             }
         }
     }
 
-    private func countsSection(_ title: String, counts: ImportReport.Counts) -> some View {
-        Section(title) {
-            LabeledContent("Добавлено", value: counts.added.formatted())
-            LabeledContent("Обновлено", value: counts.updated.formatted())
-            LabeledContent("Без изменений", value: counts.unchanged.formatted())
+    private func countsGroup(_ title: LocalizedStringKey, counts: ImportReport.Counts) -> some View {
+        SettingsGroup(header: title) {
+            SettingsRow("import.added", value: number(counts.added))
+            SettingsRow("import.updated", value: number(counts.updated))
+            SettingsRow("import.unchanged", value: number(counts.unchanged))
             if counts.deleted > 0 {
-                LabeledContent("Удалено", value: counts.deleted.formatted())
+                SettingsRow("import.deleted", value: number(counts.deleted))
             }
         }
+    }
+
+    private func messageRow(_ text: String) -> some View {
+        Text(verbatim: text)
+            .typeStyle(.body)
+            .foregroundStyle(Theme.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Theme.Spacing.lg)
+            .padding(.vertical, Theme.Spacing.md)
+    }
+
+    private func actionRow(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(verbatim: title)
+                .typeStyle(.body)
+                .foregroundStyle(Theme.ink)
+                .frame(maxWidth: .infinity, minHeight: SettingsLayout.rowHeight, alignment: .leading)
+                .padding(.horizontal, Theme.Spacing.lg)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable(Motion.PressScale.row))
+    }
+
+    /// Число с разрядами через U+00A0.
+    private func number(_ value: Int) -> String {
+        TextSpacing.normalized(value.formatted(.number.locale(.app)))
+    }
+
+    private var dateFormatter: RussianDateFormatter {
+        RussianDateFormatter(calendar: .current, now: .now)
     }
 }
