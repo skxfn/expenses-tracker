@@ -26,6 +26,15 @@ struct CurrencySignShowcase: View {
             ShowcaseSection(title: "Без подстановки (.font(.body)): квадрат") {
                 Text(verbatim: "38\u{00A0}\u{20C5}").font(.body)
             }
+            ShowcaseSection(title: ".fontWeight поверх typeStyle: слева SwiftUI-шрифт, справа typeStyle") {
+                ForEach([Font.Weight.regular, .medium, .semibold, .bold], id: \.self) { weight in
+                    HStack {
+                        Text(verbatim: "Продукты 38\u{00A0}₽").font(TypeStyle.callout.font).fontWeight(weight)
+                        Spacer()
+                        Text(verbatim: "Продукты 38\u{00A0}\u{20C5}").typeStyle(.callout).fontWeight(weight)
+                    }
+                }
+            }
             ShowcaseSection(title: "Unbounded: AmountText, знак и код") {
                 ForEach([sign, code], id: \.symbolStyle) { money in
                     AmountText(text: money.string(fromMinor: 41_230, style: .plain), value: 41_230, size: .total, currency: money.currencySymbol)
