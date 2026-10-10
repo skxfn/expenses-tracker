@@ -15,22 +15,24 @@ nonisolated enum L10n {
     /// Строка каталога с подстановками: `%@` — `String`, `%lld` — `Int` (плюрализация ru).
     /// Порядок аргументов — как в комментарии ключа в каталоге.
     ///
-    ///     L10n.format("stats.summary.meta", 18, "51,54 Br")  // «18 трат · в среднем 51,54 Br в день»
+    ///     L10n.format("stats.summary.meta", 18, "51,54 ⃅")  // «18 трат · в среднем 51,54 ⃅ в день»
     static func format(_ key: String, _ args: any CVarArg...) -> String {
         formatted(key, arguments: args)
     }
 
     /// Строка с выделением (`**…**` в каталоге, список — `EMPHASIZED` в gen_strings.py).
     /// Выделенный фрагмент приходит с `inlinePresentationIntent == .stronglyEmphasized`; без стилизации
-    /// SwiftUI покажет его жирным (700). По DESIGN.md нужен SF 600 графитом — перебрать `runs`:
+    /// SwiftUI покажет его жирным (700). По DESIGN.md нужен SF 600 графитом — перебрать `runs`; шрифт фрагмента —
+    /// через `CurrencySignFont`, иначе знак рубля в сумме будет квадратом (`fontContext` —
+    /// `@Environment(\.fontResolutionContext)`):
     ///
-    ///     var text = L10n.attributed("home.compare", "38 Br", String(localized: "home.compare.month.current"))
+    ///     var text = L10n.attributed("home.compare", "38 ⃅", String(localized: "home.compare.month.current"))
     ///     for run in text.runs where run.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
     ///         text[run.range].inlinePresentationIntent = nil        // иначе поверх веса ляжет bold
-    ///         text[run.range].font = .subheadline.weight(.semibold) // SF 600 (callout 15)
+    ///         text[run.range].font = CurrencySignFont.font(TypeStyle.callout.font.monospacedDigit(), in: fontContext)
     ///         text[run.range].foregroundColor = .primary            // графит; остальное — .secondary у Text
     ///     }
-    ///     Text(text).foregroundStyle(.secondary)
+    ///     Text(text).typeStyle(.subheadline).foregroundStyle(.secondary)
     ///
     /// Строковые аргументы экранируются: имя категории со `*` или `_` не станет разметкой.
     static func attributed(_ key: String, _ args: any CVarArg...) -> AttributedString {

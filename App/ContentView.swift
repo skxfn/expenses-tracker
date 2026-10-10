@@ -10,6 +10,7 @@ import ExpenseCore
 /// Корни вкладок без навигационной панели: шапки свои; заголовок вкладки нужен системной кнопке «‹ Траты».
 struct ContentView: View {
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
+    @AppStorage(SettingsKeys.currencySymbolStyle) private var currencySymbolStyle = CurrencySymbolStyle.default
     @State private var router = AppRouter(tab: ContentView.initialTab)
     @State private var pendingDeletion = PendingDeletion()
     /// Стек пушей каждой вкладки.
@@ -50,7 +51,7 @@ struct ContentView: View {
         #endif
         .environment(router)
         .environment(pendingDeletion)
-        .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app))
+        .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app, symbolStyle: currencySymbolStyle))
     }
 
     // MARK: - Таб-бар

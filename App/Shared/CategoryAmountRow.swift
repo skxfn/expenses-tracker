@@ -62,8 +62,8 @@ struct CategoryAmountRow: View {
         CategoryAmountRow(
             appearance: CategoryAppearance(name: "Продукты", iconName: "cart.fill", colorHex: "#2E9D63"),
             subtitle: "Евроопт",
-            amount: "23,40 Br"
+            amount: "23,40 \u{20C5}"
         )
-        CategoryAmountRow(appearance: .uncategorized, amount: "5 Br", isSelected: true)
+        CategoryAmountRow(appearance: .uncategorized, amount: "5 \u{20C5}", isSelected: true)
     }
 }

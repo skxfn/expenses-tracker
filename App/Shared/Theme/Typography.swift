@@ -3,8 +3,10 @@ import CoreText
 import OSLog
 
 /// Шрифтовой стиль: шрифт с Dynamic Type, трекинг и табличные цифры (DESIGN.md → Typography, §3.3).
-/// Unbounded — только суммы, «Br» и месяц; остальное — системный SF.
+/// Unbounded — только суммы, знак рубля «⃅» и месяц; остальное — системный SF.
 nonisolated struct TypeStyle: Sendable {
+    /// Шрифт SwiftUI без подстановки знака рубля: «⃅» в нём — пустой квадрат.
+    /// Для текста — `typeStyle(_:)`, для фрагмента `AttributedString` — `font(in:)`.
     let font: Font
     /// Кегль при размере текста по умолчанию.
     let size: CGFloat
@@ -19,15 +21,15 @@ nonisolated extension TypeStyle {
 
     /// Сумма в шите записи, 60/500.
     static let amountDisplay = unbounded(Tokens.TypeScale.amountDisplay, relativeTo: .largeTitle)
-    /// «Br» рядом с amount-display, 26/500.
+    /// «⃅» рядом с amount-display, 26/500.
     static let currencyDisplay = unbounded(size: 26, weight: .medium, relativeTo: .largeTitle)
     /// Итог периода, 40/500.
     static let amountTotal = unbounded(Tokens.TypeScale.amountTotal, relativeTo: .largeTitle)
-    /// «Br» рядом с amount-total, 20/500.
+    /// «⃅» рядом с amount-total, 20/500.
     static let currencyTotal = unbounded(size: 20, weight: .medium, relativeTo: .largeTitle)
     /// Итог в центре кольца, 28/500.
     static let amountRingTotal = unbounded(size: 28, weight: .medium, relativeTo: .title, base: Tokens.TypeScale.amountTotal)
-    /// «Br» в центре кольца: в токенах нет, по макету `02-home-ring` ≈ половина кегля итога.
+    /// «⃅» в центре кольца: в токенах нет, по макету `02-home-ring` ≈ половина кегля итога.
     static let currencyRingTotal = unbounded(size: 14, weight: .medium, relativeTo: .title)
     /// Месяц в шапке, 28/600.
     static let monthTitle = unbounded(Tokens.TypeScale.monthTitle, relativeTo: .title)
@@ -57,6 +59,16 @@ nonisolated extension TypeStyle {
     static let footnoteStrong = system(Tokens.TypeScale.footnote, .footnote, weight: .semibold)
     /// 11/600 — подписи таб-бара и шкалы календаря. Мельче не бывает.
     static let caption = system(Tokens.TypeScale.caption, .caption2)
+
+    /// Шрифт стиля для окружения (`EnvironmentValues.fontResolutionContext`) с подстановкой знака рубля
+    /// и табличными цифрами. Для фрагментов `AttributedString` со своим шрифтом — например, выделенной суммы:
+    ///
+    ///     @Environment(\.fontResolutionContext) private var fontContext
+    ///     text[run.range].font = TypeStyle.callout.font(in: fontContext)
+    @MainActor
+    func font(in context: Font.Context) -> Font {
+        CurrencySignFont.font(tabularDigits ? font.monospacedDigit() : font, in: context)
+    }
 
     // MARK: Построение
 
@@ -104,7 +116,7 @@ extension Font.Weight {
 }
 
 extension View {
-    /// Шрифт, трекинг (масштабируется вместе с Dynamic Type) и табличные цифры стиля.
+    /// Шрифт с подстановкой знака рубля, трекинг (масштабируется вместе с Dynamic Type) и табличные цифры стиля.
     func typeStyle(_ style: TypeStyle) -> some View {
         modifier(TypeStyleModifier(style: style))
     }
@@ -113,6 +125,8 @@ extension View {
 private struct TypeStyleModifier: ViewModifier {
     let style: TypeStyle
     @ScaledMetric private var tracking: CGFloat
+    /// Размер Dynamic Type, жирный текст и т. п.: при смене шрифт разрешается заново.
+    @Environment(\.fontResolutionContext) private var fontContext
 
     init(style: TypeStyle) {
         self.style = style
@@ -120,12 +134,7 @@ private struct TypeStyleModifier: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        let styled = content.font(style.font).tracking(tracking)
-        if style.tabularDigits {
-            styled.monospacedDigit()
-        } else {
-            styled
-        }
+        content.font(style.font(in: fontContext)).tracking(tracking)
     }
 }
 
@@ -167,5 +176,56 @@ nonisolated enum UnboundedFont {
                 logger.error("Шрифт \(name, privacy: .public) не зарегистрирован: \(description, privacy: .public)")
             }
         }
+    }
+}
+
+// MARK: - Знак рубля
+
+/// Подстановка знака белорусского рубля U+20C5 (`BYNSign.ttf`, design/INTEGRATION.md §3.3.1, вариант а).
+///
+/// Знака нет ни в SF, ни в Unbounded, ни в системной подстановке iOS 26, а шрифт, зарегистрированный процессом,
+/// система в подстановку сама не берёт (спайк: вместо знака — LastResort, квадрат). Поэтому шрифт текста
+/// разрешается в контексте окружения (`Font.resolve(in:)`: Dynamic Type, жирный текст, начертание) и получает
+/// cascade list: сначала `BYNSign`, затем системный список подстановки (эмодзи, другие письменности).
+/// Когда знак появится в системных шрифтах, подстановка просто перестанет срабатывать.
+enum CurrencySignFont {
+    static let fileName = "BYNSign"
+
+    private static let logger = Logger(subsystem: "com.skxfn.expenses", category: "Fonts")
+    /// Шрифт знака из бандла. Ссылка — по файлу: PostScript-имени в `BYNSign.ttf` нет.
+    private static var signDescriptor: CTFontDescriptor?
+    private static var cache: [Font.Resolved: Font] = [:]
+
+    /// Регистрирует `BYNSign.ttf` на время процесса (как Unbounded). Без него «\u{20C5}» — квадрат.
+    static func register(bundle: Bundle = .main) {
+        guard let url = bundle.url(forResource: fileName, withExtension: "ttf") else {
+            logger.error("Нет шрифта \(fileName, privacy: .public).ttf в бандле")
+            return
+        }
+        var error: Unmanaged<CFError>?
+        guard CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error) else {
+            let description = error?.takeRetainedValue().localizedDescription ?? "неизвестная ошибка"
+            logger.error("Шрифт \(fileName, privacy: .public) не зарегистрирован: \(description, privacy: .public)")
+            return
+        }
+        signDescriptor = (CTFontManagerCreateFontDescriptorsFromURL(url as CFURL) as? [CTFontDescriptor])?.first
+        cache.removeAll()
+    }
+
+    /// `font`, разрешённый в `context`, со знаком рубля в подстановке. Без зарегистрированного знака — `font`.
+    static func font(_ font: Font, in context: Font.Context) -> Font {
+        guard let signDescriptor else { return font }
+        let resolved = font.resolve(in: context)
+        if let cached = cache[resolved] { return cached }
+        let result = Font(cascading(resolved.ctFont, sign: signDescriptor))
+        cache[resolved] = result
+        return result
+    }
+
+    private static func cascading(_ font: CTFont, sign: CTFontDescriptor) -> CTFont {
+        let system = CTFontCopyDefaultCascadeListForLanguages(font, nil) as? [CTFontDescriptor] ?? []
+        let attributes = [kCTFontCascadeListAttribute: [sign] + system] as CFDictionary
+        let descriptor = CTFontDescriptorCreateCopyWithAttributes(CTFontCopyFontDescriptor(font), attributes)
+        return CTFontCreateWithFontDescriptor(descriptor, CTFontGetSize(font), nil)
     }
 }

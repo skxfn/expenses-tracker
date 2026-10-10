@@ -855,7 +855,7 @@
      "id": "home.compare",
      "element": "фраза-сравнение под итогом",
      "context": "Фраза-сравнение под итогом: та же дата прошлого периода; «38 Br меньше» — полужирным. Варианты «больше»/«столько же»/«нет данных» не нарисованы",
-     "current": "на 38 Br меньше, чем в прошлом месяце",
+     "current": "на 38 ⃅ меньше, чем в прошлом месяце",
      "proposed": "38 Br less than this time last month",
      "alternatives": [
       "38 Br less than last month",
@@ -874,7 +874,7 @@
      "id": "home.compare.more",
      "element": "сравнение: больше",
      "context": "Итог больше, чем за тот же отрезок прошлого периода. Та же строка — в статистике.",
-     "current": "на 38 Br больше, чем в прошлом месяце",
+     "current": "на 38 ⃅ больше, чем в прошлом месяце",
      "proposed": "38 Br more than this time last month",
      "alternatives": [
       "38 Br more than last month",
@@ -928,7 +928,7 @@
      "id": "home.compare.day",
      "element": "сравнение: день",
      "context": "Сегмент «День».",
-     "current": "на 12 Br больше, чем вчера · …, чем накануне",
+     "current": "на 12 ⃅ больше, чем вчера · …, чем накануне",
      "proposed": "12 Br more than yesterday · …than the day before",
      "alternatives": [
       "12 Br more than yesterday · …than Oct 5"
@@ -946,7 +946,7 @@
      "id": "home.compare.week",
      "element": "сравнение: неделя",
      "context": "Сегмент «Неделя», неделя идёт; прошедшая — «чем за 21–27 сен».",
-     "current": "на 12 Br больше, чем на прошлой неделе",
+     "current": "на 12 ⃅ больше, чем на прошлой неделе",
      "proposed": "12 Br more than this time last week",
      "alternatives": [
       "12 Br more than last week"
@@ -964,7 +964,7 @@
      "id": "home.compare.past",
      "element": "сравнение: прошедший месяц",
      "context": "Месяц закончился. Название месяца в предложном падеже — своя таблица из 12 форм (это не пользовательские данные).",
-     "current": "на 38 Br меньше, чем в августе",
+     "current": "на 38 ⃅ меньше, чем в августе",
      "proposed": "38 Br less than in August",
      "alternatives": [
       "38 Br less than August"
@@ -982,7 +982,7 @@
      "id": "home.compare.year",
      "element": "сравнение: год",
      "context": "Сегмент «Год»: идёт / прошёл.",
-     "current": "на 120 Br меньше, чем в прошлом году · …, чем в 2024",
+     "current": "на 120 ⃅ меньше, чем в прошлом году · …, чем в 2024",
      "proposed": "120 Br less than this time last year · …than in 2025",
      "alternatives": [
       "120 Br less than last year"
@@ -1247,7 +1247,7 @@
      "id": "range.compare",
      "element": "сравнение для своего периода",
      "context": "Под итогом своего периода: предыдущий отрезок той же длины.",
-     "current": "на 23,80 Br меньше, чем за 2–4 окт",
+     "current": "на 23,80 ⃅ меньше, чем за 2–4 окт",
      "proposed": "23.80 Br less than Oct 2–4",
      "alternatives": [
       "Down 23.80 Br from Oct 2–4"
@@ -1352,7 +1352,7 @@
      "id": "period.range.meta",
      "element": "длина и сумма диапазона",
      "context": "Длина и сумма диапазона (SF 15 серым)",
-     "current": "· 15 дней ≈ 742 Br",
+     "current": "· 15 дней ≈ 742 ⃅",
      "proposed": "· 15 days ≈ 742 Br",
      "alternatives": [],
      "why": "Плюрализация: «1 day | %d days». Разделитель тысяч — запятая: «≈ 12,742 Br».",
@@ -1844,7 +1844,7 @@
      "id": "cal.summary",
      "element": "строка-итог месяца",
      "context": "Строка-итог месяца под шапкой (сумма полужирным), nowrap",
-     "current": "412,30 Br за 8 дней · больше всего 2 окт",
+     "current": "412,30 ⃅ за 8 дней · больше всего 2 окт",
      "proposed": "412.30 Br in 8 days · most on Oct 2",
      "alternatives": [
       "412.30 Br in 8 days · top day Oct 2"
@@ -1894,7 +1894,7 @@
      "id": "cal.legend.title",
      "element": "подпись шкалы",
      "context": "Подпись шкалы заливки",
-     "current": "Br за день",
+     "current": "⃅ за день",
      "proposed": "Br per day",
      "alternatives": [
       "Br / day"
@@ -2057,7 +2057,7 @@
      "id": "stats.compare",
      "element": "фраза-сравнение",
      "context": "Фраза-сравнение (как на главном)",
-     "current": "на 38 Br меньше, чем в прошлом месяце",
+     "current": "на 38 ⃅ меньше, чем в прошлом месяце",
      "proposed": "38 Br less than this time last month",
      "alternatives": [
       "38 Br less than last month",
@@ -2076,7 +2076,7 @@
      "id": "stats.summary.meta",
      "element": "количество и средняя",
      "context": "Количество и средняя в день",
-     "current": "18 трат · в среднем 51,54 Br в день",
+     "current": "18 трат · в среднем 51,54 ⃅ в день",
      "proposed": "18 expenses · daily average 51.54 Br",
      "alternatives": [
       "18 expenses · 51.54 Br a day on average",
@@ -2234,7 +2234,7 @@
      "id": "stats.center.meta",
      "element": "подпись в центре кольца/солнца",
      "context": "Подпись под итогом в центре кольца/солнца",
-     "current": "Br · 18 трат",
+     "current": "⃅ · 18 трат",
      "proposed": "Br · 18 expenses",
      "alternatives": [
       "Br · 18 items"
@@ -2321,7 +2321,7 @@
      "id": "stats.days.tip",
      "element": "подсказка выбранного дня",
      "context": "Стеклянная подсказка выбранного дня: «Сегодня»/«Вчера»/«чт, 1 окт» + сумма",
-     "current": "Сегодня  57,20 Br",
+     "current": "Сегодня  57,20 ⃅",
      "proposed": "Today  57.20 Br",
      "alternatives": [],
      "why": "Варианты: «Yesterday», «Thu, Oct 1». Замер: «Yesterday  1,057.20 Br» ≈ 159, «Thu, Oct 1  1,057.20 Br» ≈ 160 из 186 px.",
@@ -2423,7 +2423,7 @@
      "id": "stats.habits.note",
      "element": "единицы справа от заголовка",
      "context": "Подпись единиц справа от заголовка",
-     "current": "в среднем за день, Br",
+     "current": "в среднем за день, ⃅",
      "proposed": "daily average, Br",
      "alternatives": [
       "avg per day, Br"
@@ -2689,7 +2689,7 @@
      "id": "viz.center.groups",
      "element": "центр солнца при многих категориях",
      "context": "Подпись в центре солнца при 15 группах",
-     "current": "Br · 18 трат",
+     "current": "⃅ · 18 трат",
      "proposed": "Br · 18 expenses",
      "alternatives": [],
      "why": "Как stats.center.meta. Плюрализация: Br · 1 expense | Br · %d expenses.",
@@ -3438,7 +3438,7 @@
      "id": "settings.currency.value",
      "element": "значение строки «Валюта»",
      "context": "Значение строки «Валюта»",
-     "current": "Белорусский рубль · Br",
+     "current": "Белорусский рубль · ⃅",
      "proposed": "Belarusian Ruble · Br",
      "alternatives": [
       "Belarusian Ruble · BYN"
@@ -3451,6 +3451,36 @@
      "status": "new",
      "final": "Belarusian Ruble · ⃅",
      "critic": "Br → ⃅ (новый официальный знак, решение владельца)."
+    },
+    {
+     "id": "settings.currency.symbol",
+     "element": "строка «Обозначение»",
+     "context": "Группа «Валюта», сразу под строкой «Валюта»; справа переключатель из двух капсул: знак рубля (по умолчанию) | BYN. Показывается, только когда валюта приложения — BYN (макет 12-settings)",
+     "current": "Обозначение",
+     "proposed": "Symbol",
+     "alternatives": [],
+     "why": "Решение владельца 2026-10-10: знак рубля вместо «Br», код BYN — по выбору. Тексты — таблица §3.3.1.",
+     "ref": "design/INTEGRATION.md §3.3.1",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "new",
+     "final": "Symbol"
+    },
+    {
+     "id": "settings.currency.symbol.code",
+     "element": "капсула переключателя «Обозначение»",
+     "context": "Вторая капсула: суммы с кодом валюты («38 BYN»). Первая капсула — сам знак рубля без текста, его имя для VoiceOver — settings.currency.symbol.sign.a11y",
+     "current": "BYN",
+     "proposed": "BYN",
+     "alternatives": [],
+     "why": "Решение владельца 2026-10-10: знак рубля вместо «Br», код BYN — по выбору. Тексты — таблица §3.3.1.",
+     "ref": "design/INTEGRATION.md §3.3.1",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "new",
+     "final": "BYN"
     },
     {
      "id": "settings.categories",
@@ -6377,6 +6407,36 @@
      "status": "new",
      "final": "Categories: 1 category and 1 subcategory | Categories: 12 categories and 25 subcategories",
      "critic": "Добавлены формы one | other (числа плюрализуются независимо)."
+    },
+    {
+     "id": "settings.currency.symbol.sign.a11y",
+     "element": "капсула со знаком рубля",
+     "context": "VoiceOver: первая капсула переключателя «Обозначение» — сам знак не читается",
+     "current": "Знак рубля",
+     "proposed": "Ruble sign",
+     "alternatives": [],
+     "why": "Решение владельца 2026-10-10: знак рубля вместо «Br», код BYN — по выбору. Тексты — таблица §3.3.1.",
+     "ref": "design/INTEGRATION.md §3.3.1",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "new",
+     "final": "Ruble sign"
+    },
+    {
+     "id": "settings.currency.symbol.a11y.hint",
+     "element": "переключатель «Обозначение»",
+     "context": "VoiceOver: подсказка переключателя «Обозначение»",
+     "current": "Как подписывать суммы",
+     "proposed": "How amounts are labeled",
+     "alternatives": [],
+     "why": "Решение владельца 2026-10-10: знак рубля вместо «Br», код BYN — по выбору. Тексты — таблица §3.3.1.",
+     "ref": "design/INTEGRATION.md §3.3.1",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "new",
+     "final": "How amounts are labeled"
     },
     {
      "id": "settings.overview.a11y",
