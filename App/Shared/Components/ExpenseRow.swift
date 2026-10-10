@@ -52,32 +52,51 @@ struct ExpenseRowData: Identifiable, Hashable {
 struct ExpenseRow: View {
     let data: ExpenseRowData
     @Environment(\.moneyFormatter) private var money
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        HStack(spacing: Theme.Spacing.md) {
+        HStack(alignment: isStacked ? .top : .center, spacing: Theme.Spacing.md) {
             CategoryPlaque(iconName: data.iconName, tone: data.tone)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: data.title)
-                    .typeStyle(.body)
-                    .foregroundStyle(Theme.ink)
-                    .lineLimit(1)
-                if let subtitle = data.subtitle {
-                    Text(verbatim: subtitle)
-                        .typeStyle(.footnote)
-                        .foregroundStyle(Theme.secondary)
-                        .lineLimit(1)
+            if isStacked {
+                // На AX-размерах сумма уходит под текст, иначе название и сумма обрезаются.
+                VStack(alignment: .leading, spacing: 2) {
+                    texts
+                    amount
                 }
+            } else {
+                texts
+                Spacer(minLength: Theme.Spacing.sm)
+                amount
             }
-            Spacer(minLength: Theme.Spacing.sm)
-            AmountText(
-                text: money.string(fromMinor: data.amountMinor, style: .plain),
-                value: Double(data.amountMinor),
-                size: .inline
-            )
         }
         .frame(minHeight: Theme.Size.feedRow)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: accessibilityText))
+    }
+
+    private var isStacked: Bool { dynamicTypeSize.isAccessibilitySize }
+
+    private var texts: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: data.title)
+                .typeStyle(.body)
+                .foregroundStyle(Theme.ink)
+                .lineLimit(isStacked ? 3 : 1)
+            if let subtitle = data.subtitle {
+                Text(verbatim: subtitle)
+                    .typeStyle(.footnote)
+                    .foregroundStyle(Theme.secondary)
+                    .lineLimit(isStacked ? 3 : 1)
+            }
+        }
+    }
+
+    private var amount: some View {
+        AmountText(
+            text: money.string(fromMinor: data.amountMinor, style: .plain),
+            value: Double(data.amountMinor),
+            size: .inline
+        )
     }
 
     /// `feed.row.a11y`: «Обед, Кафе, Обеды, 44,70 рубля» — без «·».

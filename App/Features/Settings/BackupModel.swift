@@ -3,16 +3,18 @@ import Observation
 import SwiftData
 import ExpenseCore
 
-/// Экспорт и импорт резервной копии: подготовка файла, чтение, состояние диалогов.
+/// Сохранение и восстановление резервной копии: подготовка файла, чтение, состояние диалогов, ошибки.
 @Observable
 final class BackupModel {
-    /// `Double` (секунды с 1970) — дата последнего успешного экспорта, для `@AppStorage`.
+    /// `Double` (секунды с 1970) — дата последнего сохранения копии, для `@AppStorage`.
     static let lastExportDateKey = "lastBackupExportDate"
 
     var isExporterPresented = false
     var isImporterPresented = false
     var importSession: ImportSession?
-    var errorMessage: String?
+    var alert: FailureAlert?
+    /// Тост «Копия сохранена» после системного окна сохранения.
+    var isExportDoneToastShown = false
     private(set) var exportDocument: BackupDocument?
     private(set) var exportFileName = ""
 
@@ -22,7 +24,7 @@ final class BackupModel {
             exportFileName = Self.exporterFileName(BackupExporter.defaultFileName())
             isExporterPresented = true
         } catch {
-            errorMessage = "Не удалось подготовить резервную копию: \(error.localizedDescription)"
+            alert = .exportPrepare
         }
     }
 
@@ -31,9 +33,10 @@ final class BackupModel {
         exportDocument = nil
         switch result {
         case .success:
+            isExportDoneToastShown = true
             return true
-        case .failure(let error):
-            errorMessage = "Не удалось сохранить файл: \(error.localizedDescription)"
+        case .failure:
+            alert = .exportSave
             return false
         }
     }
@@ -42,13 +45,13 @@ final class BackupModel {
         exportDocument = nil
     }
 
-    /// Читает и проверяет выбранный файл. Хранилище не меняется до выбора режима импорта.
+    /// Читает и проверяет выбранный файл. Хранилище не меняется до выбора режима восстановления.
     func openImportedFile(_ result: Result<URL, any Error>) {
         do {
             let data = try BackupDocument(contentsOf: try result.get()).data
             importSession = ImportSession(payload: try BackupImporter.decode(data))
         } catch {
-            errorMessage = error.localizedDescription
+            alert = .backupRead(error)
         }
     }
 
@@ -60,14 +63,14 @@ final class BackupModel {
     }
 }
 
-/// Один импорт: файл уже прочитан, ждём выбора режима, затем показываем отчёт.
+/// Одно восстановление: файл уже прочитан, ждём выбора режима, затем показываем отчёт.
 @Observable
 final class ImportSession: Identifiable {
     let id = UUID()
     let payload: BackupPayload
     private(set) var report: ImportReport?
     private(set) var isCurrencyQuestionAnswered = false
-    var errorMessage: String?
+    var alert: FailureAlert?
 
     init(payload: BackupPayload) {
         self.payload = payload
@@ -77,11 +80,11 @@ final class ImportSession: Identifiable {
         do {
             report = try BackupImporter.apply(payload, to: context, mode: mode)
         } catch {
-            errorMessage = "Импорт не выполнен, данные не изменились. \(error.localizedDescription)"
+            alert = .backupApply(error)
         }
     }
 
-    /// После импорта спрашиваем про валюту, только если в файле другая и она известна системе.
+    /// После восстановления спрашиваем про валюту, только если в файле другая и она известна системе.
     func needsCurrencyDecision(currentCode: String) -> Bool {
         report != nil
             && !isCurrencyQuestionAnswered

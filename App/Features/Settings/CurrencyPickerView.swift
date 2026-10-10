@@ -2,7 +2,8 @@ import SwiftData
 import SwiftUI
 import ExpenseCore
 
-/// Выбор валюты приложения: популярные сверху, остальные ниже, поиск по коду и названию.
+/// Выбор валюты приложения (`currency.*`) в стиле настроек: популярные сверху, остальные ниже,
+/// поиск по коду и названию. Суммы при смене не пересчитываются — об этом сноска и вопрос, если траты уже есть.
 struct CurrencyPickerView: View {
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
     @Environment(\.modelContext) private var modelContext
@@ -12,68 +13,79 @@ struct CurrencyPickerView: View {
     var body: some View {
         let popular = CurrencyOption.popular.filter { $0.matches(searchText) }
         let other = CurrencyOption.other.filter { $0.matches(searchText) }
-        List {
-            if !popular.isEmpty {
-                Section {
-                    ForEach(popular) { row(for: $0) }
-                } header: {
-                    Text("Популярные")
-                } footer: {
-                    Text("Смена валюты меняет только обозначение: уже введённые суммы не пересчитываются.")
+        ScrollView {
+            VStack(spacing: SettingsLayout.groupSpacing) {
+                if !popular.isEmpty {
+                    SettingsGroup(header: "currency.popular", footer: "currency.footer") {
+                        ForEach(popular) { row(for: $0) }
+                    }
+                }
+                if !other.isEmpty {
+                    SettingsGroup(header: "currency.all") {
+                        ForEach(other) { row(for: $0) }
+                    }
                 }
             }
-            if !other.isEmpty {
-                Section("Все валюты") {
-                    ForEach(other) { row(for: $0) }
-                }
-            }
+            .padding(.horizontal, Theme.Spacing.screen)
+            .padding(.vertical, Theme.Spacing.lg)
         }
         .overlay {
             if popular.isEmpty && other.isEmpty {
+                // `currency.searchEmpty`: текст даёт система.
                 ContentUnavailableView.search(text: searchText)
             }
         }
-        .searchable(text: $searchText, prompt: "Код или название")
-        .navigationTitle("Валюта")
+        .background(Theme.canvas)
+        .navigationTitle("currency.title")
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $searchText, prompt: Text("currency.search"))
         .confirmationDialog(
-            "Сменить валюту?",
+            "currency.confirm",
             isPresented: Binding(get: { pendingCode != nil }, set: { if !$0 { pendingCode = nil } }),
             titleVisibility: .visible,
             presenting: pendingCode
         ) { code in
-            Button("Сменить на \(code)") {
+            Button(L10n.format("currency.confirmButton", code)) {
                 currencyCode = code
             }
         } message: { code in
-            Text("Уже введённые суммы не пересчитываются: 100 \(currencyCode) станут 100 \(code).")
+            Text(verbatim: L10n.format("currency.confirmMessage", currencyCode, code))
         }
     }
 
     private func row(for option: CurrencyOption) -> some View {
-        Button {
+        let isSelected = option.code == currencyCode
+        return Button {
             select(option.code)
         } label: {
-            HStack {
+            HStack(spacing: Theme.Spacing.md) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(option.name)
-                    Text(option.code)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    Text(verbatim: option.name)
+                        .typeStyle(.body)
+                        .foregroundStyle(Theme.ink)
+                    Text(verbatim: option.code)
+                        .typeStyle(.footnote)
+                        .foregroundStyle(Theme.secondary)
                 }
-                Spacer()
-                if option.code == currencyCode {
+                Spacer(minLength: Theme.Spacing.sm)
+                if isSelected {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(Color.accentColor)
+                        .typeStyle(.headline)
+                        .foregroundStyle(Theme.ink)
                         .accessibilityHidden(true)
                 }
             }
-            .accessibilityElement(children: .combine)
+            .padding(.horizontal, Theme.Spacing.lg)
+            .padding(.vertical, Theme.Spacing.sm)
+            .frame(minHeight: SettingsLayout.rowHeight)
+            .contentShape(Rectangle())
         }
-        .tint(.primary)
-        .accessibilityAddTraits(option.code == currencyCode ? .isSelected : [])
+        .buttonStyle(.pressable(Motion.PressScale.row))
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    /// Если расходы уже есть — сначала предупреждаем, что суммы не пересчитаются.
+    /// Если траты уже есть — сначала предупреждаем, что суммы не пересчитаются.
     private func select(_ code: String) {
         guard code != currencyCode else { return }
         let expenseCount = (try? modelContext.fetchCount(FetchDescriptor<Expense>())) ?? 0
@@ -85,9 +97,11 @@ struct CurrencyPickerView: View {
     }
 }
 
+#if DEBUG
 #Preview {
     NavigationStack {
         CurrencyPickerView()
     }
     .modelContainer(try! ModelContainerFactory.make(inMemory: true))
 }
+#endif

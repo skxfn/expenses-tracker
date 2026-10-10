@@ -67,7 +67,7 @@ final class PendingDeletion {
                 try store.deleteExpense(expense)
             }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 

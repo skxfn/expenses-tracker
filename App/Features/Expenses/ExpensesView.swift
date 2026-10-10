@@ -2,20 +2,6 @@ import SwiftData
 import SwiftUI
 import ExpenseCore
 
-/// Что открыть в форме расхода. `id` запоминается сразу: после удаления расхода
-/// SwiftUI ещё обращается к маршруту, а читать свойства удалённой модели небезопасно.
-struct ExpenseFormRoute: Identifiable {
-    let id: String
-    /// `nil` — новый расход.
-    let expense: Expense?
-
-    static let add = ExpenseFormRoute(id: "add", expense: nil)
-
-    static func edit(_ expense: Expense) -> ExpenseFormRoute {
-        ExpenseFormRoute(id: expense.id.uuidString, expense: expense)
-    }
-}
-
 /// Вкладка «Расходы»: итог месяца, список по дням, быстрое добавление.
 struct ExpensesView: View {
     @Query(sort: [
@@ -26,8 +12,7 @@ struct ExpensesView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.moneyFormatter) private var money
-    @State private var formRoute: ExpenseFormRoute?
-    @State private var savedCount = 0
+    @Environment(AppRouter.self) private var router
     @State private var errorMessage: String?
 
     var body: some View {
@@ -42,18 +27,12 @@ struct ExpensesView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    formRoute = .add
+                    router.presentAdd()
                 } label: {
                     Label("Добавить расход", systemImage: "plus")
                 }
             }
         }
-        .sheet(item: $formRoute) { route in
-            ExpenseFormView(expense: route.expense, formatter: money) {
-                savedCount += 1
-            }
-        }
-        .sensoryFeedback(.success, trigger: savedCount)
         .errorAlert($errorMessage)
     }
 
@@ -78,7 +57,7 @@ struct ExpensesView: View {
                 Section {
                     ForEach(section.expenses) { expense in
                         Button {
-                            formRoute = .edit(expense)
+                            router.presentEdit(expenseID: expense.id)
                         } label: {
                             CategoryAmountRow(
                                 appearance: CategoryAppearance(expense.category),
@@ -117,7 +96,7 @@ struct ExpensesView: View {
             Text("Добавьте первый расход — он появится здесь, а на вкладке «Статистика» будут графики.")
         } actions: {
             Button("Добавить расход") {
-                formRoute = .add
+                router.presentAdd()
             }
             .buttonStyle(.borderedProminent)
         }
@@ -125,7 +104,7 @@ struct ExpensesView: View {
 
     private var addButton: some View {
         Button {
-            formRoute = .add
+            router.presentAdd()
         } label: {
             Label("Добавить расход", systemImage: "plus")
                 .frame(maxWidth: .infinity)
@@ -138,7 +117,7 @@ struct ExpensesView: View {
         do {
             try ExpenseStore(context: modelContext).deleteExpense(expense)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 }
@@ -147,5 +126,6 @@ struct ExpensesView: View {
     NavigationStack {
         ExpensesView()
     }
+    .environment(AppRouter())
     .modelContainer(try! ModelContainerFactory.make(inMemory: true))
 }
