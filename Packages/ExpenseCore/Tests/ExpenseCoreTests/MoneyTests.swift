@@ -148,6 +148,12 @@ struct MoneyFormatterStyleTests {
         #expect(format(minor, .calendarCell) == expected)
     }
 
+    @Test func wholeUnitsRoundWithoutSymbol() {
+        #expect(format(2_500, .wholeUnits) == "25")
+        #expect(format(12_550, .wholeUnits) == "126")
+        #expect(format(100_000, .wholeUnits) == "1_000")
+    }
+
     @Test func currencySymbolUsesOverridesAndLocale() {
         let ru = Locale(identifier: "ru_RU")
         #expect(MoneyFormatter(currencyCode: "BYN", locale: ru).currencySymbol == "Br")
@@ -157,7 +163,7 @@ struct MoneyFormatterStyleTests {
 
     @Test func noNarrowOrRegularSpacesInRussianOutput() {
         let samples = [Int64(1), 99_999, 123_456_789].flatMap { minor in
-            [MoneyFormatter.Style.phrase, .plain, .approximate, .difference, .calendarCell].map {
+            [MoneyFormatter.Style.phrase, .plain, .approximate, .difference, .calendarCell, .wholeUnits].map {
                 byn.string(fromMinor: minor, style: $0)
             }
         }
