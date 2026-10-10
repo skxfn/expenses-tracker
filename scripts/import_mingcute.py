@@ -5,18 +5,20 @@
     curl -LO https://registry.npmjs.org/mingcute_icon/-/mingcute_icon-<версия>.tgz; tar -xzf mingcute_icon-*.tgz
     python3 scripts/import_mingcute.py package [имя-fill …]
 
-Без имён берётся набор из design/migration.json (icons[].mingcute, defaultCategories[].icon, iconFallback)
-и EXTRA. Имя ассета = имя MingCute (`basket-fill`; в пакете файл `svg/<раздел>/basket_fill.svg`).
+Без имён берётся каталог `CategoryIconCatalog` (Core), набор design/migration.json
+(icons[].mingcute, defaultCategories[].icon, iconFallback) и EXTRA. Имя ассета = имя MingCute (`basket-fill`; в пакете файл `svg/<раздел>/basket_fill.svg`).
 SVG упрощается для Asset Catalog: убирается служебный прозрачный контур 24×24, заливка — чёрная
 (ассет — шаблон, цвет задаёт код), добавляется viewBox. Только stdlib.
 """
 import json
+import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG = ROOT / "App" / "Resources" / "Assets.xcassets" / "Categories"
+CATALOG_SWIFT = ROOT / "Packages" / "ExpenseCore" / "Sources" / "ExpenseCore" / "Catalog" / "CategoryIconCatalog.swift"
 LICENSE_OUT = ROOT / "App" / "Resources" / "Licenses" / "MingCute-LICENSE.txt"
 SVG_NS = "http://www.w3.org/2000/svg"
 
@@ -37,6 +39,7 @@ def default_names():
     names = {item["mingcute"] for item in migration["icons"]}
     names |= {item["icon"] for item in migration["defaultCategories"]}
     names.add(migration["iconFallback"])
+    names |= set(re.findall(r'"([a-z0-9-]+-fill)"', CATALOG_SWIFT.read_text(encoding="utf-8")))
     return sorted(names | set(EXTRA))
 
 
