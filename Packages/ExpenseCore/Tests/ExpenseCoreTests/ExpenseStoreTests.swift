@@ -31,6 +31,14 @@ struct ExpenseStoreTests {
         #expect(context.hasChanges == false)
     }
 
+    @Test func expenseByIDFindsAndMissesDeleted() throws {
+        let expense = try store.addExpense(amountMinor: 500, date: .now, category: nil)
+        let id = expense.id
+        #expect(try store.expense(id: id)?.amountMinor == 500)
+        try store.deleteExpense(expense)
+        #expect(try store.expense(id: id) == nil)
+    }
+
     @Test(arguments: [Int64(0), -1, -10_000])
     func addExpenseRejectsNonPositiveAmount(amount: Int64) throws {
         #expect(throws: ExpenseStoreError.invalidAmount) {
