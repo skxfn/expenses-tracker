@@ -70,8 +70,7 @@ struct CatalogTests {
     }
 
     /// Ассеты MingCute лежат в `App/Resources/Assets.xcassets/Categories/<имя>.imageset`.
-    @Test(.disabled("ассеты MingCute добавляет агент фундамента"))
-    func everyCatalogIconHasImageset() {
+    @Test func everyCatalogIconHasImageset() {
         let folder = RepositoryFiles.root.appending(path: "App/Resources/Assets.xcassets/Categories")
         for name in CategoryIconCatalog.allNames {
             let path = folder.appending(path: "\(name).imageset").path(percentEncoded: false)
