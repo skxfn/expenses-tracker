@@ -1,4 +1,5 @@
 import Combine
+import SwiftData
 import SwiftUI
 import UIKit
 import ExpenseCore
@@ -39,6 +40,8 @@ struct ExpenseEntryView: View {
     @State private var isWaitingForKeyboard = false
     // Триггеры тактильного отклика и тряски.
     @State private var selectionCount = 0
+    /// Редактор новой категории поверх «Все категории» («+ Новая категория», «Создать «…»»).
+    @State private var newCategory: CategoryEditorMode?
     @State private var quickCount = 0
     @State private var anotherCount = 0
     @State private var saveCount = 0
@@ -351,6 +354,16 @@ struct ExpenseEntryView: View {
         }
     }
 
+    /// Новая категория из «Все категории» сразу выбирается, шит выбора закрывается.
+    private func pickCreatedCategory(_ id: UUID) {
+        var descriptor = FetchDescriptor<ExpenseCategory>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        guard let category = try? modelContext.fetch(descriptor).first else { return }
+        model.pick(CategoryChoice(category))
+        selectionCount += 1
+        subSheet = nil
+    }
+
     @ViewBuilder
     private func subSheetView(_ sheet: SubSheet) -> some View {
         switch sheet {
@@ -364,11 +377,15 @@ struct ExpenseEntryView: View {
                     selectionCount += 1
                     subSheet = nil
                 },
-                onCreateCategory: { _ in
-                    // TODO(categories): открыть редактор новой категории (этап «Категории»), имя — из поиска;
-                    // после сохранения выбрать её: `model.pick(CategoryChoice(новая))` и закрыть «Все категории».
+                onCreateCategory: { name in
+                    newCategory = .create(name: name)
                 }
             )
+            .sheet(item: $newCategory) { mode in
+                CategoryEditorSheet(mode: mode) { id in
+                    pickCreatedCategory(id)
+                }
+            }
         case .date:
             EntryDateSheet(date: model.resolvedDate()) { day in
                 model.pickDate(day)
