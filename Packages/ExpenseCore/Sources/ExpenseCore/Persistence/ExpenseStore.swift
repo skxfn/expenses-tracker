@@ -349,7 +349,7 @@ public final class ExpenseStore {
     }
 
     private func validateAmount(_ amountMinor: Int64) throws {
-        guard amountMinor > 0 else { throw ExpenseStoreError.invalidAmount }
+        guard amountMinor > 0, amountMinor <= Money.maxAmountMinor else { throw ExpenseStoreError.invalidAmount }
     }
 
     /// Цвет категории — основной тон «Гуаши» (без учёта регистра).

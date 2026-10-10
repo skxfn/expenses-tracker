@@ -121,6 +121,12 @@ import Testing
         #expect(throws: BackupError.nonPositiveAmount(expenseID: expenseID)) { try BackupImporter.decode(data) }
     }
 
+    /// Сумма больше предела одной траты переполнила бы итоги статистики — файл отклоняется.
+    @Test func amountAboveLimitIsRejected() throws {
+        let data = try encode(categories: [], expenses: [expense(id: expenseID, amount: Money.maxAmountMinor + 1)])
+        #expect(throws: BackupError.unreadableFile(.badValue)) { try BackupImporter.decode(data) }
+    }
+
     @Test func duplicateIDsAreRejected() throws {
         let categories = try encode(categories: [category(id: categoryID), category(id: categoryID)], expenses: [])
         #expect(throws: BackupError.duplicateCategoryID(categoryID)) { try BackupImporter.decode(categories) }

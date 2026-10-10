@@ -21,6 +21,10 @@ enum AppLaunch {
             return .failed(StoreFailure(error))
         }
 
+        // Перевод старых цветов, иконок и имён — ещё раз при каждом запуске (идемпотентно, быстро):
+        // если `didMigrate` стадии V1→V2 упал, SwiftData уже перевела базу на V2 и стадию не повторит.
+        try? LegacyCatalogMigration.apply(in: container.mainContext)
+
         // Без базовых категорий приложение работает; флаг при ошибке не ставится,
         // поэтому попытка повторится при следующем запуске.
         try? ExpenseStore(context: container.mainContext).seedDefaultCategoriesIfNeeded(defaults: defaults)
