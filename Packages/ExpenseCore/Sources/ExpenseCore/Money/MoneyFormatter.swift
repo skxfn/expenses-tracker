@@ -17,6 +17,8 @@ public struct MoneyFormatter: Sendable {
         case difference
         /// Клетка календаря (`cal.cell.amount`): «64,10» · «1 234» · «12 тыс».
         case calendarCell
+        /// Целые единицы без символа — пороги шкалы heat в легенде (`cal.legend.items`): «25», «1 000».
+        case wholeUnits
     }
 
     public let currencyCode: String
@@ -40,6 +42,8 @@ public struct MoneyFormatter: Sendable {
             difference(minor == .min ? .max : abs(minor))
         case .calendarCell:
             calendarCell(minor)
+        case .wholeUnits:
+            number(Money.roundedToWholeUnits(minor), fractionLength: 0)
         }
         return TextSpacing.normalized(text)
     }
