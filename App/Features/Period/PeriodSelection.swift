@@ -82,8 +82,8 @@ final class PeriodSelection {
     /// Начало сегодняшнего дня.
     var today: Date { calendar.startOfDay(for: now) }
 
-    /// Даты и периоды по D7 для текущего `now`.
-    var dateFormatter: RussianDateFormatter { RussianDateFormatter(calendar: calendar, now: now) }
+    /// Даты и периоды (D7 / E8 — по языку интерфейса) для текущего `now`.
+    var dateFormatter: any DateTextFormatter { AppLanguage.current.dateFormatter(calendar: calendar, now: now) }
 
     // MARK: - Действия
 

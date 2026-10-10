@@ -1,16 +1,17 @@
 import Foundation
 import ExpenseCore
 
-/// Тексты шапки периода: заголовок и подписи VoiceOver (`header.*`). Даты — только через `RussianDateFormatter`.
+/// Тексты шапки периода: заголовок и подписи VoiceOver (`header.*`). Даты — только через `DateTextFormatter`
+/// языка интерфейса (D7 / E8).
 struct PeriodTexts {
     enum Step {
         case previous, next
     }
 
-    let formatter: RussianDateFormatter
+    let formatter: any DateTextFormatter
 
     init(calendar: Calendar, now: Date) {
-        formatter = RussianDateFormatter(calendar: calendar, now: now)
+        formatter = AppLanguage.current.dateFormatter(calendar: calendar, now: now)
     }
 
     private var calendar: Calendar { formatter.calendar }
@@ -37,7 +38,7 @@ struct PeriodTexts {
         let prefix = step == .previous ? "header.prev.a11y" : "header.next.a11y"
         switch target.kind {
         case .month:
-            return L10n.format(prefix, title(for: target).text.lowercased())
+            return L10n.format(prefix, formatter.inSentence(title(for: target).text))
         case .day:
             return L10n.format(prefix + ".day", formatter.dayMonth(target.interval.start))
         case .week:
@@ -57,7 +58,7 @@ struct PeriodTexts {
         let start = period.interval.start
         switch period.kind {
         case .month:
-            let month = RussianWords.month(calendar.component(.month, from: start), .nominative)
+            let month = formatter.monthName(calendar.component(.month, from: start))
             return month + TextSpacing.nonBreaking + String(calendar.component(.year, from: start))
         case .day:
             return formatter.dayMonth(start)

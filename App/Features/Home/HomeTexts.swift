@@ -3,15 +3,15 @@ import ExpenseCore
 
 /// Тексты главной: заголовки дней (`feed.dayHeader.*`) и подписи VoiceOver; сравнение, пустой период
 /// и озвучка сумм — общие со статистикой (`shared`). Ключи — из каталога, данные — форматтеры Core:
-/// суммы — `MoneyFormatter.Style`, даты — `RussianDateFormatter` (D7), озвучка сумм — `a11y.money`.
+/// суммы — `MoneyFormatter.Style`, даты — `DateTextFormatter` языка интерфейса (D7 / E8), озвучка сумм — `a11y.money`.
 struct HomeTexts {
     let money: MoneyFormatter
-    let dates: RussianDateFormatter
+    let dates: any DateTextFormatter
     let shared: SummaryTexts
 
     init(money: MoneyFormatter, calendar: Calendar, now: Date) {
         self.money = money
-        dates = RussianDateFormatter(calendar: calendar, now: now)
+        dates = AppLanguage.current.dateFormatter(calendar: calendar, now: now)
         shared = SummaryTexts(money: money, dates: dates)
     }
 
@@ -34,7 +34,7 @@ struct HomeTexts {
 
     /// `feed.dayHeader.a11y`: «Сегодня, четверг, 8 октября, 57,20 рубля», «Вторник, 6 октября, 30,50 рубля».
     func dayAccessibility(_ day: Date, totalMinor: Int64) -> String {
-        let weekday = RussianWords.weekday(calendar.component(.weekday, from: day), .nominative)
+        let weekday = dates.weekdayName(calendar.component(.weekday, from: day))
         let date: String = switch dayOffset(day) {
         case 0: [String(localized: "header.title.day.today"), weekday, dates.dayMonth(day)].joined(separator: ", ")
         case -1: [String(localized: "header.title.day.yesterday"), weekday, dates.dayMonth(day)].joined(separator: ", ")
@@ -51,7 +51,7 @@ struct HomeTexts {
         let start = period.interval.start
         switch period.kind {
         case .month:
-            let month = RussianWords.month(calendar.component(.month, from: start), .nominative)
+            let month = dates.monthName(calendar.component(.month, from: start))
             let year = calendar.component(.year, from: start)
             return year == calendar.component(.year, from: dates.now)
                 ? month

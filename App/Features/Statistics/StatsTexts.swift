@@ -2,15 +2,16 @@ import Foundation
 import ExpenseCore
 
 /// Строки статистики: ключи каталога (`stats.*`) + данные через форматтеры Core; сравнение, пустой период
-/// и озвучка сумм — общие с главной (`shared`). Даты — `RussianDateFormatter` (D7), суммы — `MoneyFormatter.Style`.
+/// и озвучка сумм — общие с главной (`shared`). Даты и слова — `DateTextFormatter` языка интерфейса (D7 / E8),
+/// суммы — `MoneyFormatter.Style`.
 struct StatsTexts {
     let money: MoneyFormatter
-    let dates: RussianDateFormatter
+    let dates: any DateTextFormatter
     let shared: SummaryTexts
 
     init(money: MoneyFormatter, calendar: Calendar, now: Date) {
         self.money = money
-        dates = RussianDateFormatter(calendar: calendar, now: now)
+        dates = AppLanguage.current.dateFormatter(calendar: calendar, now: now)
         shared = SummaryTexts(money: money, dates: dates)
     }
 
@@ -56,7 +57,7 @@ struct StatsTexts {
     // MARK: - Названия периода
 
     /// Период словами для VoiceOver и легенды: «октябрь», «5–11 октября», «8 октября», «2026».
-    func periodName(_ period: StatsPeriod, month style: RussianDateFormatter.MonthStyle = .full) -> String {
+    func periodName(_ period: StatsPeriod, month style: DateMonthStyle = .full) -> String {
         let start = period.interval.start
         switch period.kind {
         case .month: return monthName(start)
@@ -67,7 +68,7 @@ struct StatsTexts {
     }
 
     /// Прошлый период — подпись второй кривой «Темпа»: «сентябрь», «28 сен – 4 окт», «2025».
-    func previousName(_ period: StatsPeriod, month style: RussianDateFormatter.MonthStyle = .abbreviated) -> String {
+    func previousName(_ period: StatsPeriod, month style: DateMonthStyle = .abbreviated) -> String {
         periodName(period.previous(in: calendar), month: style)
     }
 
@@ -78,7 +79,7 @@ struct StatsTexts {
         let start = bucket.interval.start
         switch step {
         case .hour: return dates.hour(start)
-        case .month: return RussianWords.capitalized(monthName(start))
+        case .month: return dates.monthTitle(calendar.component(.month, from: start))
         case .day, .week: return relativeDay(start) ?? dates.shortWithWeekday(start)
         }
     }
@@ -88,7 +89,7 @@ struct StatsTexts {
         let start = bucket.interval.start
         let title: String = switch step {
         case .hour: dates.hour(start)
-        case .month: RussianWords.capitalized(monthName(start)) + yearSuffix(start)
+        case .month: dates.monthTitle(calendar.component(.month, from: start)) + yearSuffix(start)
         case .day, .week: relativeDay(start) ?? dates.full(start)
         }
         return title + ", " + shared.spoken(bucket.totalMinor)
@@ -104,7 +105,7 @@ struct StatsTexts {
             return L10n.format("stats.year.months.\(calendar.component(.month, from: start))")
         case .day, .week:
             guard period.kind == .week else { return String(calendar.component(.day, from: start)) }
-            return RussianWords.weekday(calendar.component(.weekday, from: start), .abbreviated)
+            return dates.weekdayShort(calendar.component(.weekday, from: start))
         }
     }
 
@@ -166,7 +167,7 @@ struct StatsTexts {
         case .week:
             return (0...lastIndex).map { index in
                 let date = calendar.date(byAdding: .day, value: index, to: start) ?? start
-                let weekday = RussianWords.weekday(calendar.component(.weekday, from: date), .abbreviated)
+                let weekday = dates.weekdayShort(calendar.component(.weekday, from: date))
                 return AxisDay(day: index + 1, text: weekday, isCurrent: index == todayIndex)
             }
         default:
@@ -181,19 +182,19 @@ struct StatsTexts {
     func paceAccessibility(_ pace: StatsPaceState, period: StatsPeriod) -> String {
         let previousPeriod = period.previous(in: calendar)
         let currentDay = pace.comparison.current.last
-        let dayNumber = String(currentDay.map { calendar.component(.day, from: $0.date) } ?? 0)
+        let dayNumber = dates.dayOrdinal(currentDay.map { calendar.component(.day, from: $0.date) } ?? 0)
         var parts = [L10n.format("stats.pace.a11y")]
         if let currentDay {
             parts.append(L10n.format(
                 "stats.pace.a11y.current",
-                RussianWords.capitalized(periodName(period)), shared.spoken(currentDay.cumulativeMinor), dayNumber
+                dates.capitalized(periodName(period)), shared.spoken(currentDay.cumulativeMinor), dayNumber
             ))
         }
         let previous = pace.comparison.previous
         let sameIndex = pace.comparison.current.count - 1
         let sameDay = previous.indices.contains(sameIndex) ? previous[sameIndex] : previous.last
         if let sameDay, let previousTotal = previous.last {
-            let name = RussianWords.capitalized(periodName(previousPeriod))
+            let name = dates.capitalized(periodName(previousPeriod))
             // «… и 1 580 рублей за месяц» — строка есть только для месяца.
             parts.append(period.kind == .month
                 ? L10n.format("stats.pace.a11y.previous", name, shared.spoken(sameDay.cumulativeMinor), dayNumber, shared.spoken(previousTotal.cumulativeMinor))
@@ -207,14 +208,14 @@ struct StatsTexts {
 
     // MARK: - Привычки
 
-    /// «Пн»
+    /// «Пн» / «Mon»
     func weekdayShort(_ weekday: Int) -> String {
-        RussianWords.capitalized(RussianWords.weekday(weekday, .abbreviated))
+        dates.capitalized(dates.weekdayShort(weekday))
     }
 
-    /// «Больше всего тратится **по пятницам**».
+    /// «Больше всего тратится **по пятницам**» / «You spend the most **on Fridays**».
     func peakWeekday(_ weekday: Int) -> AttributedString {
-        L10n.attributed("stats.habits.insight.day", "по " + RussianWords.weekday(weekday, .dativePlural))
+        L10n.attributed("stats.habits.insight.day", dates.weekdayHabit(weekday))
     }
 
     /// Будни против выходных.
@@ -229,7 +230,7 @@ struct StatsTexts {
     /// `stats.habits.a11y`: «В среднем за день: понедельник — 72 рубля, …».
     func habitsAccessibility(_ habits: StatsHabits) -> String {
         let items = habits.averages.map { average in
-            L10n.format("stats.habits.a11y.item", RussianWords.weekday(average.weekday, .nominative), shared.spoken(average.averageMinor))
+            L10n.format("stats.habits.a11y.item", dates.weekdayName(average.weekday), shared.spoken(average.averageMinor))
         }
         return L10n.format("stats.habits.a11y", items.joined(separator: L10n.format("stats.habits.a11y.separator")))
     }
@@ -259,9 +260,9 @@ struct StatsTexts {
         }
     }
 
-    /// «октябрь»
+    /// «октябрь» / «October»
     private func monthName(_ date: Date) -> String {
-        RussianWords.month(calendar.component(.month, from: date), .nominative)
+        dates.monthName(calendar.component(.month, from: date))
     }
 
     /// «2026»

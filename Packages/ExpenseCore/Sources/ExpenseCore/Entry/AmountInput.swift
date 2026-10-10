@@ -3,7 +3,8 @@ import Foundation
 /// Ввод суммы в шите записи (INTEGRATION §4.9, §6 «Ввод суммы»): системная цифровая клавиатура
 /// и быстрые суммы, которые прибавляются к введённой. Текст поля всегда разбирает `Money.minor(fromInput:)`.
 public enum AmountInput {
-    /// Разделитель дробной части в поле: приложение только на русском, точку с клавиатуры заменяем запятой.
+    /// Разделитель дробной части в поле по умолчанию (ru): точку с клавиатуры заменяем запятой.
+    /// По-английски — «.» (`MoneyFormatter.decimalSeparator`).
     public static let decimalSeparator: Character = ","
     /// Знаков после запятой — minor-единицы.
     public static let fractionDigits = 2
@@ -20,10 +21,10 @@ public enum AmountInput {
         public let droppedFractionDigits: Bool
     }
 
-    /// Приводит набранное к виду «1200», «12,5», «0,»: только цифры ASCII и одна запятая (точка → запятая),
-    /// не больше двух знаков после неё и `maxIntegerDigits` до неё, без ведущих нулей.
-    /// Запятая первой даёт «0,». Пробелы, знаки и прочие символы отбрасываются.
-    public static func sanitize(_ input: String) -> Sanitized {
+    /// Приводит набранное к виду «1200», «12,5», «0,»: только цифры ASCII и один разделитель `separator`
+    /// (и «,», и «.» с клавиатуры становятся им), не больше двух знаков после него и `maxIntegerDigits` до него,
+    /// без ведущих нулей. Разделитель первым даёт «0,». Пробелы, знаки и прочие символы отбрасываются.
+    public static func sanitize(_ input: String, separator: Character = decimalSeparator) -> Sanitized {
         var integer = ""
         var fraction = ""
         var hasSeparator = false
@@ -46,7 +47,7 @@ public enum AmountInput {
         let significant = String(integer.drop { $0 == "0" })
         let normalizedInteger = significant.isEmpty && (!integer.isEmpty || hasSeparator) ? "0" : significant
         let text = hasSeparator
-            ? normalizedInteger + String(decimalSeparator) + fraction
+            ? normalizedInteger + String(separator) + fraction
             : normalizedInteger
         return Sanitized(text: text, droppedFractionDigits: droppedFraction)
     }

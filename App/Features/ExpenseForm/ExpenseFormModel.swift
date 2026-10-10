@@ -59,7 +59,9 @@ final class ExpenseFormModel {
             // Правка показывает и сохраняет подкатегорию (§8 п. 6).
             initialCategory = expense?.category.map(CategoryChoice.init)
             initial = ExpenseDraft(
-                amountText: expense.map { AmountInput.sanitize(formatter.editingString(fromMinor: $0.amountMinor)).text } ?? "",
+                amountText: expense.map {
+                    AmountInput.sanitize(formatter.editingString(fromMinor: $0.amountMinor), separator: formatter.decimalSeparator).text
+                } ?? "",
                 categoryID: initialCategory?.id,
                 date: .moment(expense?.date ?? now),
                 note: expense?.note ?? ""
@@ -85,7 +87,7 @@ final class ExpenseFormModel {
     /// (объявить `add.amount.invalid`).
     @discardableResult
     func updateAmount(_ typed: String) -> Bool {
-        let sanitized = AmountInput.sanitize(typed)
+        let sanitized = AmountInput.sanitize(typed, separator: formatter.decimalSeparator)
         draft.amountText = sanitized.text
         return sanitized.droppedFractionDigits
     }

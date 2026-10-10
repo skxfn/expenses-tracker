@@ -3,10 +3,10 @@ import ExpenseCore
 
 /// Тексты итога периода, общие для главной и статистики: фраза-сравнение (`home.compare*`, `range.compare`),
 /// пустой период (`home.empty.period.*`) и сумма для VoiceOver (`a11y.money`).
-/// Суммы — `MoneyFormatter.Style`, даты — `RussianDateFormatter` (D7).
+/// Суммы — `MoneyFormatter.Style`, даты и слова — `DateTextFormatter` языка интерфейса (D7 / E8).
 struct SummaryTexts {
     let money: MoneyFormatter
-    let dates: RussianDateFormatter
+    let dates: any DateTextFormatter
 
     private var calendar: Calendar { dates.calendar }
 
@@ -46,7 +46,7 @@ struct SummaryTexts {
         case .week where isCurrent:
             return L10n.format("home.empty.period.week.current")
         case .month:
-            let month = RussianWords.month(calendar.component(.month, from: start), .prepositional)
+            let month = dates.monthInPhrase(calendar.component(.month, from: start))
             return L10n.format(isCurrent ? "home.empty.period.in.current" : "home.empty.period.in.past", month)
         case .year:
             let year = String(calendar.component(.year, from: start))
@@ -76,24 +76,22 @@ struct SummaryTexts {
         case .lastWeek: L10n.format("home.compare.week.current")
         case .lastMonth: L10n.format("home.compare.month.current")
         case .lastYear: L10n.format("home.compare.year.current")
-        case .month(let month): L10n.format("home.compare.month.past", RussianWords.month(month, .prepositional))
+        case .month(let month): L10n.format("home.compare.month.past", dates.monthInPhrase(month))
         case .year(let year): L10n.format("home.compare.year.past", String(year))
         case .range(let interval):
             L10n.format(period.kind == nil ? "range.compare" : "home.compare.week.past", dates.range(interval))
         }
     }
 
-    /// «С 2 по 4 окт трат не было», «С 28 сен по 4 окт трат не было»: месяц у начала — только если он другой;
+    /// «С 2 по 4 окт трат не было», «С 28 сен по 4 окт трат не было» (концы — `rangeBounds`);
     /// один день — «6 окт трат не было».
     private func rangePast(_ interval: DateInterval) -> String {
         let first = interval.start
-        let last = lastDay(of: interval)
-        guard !calendar.isDate(first, inSameDayAs: last) else {
+        guard !calendar.isDate(first, inSameDayAs: lastDay(of: interval)) else {
             return L10n.format("home.empty.period.day.past", dates.short(first))
         }
-        let sameMonth = calendar.isDate(first, equalTo: last, toGranularity: .month)
-        let from = sameMonth ? String(calendar.component(.day, from: first)) : dates.short(first)
-        return L10n.format("home.empty.period.range.past", from, dates.short(last))
+        let bounds = dates.rangeBounds(interval)
+        return L10n.format("home.empty.period.range.past", bounds.start, bounds.end)
     }
 
     /// Начало последнего дня полуоткрытого интервала.

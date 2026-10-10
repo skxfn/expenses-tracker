@@ -1,15 +1,10 @@
 import Foundation
 
 /// Даты и периоды по D7 (design/copy.json): свои короткие формы без точки, год — только если он
-/// не текущий (год `now`), неразрывный пробел внутри даты. Приложение только на русском, поэтому
-/// локали нет: формы — из `RussianWords`, календарь (часовой пояс, первый день недели) — снаружи.
-public struct RussianDateFormatter: Sendable {
-    public enum MonthStyle: Sendable {
-        /// «5–7 окт» — на экране.
-        case abbreviated
-        /// «5–7 октября» — для VoiceOver.
-        case full
-    }
+/// не текущий (год `now`), неразрывный пробел внутри даты. Локали нет: формы — из `RussianWords`,
+/// календарь (часовой пояс, первый день недели) — снаружи. Английский — `EnglishDateFormatter`.
+public struct RussianDateFormatter: DateTextFormatter {
+    public typealias MonthStyle = DateMonthStyle
 
     public let calendar: Calendar
     public let now: Date
@@ -109,6 +104,61 @@ public struct RussianDateFormatter: Sendable {
     public func hour(_ date: Date) -> String {
         let parts = calendar.dateComponents([.hour, .minute], from: date)
         return "\(parts.hour ?? 0):" + String(format: "%02d", parts.minute ?? 0)
+    }
+
+    /// «С %1$@ по %2$@ трат не было»: «2» и «4 окт», «28 сен» и «4 окт» — месяц у начала, только если он другой.
+    public func rangeBounds(_ interval: DateInterval) -> (start: String, end: String) {
+        let first = calendar.startOfDay(for: interval.start)
+        let last = max(first, lastDayStart(of: interval))
+        let sameMonth = calendar.isDate(first, equalTo: last, toGranularity: .month)
+        return (sameMonth ? String(calendar.component(.day, from: first)) : short(first), short(last))
+    }
+
+    /// «к 8 числу»: число как есть.
+    public func dayOrdinal(_ day: Int) -> String {
+        String(day)
+    }
+
+    // MARK: - Слова
+
+    /// «октябрь»
+    public func monthName(_ month: Int) -> String {
+        RussianWords.month(month, .nominative)
+    }
+
+    /// «Октябрь»
+    public func monthTitle(_ month: Int) -> String {
+        RussianWords.capitalized(RussianWords.month(month, .nominative))
+    }
+
+    /// «августе» — «в августе».
+    public func monthInPhrase(_ month: Int) -> String {
+        RussianWords.month(month, .prepositional)
+    }
+
+    /// «окт»
+    public func monthShort(_ month: Int) -> String {
+        RussianWords.month(month, .abbreviated)
+    }
+
+    /// «четверг»
+    public func weekdayName(_ weekday: Int) -> String {
+        RussianWords.weekday(weekday, .nominative)
+    }
+
+    /// «чт»
+    public func weekdayShort(_ weekday: Int) -> String {
+        RussianWords.weekday(weekday, .abbreviated)
+    }
+
+    /// «по пятницам»
+    public func weekdayHabit(_ weekday: Int) -> String {
+        "по " + RussianWords.weekday(weekday, .dativePlural)
+    }
+
+    /// «Сентябрь 2025» → «сентябрь 2025».
+    public func inSentence(_ title: String) -> String {
+        title.lowercased()
     }
 
     // MARK: - Внутреннее
