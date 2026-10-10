@@ -23,6 +23,8 @@ final class ExpenseFormModel {
     let isMissing: Bool
     /// Правимая трата; `nil` — новая.
     let expenseID: UUID?
+    /// Новая трата, записанная «Сохранить», — для подсветки её строки на главной (save-reward).
+    @ObservationIgnored private(set) var savedExpenseID: UUID?
 
     @ObservationIgnored private let initialDraft: ExpenseDraft
     @ObservationIgnored private let formatter: MoneyFormatter
@@ -152,7 +154,7 @@ final class ExpenseFormModel {
     /// «Сохранить». Правка без изменений хранилище не трогает. Трату, удалённую за время правки, не воскрешает.
     func save(using store: ExpenseStore, now: Date = .now) throws {
         if isNew {
-            _ = try insert(using: store, now: now)
+            savedExpenseID = try insert(using: store, now: now)?.id
         } else if hasUnsavedChanges, let expenseID, let amountMinor = draft.amountMinor,
                   let expense = try store.expense(id: expenseID) {
             try store.updateExpense(

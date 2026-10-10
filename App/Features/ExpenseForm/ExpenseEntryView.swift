@@ -53,6 +53,7 @@ struct ExpenseEntryView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.calendar) private var calendar
     @Environment(PendingDeletion.self) private var pendingDeletion
+    @Environment(AppRouter.self) private var router: AppRouter?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(model: ExpenseFormModel) {
@@ -463,6 +464,7 @@ struct ExpenseEntryView: View {
             return
         }
         saveCount += 1
+        router?.savedExpenseID = model.savedExpenseID
         EntrySpeech.announce(String(localized: "add.saved.a11y.save"))
         dismiss()
     }

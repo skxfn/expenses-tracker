@@ -41,6 +41,8 @@ final class AppRouter {
     var sheet: AppSheet?
     /// Задание для статистики; экран статистики забирает его и обнуляет.
     var statisticsFocus: StatisticsFocus?
+    /// Трата, только что записанная «Сохранить» в шите: главная подсвечивает её строку (save-reward) и обнуляет.
+    var savedExpenseID: UUID?
 
     init(tab: AppTab = .expenses) {
         self.tab = tab
