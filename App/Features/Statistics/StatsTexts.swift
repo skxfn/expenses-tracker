@@ -306,10 +306,13 @@ struct StatsTexts {
         }
     }
 
-    /// «С 2 по 4 окт трат не было»: месяц у начала — только если он другой.
+    /// «С 2 по 4 окт трат не было»: месяц у начала — только если он другой; один день — «6 окт трат не было».
     private func rangePast(_ period: StatsPeriod) -> String {
         let first = period.interval.start
         let last = StatisticsModel.lastDay(of: period, calendar: calendar)
+        guard !calendar.isDate(first, inSameDayAs: last) else {
+            return L10n.format("home.empty.period.day.past", dates.short(first))
+        }
         let sameMonth = calendar.isDate(first, equalTo: last, toGranularity: .month)
         let from = sameMonth ? String(calendar.component(.day, from: first)) : dates.short(first)
         return L10n.format("home.empty.period.range.past", from, dates.short(last))
