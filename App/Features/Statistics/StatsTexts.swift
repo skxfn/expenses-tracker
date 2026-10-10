@@ -185,7 +185,8 @@ struct StatsTexts {
     }
 
     /// Подписи оси «Темпа»: месяц — «1, 8, 15, 22, 31» и сегодня; неделя — «пн … вс»; год — «Янв, Апр, Июл, Окт».
-    func paceAxisLabels(_ period: StatsPeriod, dayCount: Int, todayIndex: Int?) -> [AxisDay] {
+    /// `dayCount` — длина оси (прошлый период бывает длиннее), `lastIndex` — последний день текущего периода.
+    func paceAxisLabels(_ period: StatsPeriod, dayCount: Int, lastIndex: Int, todayIndex: Int?) -> [AxisDay] {
         let start = period.interval.start
         switch period.kind {
         case .year:
@@ -198,13 +199,13 @@ struct StatsTexts {
                 return AxisDay(day: day, text: L10n.format("stats.year.months.\(month)"), isCurrent: false)
             }
         case .week:
-            return (0..<dayCount).map { index in
+            return (0...lastIndex).map { index in
                 let date = calendar.date(byAdding: .day, value: index, to: start) ?? start
                 let weekday = RussianWords.weekday(calendar.component(.weekday, from: date), .abbreviated)
                 return AxisDay(day: index + 1, text: weekday, isCurrent: index == todayIndex)
             }
         default:
-            let pinned = [todayIndex, dayCount - 1].compactMap { $0 }
+            let pinned = [todayIndex, lastIndex].compactMap { $0 }
             return StatsChartAxes.labeledIndices(count: dayCount, pinned: pinned).map { index in
                 AxisDay(day: index + 1, text: String(index + 1), isCurrent: index == todayIndex)
             }

@@ -4,7 +4,7 @@ import ExpenseCore
 
 /// Аргументы запуска статистики для скриншотов без касаний (вместе с `-demoData YES -debugTab statistics`):
 /// - `-statsPeriod day|yesterday|week|year|range|past|pastYear` — период (`range` — 3 дня до вчера, как `05-stats-range`);
-/// - `-statsExpand YES` — раскрыть самую крупную раскрываемую категорию;
+/// - `-statsExpand YES|<имя>` — раскрыть самую крупную раскрываемую категорию или категорию по имени;
 /// - `-statsScroll categories|days|pace|habits|year|top` — прокрутить к блоку;
 /// - вид категорий — ключ настроек напрямую: `-statsCategoryView tiles|strips|sun|ring`.
 enum StatsDebugOptions {
@@ -31,8 +31,12 @@ enum StatsDebugOptions {
         }
     }
 
-    static var expandsFirst: Bool {
-        UserDefaults.standard.bool(forKey: "statsExpand")
+    /// Какую категорию раскрыть после загрузки данных; `nil` — не раскрывать.
+    static func expansion(in data: CategoryVizData, defaults: UserDefaults = .standard) -> UUID? {
+        guard let value = defaults.string(forKey: "statsExpand") else { return nil }
+        let expandable = data.groups.filter(\.isExpandable)
+        let named = expandable.first { $0.name == value }
+        return (named ?? (defaults.bool(forKey: "statsExpand") ? expandable.first : nil))?.id
     }
 
     static func scroll(_ proxy: ScrollViewProxy, defaults: UserDefaults = .standard) async {

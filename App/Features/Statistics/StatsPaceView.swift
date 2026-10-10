@@ -205,7 +205,7 @@ struct StatsPaceView: View {
                         Text(verbatim: end.label)
                             .typeStyle(.callout)
                             .foregroundStyle(Theme.ink)
-                        if let previousTotal = previous.last?.cumulativeMinor {
+                        if let previousTotal = previous.last?.cumulativeMinor, previousTotal > 0 {
                             Text(verbatim: money.string(fromMinor: previousTotal, style: .wholeUnits))
                                 .typeStyle(.subheadline)
                                 .foregroundStyle(Theme.secondary)
@@ -243,6 +243,11 @@ struct StatsPaceView: View {
 
     /// «1, 8, 15, 22, 31» и сегодня; неделя — дни недели; год — «Янв, Апр, Июл, Окт».
     private var axisLabels: [StatsTexts.AxisDay] {
-        texts.paceAxisLabels(period, dayCount: dayCount, todayIndex: pace.forecast != nil ? current.count - 1 : nil)
+        texts.paceAxisLabels(
+            period,
+            dayCount: dayCount,
+            lastIndex: pace.dayCount - 1,
+            todayIndex: pace.forecast != nil ? current.count - 1 : nil
+        )
     }
 }

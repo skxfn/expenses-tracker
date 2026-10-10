@@ -29,7 +29,7 @@ struct StatsBarsChart: View {
                     RectangleMark(
                         x: .value("x", bucket.interval.start, unit: unit),
                         y: .value("y", 0.0),
-                        width: .ratio(StatsLayout.barWidthRatio),
+                        width: barWidth,
                         height: .fixed(StatsLayout.futureDashHeight)
                     )
                     .foregroundStyle(Theme.separator)
@@ -39,7 +39,7 @@ struct StatsBarsChart: View {
                     BarMark(
                         x: .value("x", bucket.interval.start, unit: unit),
                         y: .value("y", Self.chartValue(bucket.totalMinor)),
-                        width: .ratio(StatsLayout.barWidthRatio)
+                        width: barWidth
                     )
                     .foregroundStyle(index == shownIndex ? Theme.ink : Theme.graphic)
                     .cornerRadius(StatsLayout.barCorner)
@@ -175,6 +175,14 @@ struct StatsBarsChart: View {
 
     /// Подсвеченный отрезок: под пальцем, иначе сегодняшний.
     private var shownIndex: Int? { selectedIndex ?? currentIndex }
+
+    /// Ширина столбика: доля ширины дня (месяц, часы), а у недели, года и коротких периодов — не шире
+    /// `barMaxWidth`, иначе 3–12 столбиков становятся плитами.
+    private var barWidth: MarkDimension {
+        buckets.count >= StatsLayout.barRatioMinimumCount
+            ? .ratio(StatsLayout.barWidthRatio)
+            : .fixed(StatsLayout.barMaxWidth)
+    }
 
     /// Будущий день без трат — чёрточка вместо столбика.
     private func isFuture(_ bucket: StatsTimeBucket) -> Bool {

@@ -15,6 +15,9 @@ nonisolated enum StatsLayout {
     static let tooltipSpace: CGFloat = 40
     /// Столбик — доля ширины дня; будущий день — чёрточка этой высоты.
     static let barWidthRatio: CGFloat = 0.56
+    /// Столбиков меньше этого (неделя, год, короткий свой период) — фиксированная ширина `barMaxWidth`.
+    static let barRatioMinimumCount = 20
+    static let barMaxWidth: CGFloat = 14
     static let barCorner: CGFloat = 2
     static let futureDashHeight: CGFloat = 3
     /// «Темп»: высота поля, место справа под подписи у концов кривых, толщины линий.

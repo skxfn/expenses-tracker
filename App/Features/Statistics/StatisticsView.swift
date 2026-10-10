@@ -48,8 +48,9 @@ struct StatisticsView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     header(texts)
                         .padding(.horizontal, Theme.Spacing.screen)
+                        .id(StatsAnchor.summary)
                     sheet(texts, expenses: visible)
-                        .padding(.top, Theme.Spacing.xl)
+                        .padding(.top, Theme.Spacing.md)
                 }
             }
             .onChange(of: router.statisticsFocus, initial: true) { _, focus in
@@ -71,8 +72,8 @@ struct StatisticsView: View {
         }
         #if DEBUG
         .onChange(of: model.categories) { _, data in
-            if StatsDebugOptions.expandsFirst, expandedID == nil {
-                expandedID = data.groups.first(where: \.isExpandable)?.id
+            if expandedID == nil, let id = StatsDebugOptions.expansion(in: data) {
+                expandedID = id
             }
         }
         #endif
@@ -257,12 +258,12 @@ struct StatisticsView: View {
         router.statisticsFocus = nil
         selection.apply(focus.period)
         expandedID = nil
-        proxy.scrollTo(StatsAnchor.categories, anchor: .top)
+        proxy.scrollTo(StatsAnchor.summary, anchor: .top)
         pendingExpansion = focus.groupID
     }
 }
 
 /// Якоря прокрутки блоков (`-statsScroll` и переход из главной).
 enum StatsAnchor: String {
-    case categories, days, pace, habits, year, top
+    case summary, categories, days, pace, habits, year, top
 }
