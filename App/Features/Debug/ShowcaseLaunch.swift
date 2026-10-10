@@ -6,6 +6,7 @@ import SwiftUI
 enum ShowcasePage: String, CaseIterable, Identifiable {
     case tokens, tones, components, glass, fonts
     case tabBarSystem, tabBarCustom, feed, addSheet
+    case viz
 
     var id: String { rawValue }
 
@@ -20,6 +21,7 @@ enum ShowcasePage: String, CaseIterable, Identifiable {
         case .tabBarCustom: "Спайк: свой бар поверх TabView"
         case .feed: "Спайк: лента на List"
         case .addSheet: "Спайк: шит записи (зум, клавиатура)"
+        case .viz: "Визуализации категорий"
         }
     }
 
@@ -93,6 +95,7 @@ struct ShowcaseDestination: View {
         case .tabBarCustom: TabBarCustomSpike()
         case .feed: FeedSpike()
         case .addSheet: AddSheetSpike()
+        case .viz: CategoryVizShowcase()
         }
     }
 }
