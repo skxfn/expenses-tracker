@@ -4,7 +4,8 @@ import SwiftUI
 import ExpenseCore
 
 /// Экраны настроек и категорий сразу при запуске — для скриншотов без касаний (launch-аргумент
-/// `-debugScreen <экран>`). Вместе с `-demoData YES` данные те же, что в приложении.
+/// `-debugScreen <экран>`). Вместе с `-demoData YES` данные те же, что в приложении;
+/// `-debugScroll bottom` открывает прокрутку с конца (нижняя часть длинных экранов).
 enum DebugScreen: String {
     case settings, categories, currency, licenses
     /// Правка подкатегории «Кофе» (или первой подкатегории) — сверка с макетом `11-category`.
@@ -20,6 +21,11 @@ enum DebugScreen: String {
 
     static func requested(defaults: UserDefaults = .standard) -> DebugScreen? {
         defaults.string(forKey: "debugScreen").flatMap(DebugScreen.init(rawValue:))
+    }
+
+    /// Начальная точка прокрутки из `-debugScroll bottom`.
+    static func scrollAnchor(defaults: UserDefaults = .standard) -> UnitPoint? {
+        defaults.string(forKey: "debugScroll") == "bottom" ? .bottom : nil
     }
 }
 
@@ -61,10 +67,13 @@ private struct DebugScreenRoot: View {
         .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app))
         .sheet(item: $editorMode) { mode in
             CategoryEditorSheet(mode: mode)
+                .defaultScrollAnchor(DebugScreen.scrollAnchor())
         }
         .sheet(item: $importSession) { session in
             ImportView(session: session)
+                .defaultScrollAnchor(DebugScreen.scrollAnchor())
         }
+        .defaultScrollAnchor(DebugScreen.scrollAnchor())
         .onAppear(perform: present)
     }
 

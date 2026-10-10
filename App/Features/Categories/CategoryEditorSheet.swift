@@ -115,7 +115,7 @@ private struct CategoryEditorForm: View {
         VStack(spacing: Theme.Spacing.md) {
             CategoryChipPreview(
                 name: model.trimmedName,
-                placeholder: namePlaceholder,
+                placeholder: "cat.name.label",
                 iconName: model.iconName,
                 fill: previewFill,
                 iconColor: auraTone.onArea

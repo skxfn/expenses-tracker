@@ -16,7 +16,6 @@ struct LicensesView: View {
                     SettingsGroup(header: block.title) {
                         Text(verbatim: Self.licenseText(block.file))
                             .typeStyle(.footnote)
-                            .monospaced()
                             .foregroundStyle(Theme.ink)
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -33,12 +32,25 @@ struct LicensesView: View {
     }
 
     /// Текст лицензии из бандла; без файла — пусто (файлы кладёт сборка, см. `App/Resources`).
+    /// Файлы свёрстаны по 80 знаков: строки внутри абзаца склеиваются, чтобы текст переносился по ширине.
     private static func licenseText(_ name: String) -> String {
         guard
             let url = Bundle.main.url(forResource: name, withExtension: "txt"),
             let text = try? String(contentsOf: url, encoding: .utf8)
         else { return "" }
-        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        var paragraphs: [[String]] = [[]]
+        for line in text.components(separatedBy: .newlines) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if !trimmed.isEmpty {
+                paragraphs[paragraphs.count - 1].append(trimmed)
+            } else if paragraphs.last?.isEmpty == false {
+                paragraphs.append([])
+            }
+        }
+        return paragraphs
+            .filter { !$0.isEmpty }
+            .map { $0.joined(separator: " ") }
+            .joined(separator: "\n\n")
     }
 }
 

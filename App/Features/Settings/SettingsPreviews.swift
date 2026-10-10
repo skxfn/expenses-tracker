@@ -19,11 +19,14 @@ struct CategoryFan: View {
 
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
 
-    /// До `maxCount` тонов категорий по оттенку, равномерно из всего списка.
+    /// Тоны первых `maxCount` категорий в порядке записи, веером по оттенку.
     static func tones(of categories: [ExpenseCategory]) -> [GouacheTone] {
-        let all = Array(Set(categories.compactMap { GouacheTone(mainHex: $0.colorHex) })).sorted { $0.hueRank < $1.hueRank }
-        guard all.count > maxCount else { return all }
-        return (0..<maxCount).map { all[Int((Double($0) * Double(all.count - 1) / Double(maxCount - 1)).rounded())] }
+        var tones: [GouacheTone] = []
+        for tone in categories.compactMap({ GouacheTone(mainHex: $0.colorHex) }) where !tones.contains(tone) {
+            tones.append(tone)
+            if tones.count == maxCount { break }
+        }
+        return tones.sorted { $0.hueRank < $1.hueRank }
     }
 
     var body: some View {
@@ -64,11 +67,11 @@ struct OverviewStylePicker: View {
     @Binding var selection: HomeOverviewStyle
 
     var body: some View {
-        HStack(alignment: .top, spacing: Theme.Spacing.lg) {
+        HStack(alignment: .top, spacing: Theme.Spacing.xl * 2) {
             option(.tiles, title: "settings.overview.map") { MiniTilesPreview() }
             option(.ring, title: "settings.overview.ring") { MiniRingPreview() }
         }
-        .padding(.horizontal, Theme.Spacing.xl)
+        .padding(.horizontal, Theme.Spacing.xl + Theme.Spacing.xs)
         .padding(.vertical, Theme.Spacing.lg)
         .sensoryFeedback(Haptic.selection, trigger: selection)
     }

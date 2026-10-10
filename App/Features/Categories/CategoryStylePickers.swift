@@ -90,10 +90,12 @@ struct CategoryChipPreview: View {
                 title
                     .typeStyle(.headline)
                     .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.6)
+                    // Одно слово не переносим (иначе «Назва-ние»), а уменьшаем; фразу — в две строки.
+                    .lineLimit(isSingleWord ? 1 : 2)
+                    .minimumScaleFactor(0.5)
             }
-            .padding(Theme.Spacing.sm)
+            .padding(.horizontal, Theme.Spacing.xs)
+            .padding(.vertical, Theme.Spacing.sm)
             .frame(width: Self.window.width, height: Self.window.height)
             .background(Theme.surface, in: RoundedRectangle(cornerRadius: Self.windowRadius, style: .continuous))
             .padding(.top, Self.windowInset)
@@ -110,6 +112,11 @@ struct CategoryChipPreview: View {
         .rotationEffect(Self.tilt)
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .accessibilityHidden(true)
+    }
+
+    /// Подсказка вместо пустого названия — одно короткое слово.
+    private var isSingleWord: Bool {
+        name.isEmpty || !name.contains(where: \.isWhitespace)
     }
 
     @ViewBuilder
@@ -141,6 +148,8 @@ private struct ColorCell: View {
     let label: String?
     let labelColor: Color
     let isSelected: Bool
+    /// Имена сестёр — SF 13/600 (макет), «занят: …» — SF 13 (§2.2).
+    var labelStyle: TypeStyle = .footnoteStrong
 
     private static let ring: CGFloat = 2
     private static let gap: CGFloat = 2
@@ -152,7 +161,7 @@ private struct ColorCell: View {
             .overlay {
                 if let label {
                     Text(verbatim: label)
-                        .typeStyle(.footnoteStrong)
+                        .typeStyle(labelStyle)
                         .foregroundStyle(labelColor)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
@@ -235,7 +244,13 @@ struct ToneGridPicker: View {
                 Button {
                     selection = tone
                 } label: {
-                    ColorCell(fill: tone.main, label: taken, labelColor: tone.labelOnMain, isSelected: tone == selection)
+                    ColorCell(
+                        fill: tone.main,
+                        label: taken,
+                        labelColor: tone.labelOnMain,
+                        isSelected: tone == selection,
+                        labelStyle: .footnote
+                    )
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.pressable())
@@ -325,12 +340,14 @@ struct IconGridPicker: View {
         return Button {
             selection = icon.name
         } label: {
-            CategoryIconImage(name: icon.name)
-                .frame(width: iconSize, height: iconSize)
-                .foregroundStyle(isSelected ? selectedIconColor : Theme.secondary)
-                .frame(maxWidth: .infinity)
+            shape
+                .fill(isSelected ? selectedFill : Theme.surface)
                 .aspectRatio(1, contentMode: .fit)
-                .background(isSelected ? selectedFill : Theme.surface, in: shape)
+                .overlay {
+                    CategoryIconImage(name: icon.name)
+                        .frame(width: iconSize, height: iconSize)
+                        .foregroundStyle(isSelected ? selectedIconColor : Theme.secondary)
+                }
                 .overlay { shape.strokeBorder(Theme.hairlineOutline, lineWidth: Theme.Size.hairline) }
                 .modifier(SelectedLift(isSelected: isSelected, tone: shadowTone))
                 .contentShape(shape)
