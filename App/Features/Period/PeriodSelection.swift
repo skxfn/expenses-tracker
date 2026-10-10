@@ -43,8 +43,8 @@ enum PeriodMode: Hashable, CaseIterable {
 /// `AppRouter.statisticsFocus`, статистика применяет его сама: `selection.apply(focus.period)`.
 ///
 /// Свой период — дни целиком, `[начало первого дня, начало дня после последнего)`; ‹ › шагают на его длину.
-/// `now` и календарь инжектируются (тесты, скриншоты); `refresh(now:)` вызывает `PeriodHeader` при появлении
-/// и возвращении приложения из фона.
+/// `now` и календарь инжектируются (тесты, скриншоты); `refresh(now:)` вызывает `PeriodHeader` при появлении,
+/// возвращении приложения из фона и смене дня (`onCalendarDayChange`).
 ///
 ///     @State private var period = PeriodSelection()            // месяц, сегодня
 ///     PeriodHeader(selection: period)                           // «Октябрь ▾», ‹ ›, ⚙
