@@ -281,6 +281,28 @@ Haptics — `.sensoryFeedback(_:trigger:)` (iOS 17):
 - **Хром.** Рекомендация — SF Symbols (раздел 8, п. 4). Минимум для них — iOS 26 (target приложения), а не 17.
 - **Лицензии.** MingCute — Apache 2.0, приложить текст лицензии. Unbounded — OFL, приложить `OFL.txt`. Экран «Лицензии» в настройках показывает обе. Сейчас в `copy.json` есть только строка про MingCute (`settings.licenses`, строка «Лицензия иконок»).
 
+### 3.8 Иконка приложения — «Чек-выкраска»
+Решение владельца 2026-10-10. Оторванный бумажный чек с дыркой и рваным краем на графитовом фоне, внутри — образцы категорий. Макет — холст, страница «Иконка приложения», Icon-6. Файлы — `design/app-icon/`: слои на сетке 1024×1024 без маски, тени и блики не нарисованы (их добавляет система); `preview-{default,dark,clear,tinted}.png` и `sheet.png` — эталоны.
+
+| Снизу вверх | В Icon Composer | Файл | Default |
+|---|---|---|---|
+| Фон | заливка иконки (Fill → Gradient), не файл | `bg.svg` — только эталон | сверху вниз #332C26 → #1B1714 (вокруг графита #221D18) |
+| Группа «1 Чек» | слой | `receipt.svg`: одна фигура — контур с рваным краем, дырка ⌀54, 4 окна под образцы (на 3 px меньше образцов — нужны для Mono) | paper-surface #FDFBF7 |
+| Группа «2 Образцы» | 4 слоя (папка `swatches/`) или `swatches.svg` одним слоем | `swatches/1-shalfey … 4-kobalt.svg` | shalfey #3E9B6B, abrikos #BE7C30, ametist #A978C1, kobalt #4569B4 |
+
+Наклон −7° уже в координатах. Содержимое по центру: x 286–738, y 152–866. Точных чисел безопасной зоны Apple не публикует, поэтому сверить с Grid в Icon Composer [проверить].
+
+| Режим | Фон | Чек | Образцы |
+|---|---|---|---|
+| Default | градиент #332C26 → #1B1714 | #FDFBF7 | основные тона, Fill Automatic |
+| Dark | #13110F → #080706 | #D8D1C6 (приглушённая бумага) | те же основные тона |
+| Mono: Clear, Tinted | задаёт система | Solid #FFFFFF, Opacity 100 % | Solid #FFFFFF, Opacity 30 / 42 / 54 / 66 % (Шалфей → Кобальт) |
+
+- **Liquid Glass**, стартовые значения: «Чек» — Specular Automatic, Shadow Neutral; «Образцы» — Mode Individual, Shadow Neutral (Neutral-тень для Dark и Mono советуют в WWDC25 «Create icons with Icon Composer»). Как Opacity в Mono превращается в вид Clear/Tinted, не документировано: превью Clear и Tinted — имитация [проверить]. Главный риск — Clear Light на светлых обоях: белый чек слабо отделяется от фона, это проверить первым.
+- **Сборка `AppIcon.icon`** — только в Icon Composer (Xcode → Open Developer Tool → Icon Composer): сохранить как `AppIcon`, iOS Only; перетащить `receipt.svg` и папку `swatches/` (станет группой), назвать группы «1 Чек» и «2 Образцы»; Fill иконки — Gradient по таблице, в канве Dark — свой градиент и Solid #D8D1C6 у чека; Mono — Fill и Opacity по таблице. `.icon` — пакет с `icon.json` и `Assets/`, схему Apple не публикует, вручную не собирать.
+- **Подключение в Xcode 26.** `AppIcon.icon` — в `App/Resources/` (synced folder; после `xcodegen generate` проверить, что файл попал в таргет). В `project.yml` уже `ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon` — имя файла без расширения должно совпадать. `.icon` заменяет `AppIcon.appiconset` в `Assets.xcassets`; при iOS 26 картинки для старых систем не нужны, старый appiconset удалить.
+- **Проверить на устройстве (iOS 27):** все режимы домашнего экрана (долгое нажатие → Изменить → Настроить); на 60 pt видны дырка и зубцы, в Spotlight и Настройках силуэт читается; после переустановки через SideStore иконка обновилась (iOS может держать старую в кэше).
+
 ---
 
 ## 4. Данные и движок
