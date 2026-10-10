@@ -259,12 +259,12 @@ struct ExpenseEntryView: View {
     private var dateSegment: some View {
         let segment = model.dateSegment()
         let picked: Date? = if case .other(let date) = segment { date } else { nil }
-        let formatter = RussianDateFormatter(calendar: calendar, now: .now)
+        let formatter = AppLanguage.current.dateFormatter(calendar: calendar, now: .now)
         return EntryDateSegment(
             segment: segment,
             pickedTitle: picked.map(formatter.short),
             pickedAccessibilityLabel: picked.map { date in
-                let weekday = RussianWords.weekday(calendar.component(.weekday, from: date), .nominative)
+                let weekday = formatter.weekdayName(calendar.component(.weekday, from: date))
                 return L10n.format("add.date.picked.a11y", "\(weekday), \(formatter.dayMonth(date))")
             },
             onSelect: selectDate

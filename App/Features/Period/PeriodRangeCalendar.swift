@@ -105,8 +105,13 @@ struct PeriodRangeCalendar: View {
     /// «Сентябрь 2026»: месяц середины недели (у недели на стыке месяцев — того, где больше её дней).
     private func monthTitle(for week: Date) -> String {
         let middle = calendar.date(byAdding: .day, value: 3, to: week) ?? week
-        let month = RussianWords.month(calendar.component(.month, from: middle), .nominative)
-        return RussianWords.capitalized(month) + TextSpacing.nonBreaking + String(calendar.component(.year, from: middle))
+        let month = dates.monthTitle(calendar.component(.month, from: middle))
+        return month + TextSpacing.nonBreaking + String(calendar.component(.year, from: middle))
+    }
+
+    /// Даты и названия месяцев на языке интерфейса.
+    private var dates: any DateTextFormatter {
+        AppLanguage.current.dateFormatter(calendar: calendar, now: today)
     }
 
     // MARK: - Недели
@@ -205,6 +210,7 @@ private struct PeriodDayCell: View {
     private var isFuture: Bool { day > today }
     private var isEndpoint: Bool { day == draft.start || day == draft.end }
     private var isFirstOfMonth: Bool { calendar.component(.day, from: day) == 1 }
+    private var dates: any DateTextFormatter { AppLanguage.current.dateFormatter(calendar: calendar, now: today) }
 
     var body: some View {
         if isShown {
@@ -239,7 +245,7 @@ private struct PeriodDayCell: View {
             }
             .overlay(alignment: .top) {
                 if isFirstOfMonth, !isEndpoint {
-                    Text(verbatim: RussianWords.month(calendar.component(.month, from: day), .abbreviated))
+                    Text(verbatim: dates.monthShort(calendar.component(.month, from: day)))
                         .typeStyle(.caption)
                         .foregroundStyle(Theme.secondary)
                         .padding(.top, Theme.Spacing.xs)
@@ -255,7 +261,7 @@ private struct PeriodDayCell: View {
     }
 
     private var accessibilityLabel: String {
-        let date = RussianDateFormatter(calendar: calendar, now: today).dayMonth(day)
+        let date = dates.dayMonth(day)
         if day == draft.start, draft.end != nil, draft.end != day {
             return L10n.format("period.start.a11y", date)
         }

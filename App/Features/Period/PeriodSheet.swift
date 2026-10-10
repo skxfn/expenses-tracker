@@ -153,7 +153,7 @@ struct PeriodSheet: View {
 
     // MARK: - Данные
 
-    private var formatter: RussianDateFormatter { selection.dateFormatter }
+    private var formatter: any DateTextFormatter { selection.dateFormatter }
 
     private var interval: DateInterval? { draft.interval(calendar: selection.calendar) }
 

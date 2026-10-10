@@ -167,7 +167,7 @@ struct ImportView: View {
         TextSpacing.normalized(value.formatted(.number.locale(.app)))
     }
 
-    private var dateFormatter: RussianDateFormatter {
-        RussianDateFormatter(calendar: .current, now: .now)
+    private var dateFormatter: any DateTextFormatter {
+        AppLanguage.current.dateFormatter(calendar: .current, now: .now)
     }
 }

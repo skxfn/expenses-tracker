@@ -175,7 +175,7 @@ struct SettingsView: View {
     private var lastExportText: String {
         guard lastExportTimestamp > 0 else { return String(localized: "settings.backup.never") }
         let date = Date(timeIntervalSince1970: lastExportTimestamp)
-        return L10n.format("settings.backup.last", RussianDateFormatter(calendar: .current, now: .now).short(date))
+        return L10n.format("settings.backup.last", AppLanguage.current.dateFormatter(calendar: .current, now: .now).short(date))
     }
 
     /// «1.0.0 (1)» из Info.plist: сборка нужна при установке через SideStore (`settings.about.version` → why).

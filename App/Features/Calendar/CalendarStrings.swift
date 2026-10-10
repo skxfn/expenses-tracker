@@ -2,16 +2,16 @@ import Foundation
 import ExpenseCore
 
 /// Строки календаря: ключи каталога (`cal.*`, `header.*`, `a11y.money`) + данные через форматтеры Core.
-/// Суммы для VoiceOver — словом «рубль» (`a11y.money`), даты — `RussianDateFormatter` (D7).
+/// Суммы для VoiceOver — словом «рубль» (`a11y.money`), даты — `DateTextFormatter` языка интерфейса (D7 / E8).
 struct CalendarStrings {
     let money: MoneyFormatter
-    let dates: RussianDateFormatter
+    let dates: any DateTextFormatter
     private let calendar: Calendar
 
     init(money: MoneyFormatter, calendar: Calendar, now: Date) {
         self.money = money
         self.calendar = calendar
-        dates = RussianDateFormatter(calendar: calendar, now: now)
+        dates = AppLanguage.current.dateFormatter(calendar: calendar, now: now)
     }
 
     // MARK: Шапка
@@ -19,7 +19,7 @@ struct CalendarStrings {
     /// «Октябрь» и «2026» (`cal.header.month`: год в календаре всегда).
     func monthTitle(_ month: MonthGrid) -> (name: String, year: String) {
         let parts = calendar.dateComponents([.month, .year], from: month.start)
-        return (RussianWords.capitalized(RussianWords.month(parts.month ?? 1, .nominative)), String(parts.year ?? 0))
+        return (dates.monthTitle(parts.month ?? 1), String(parts.year ?? 0))
     }
 
     /// `cal.header.a11y`: «Месяц: октябрь 2026».
@@ -44,7 +44,7 @@ struct CalendarStrings {
     /// `cal.summary`: «**412,30 Br** за 8 дней · больше всего 2 окт»; пустой месяц — `cal.summary.empty`.
     func summary(_ summary: CalendarModel.Summary, month: MonthGrid, isCurrent: Bool) -> AttributedString {
         guard let peak = summary.peakDay, summary.totalMinor > 0 else {
-            let monthIn = RussianWords.month(calendar.component(.month, from: month.start), .prepositional)
+            let monthIn = dates.monthInPhrase(calendar.component(.month, from: month.start))
             let key = isCurrent ? "home.empty.period.in.current" : "home.empty.period.in.past"
             return AttributedString(L10n.format(key, monthIn))
         }
@@ -107,12 +107,14 @@ struct CalendarStrings {
         return ["0", L10n.format(belowKey, first)] + bounds.map { L10n.format("cal.legend.items.from", $0) }
     }
 
-    /// `cal.legend.a11y`: «Шкала: 0, меньше 25, от 25, от 50, от 75 рублей за день».
+    /// `cal.legend.a11y`: «Шкала: 0, меньше 25, от 25, от 50, от 75 рублей за день»; последний порог —
+    /// со словом валюты (`cal.legend.a11y.last`), без порогов — «Шкала: 0 рублей за день».
     func legendAccessibility(_ scale: StatsHeatScale) -> String {
         let bounds = scale.thresholds.map { money.string(fromMinor: $0, style: .wholeUnits) }
-        guard let first = bounds.first else { return L10n.format("cal.legend.a11y", "0") }
+        guard let first = bounds.first, let last = bounds.last else { return L10n.format("cal.legend.a11y", spoken(0)) }
         let items = ["0", L10n.format("cal.legend.a11y.below", first)]
-            + bounds.map { L10n.format("cal.legend.a11y.from", $0) }
+            + bounds.dropLast().map { L10n.format("cal.legend.a11y.from", $0) }
+            + [L10n.format("cal.legend.a11y.last", last)]
         return L10n.format("cal.legend.a11y", items.joined(separator: ", "))
     }
 
@@ -155,14 +157,14 @@ struct CalendarStrings {
         monthName(month) + " " + String(calendar.component(.year, from: month.start))
     }
 
-    /// «октябрь»
+    /// «октябрь» / «October»
     private func monthName(_ month: MonthGrid) -> String {
-        RussianWords.month(calendar.component(.month, from: month.start), .nominative)
+        dates.monthName(calendar.component(.month, from: month.start))
     }
 
-    /// «четверг»
+    /// «четверг» / «Thursday»
     private func lowercasedWeekday(_ date: Date) -> String {
-        RussianWords.weekday(calendar.component(.weekday, from: date), .nominative)
+        dates.weekdayName(calendar.component(.weekday, from: date))
     }
 
     /// «…, 64,10 рубля» или «…, трат нет» (`cal.day.a11y.empty`).

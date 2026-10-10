@@ -39,7 +39,7 @@ public struct ExpenseDraft: Equatable, Sendable {
     @discardableResult
     public mutating func addQuickAmount(_ units: Int64, formatter: MoneyFormatter) -> Bool {
         guard let sum = AmountInput.adding(units, to: amountText) else { return false }
-        amountText = AmountInput.sanitize(formatter.editingString(fromMinor: sum)).text
+        amountText = AmountInput.sanitize(formatter.editingString(fromMinor: sum), separator: formatter.decimalSeparator).text
         return true
     }
 

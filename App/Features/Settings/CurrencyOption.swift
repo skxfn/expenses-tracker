@@ -1,7 +1,7 @@
 import Foundation
 import ExpenseCore
 
-/// Валюта в списке выбора: ISO-код, название и знак по-русски (интерфейс только на русском, `Locale.app`).
+/// Валюта в списке выбора: ISO-код, название и знак на языке интерфейса (`Locale.app`).
 struct CurrencyOption: Identifiable, Hashable {
     let code: String
     /// «Белорусский рубль». Если система валюту не знает — сам код.

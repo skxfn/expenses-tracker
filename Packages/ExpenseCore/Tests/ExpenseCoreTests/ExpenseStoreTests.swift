@@ -285,6 +285,19 @@ struct ExpenseStoreTests {
         #expect(temporary.defaults.bool(forKey: SettingsKeys.didSeedDefaultCategories))
     }
 
+    @Test func seedUsesInterfaceLanguageNames() throws {
+        let temporary = try TemporaryDefaults()
+        let english = ["Groceries", "Dining", "Transport", "Home", "Connectivity", "Health",
+                       "Entertainment", "Clothing", "Subscriptions", "Gifts", "Education", "Other"]
+
+        try store.seedDefaultCategoriesIfNeeded(defaults: temporary.defaults, names: english)
+
+        let categories = try store.activeCategories()
+        #expect(categories.map(\.name) == english)
+        #expect(categories.map(\.iconName) == DefaultCategories.all.map(\.iconName))
+        #expect(categories.map(\.colorHex) == DefaultCategories.all.map(\.colorHex))
+    }
+
     @Test func seedDoesNotRepeatAfterUserDeletedAllCategories() throws {
         let temporary = try TemporaryDefaults()
         try store.seedDefaultCategoriesIfNeeded(defaults: temporary.defaults)

@@ -97,10 +97,10 @@ struct StatisticsView: View {
                 StatsSummaryView(
                     lead: texts.lead(model.period, summary: model.summary),
                     summary: model.summary,
-                    comparison: texts.comparison(model.summary),
+                    comparison: texts.shared.comparison(model.summary, period: model.period),
                     meta: texts.meta(model.summary),
                     filterMark: filterMark(texts),
-                    spokenTotal: texts.spoken(model.summary.totalMinor)
+                    spokenTotal: texts.shared.spoken(model.summary.totalMinor)
                 )
             }
         }
@@ -235,7 +235,7 @@ struct StatisticsView: View {
     /// Период без трат: «В сентябре трат не было» / «… пока нет трат» и стеклянная «К последней трате».
     private func emptyPeriod(_ texts: StatsTexts) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
-            Text(verbatim: texts.emptyPeriod(model.period))
+            Text(verbatim: texts.shared.emptyPeriod(model.period))
                 .typeStyle(.headline)
                 .foregroundStyle(Theme.ink)
             if model.lastExpenseDate != nil {

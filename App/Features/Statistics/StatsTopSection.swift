@@ -25,7 +25,7 @@ struct StatsTopSection: View {
 
 extension ExpenseRowData {
     /// Строка топа: как в ленте, но подпись — дата и категория (`stats.top.meta`).
-    init(top expense: Expense, dates: RussianDateFormatter) {
+    init(top expense: Expense, dates: any DateTextFormatter) {
         let base = ExpenseRowData(expense)
         let group = expense.category?.parent ?? expense.category
         let date = dates.shortWithWeekday(expense.date)

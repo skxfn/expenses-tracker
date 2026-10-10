@@ -15,7 +15,7 @@ public struct MoneyFormatter: Sendable {
         /// Разница во фразе-сравнении, по модулю: до 1 000 — как `phrase`, от 1 000 — целыми и без «≈»:
         /// «на 23,80 ⃅ меньше», «на 1 039 ⃅ меньше».
         case difference
-        /// Клетка календаря (`cal.cell.amount`): «64,10» · «1 234» · «12 тыс».
+        /// Клетка календаря (`cal.cell.amount`): «64,10» · «1 234» · «12 тыс»; по-английски — «12K».
         case calendarCell
         /// Целые единицы без символа — пороги шкалы heat в легенде (`cal.legend.items`): «25», «1 000».
         case wholeUnits
@@ -88,6 +88,11 @@ public struct MoneyFormatter: Sendable {
         }
     }
 
+    /// Разделитель дробной части для поля ввода суммы (`AmountInput.sanitize`): «,» в ru, «.» в en-US.
+    public var decimalSeparator: Character {
+        locale.decimalSeparator?.first ?? AmountInput.decimalSeparator
+    }
+
     /// Символ валюты для подписи рядом с суммой: «⃅» или «BYN», «$», «€», «₽».
     public var currencySymbol: String {
         if let symbolOverride { return symbolOverride }
@@ -101,13 +106,14 @@ public struct MoneyFormatter: Sendable {
     // MARK: - Внутреннее
 
     private func currency(_ minor: Int64, fractionLength: Int) -> String {
+        // Обозначение BYN — после числа через U+00A0 и в ru, и в en (§5.2, E7: «1,412.60 ⃅»):
+        // ICU en-US поставил бы код перед числом («BYN 1,412.60»).
+        if let symbolOverride {
+            return number(minor, fractionLength: fractionLength) + TextSpacing.nonBreaking + symbolOverride
+        }
         let style = Decimal.FormatStyle.Currency(code: currencyCode, locale: locale)
             .precision(.fractionLength(fractionLength))
-        let major = Money.major(fromMinor: minor)
-        guard let symbolOverride else { return major.formatted(style) }
-        // Код ISO в выводе есть при любой локали — его и заменяем (место и пробел даёт ICU).
-        return major.formatted(style.presentation(.isoCode))
-            .replacingOccurrences(of: currencyCode, with: symbolOverride)
+        return Money.major(fromMinor: minor).formatted(style)
     }
 
     private func number(_ minor: Int64, fractionLength: Int) -> String {
@@ -130,7 +136,12 @@ public struct MoneyFormatter: Sendable {
         let whole = Money.roundedToWholeUnits(minor)
         guard whole >= Self.calendarCellThousandsFromMinor else { return number(whole, fractionLength: 0) }
         let thousands = Money.divideRounded(minor, by: Int(Self.calendarCellThousandsFromMinor / 10))
-        return number(thousands * Money.minorUnitsPerMajor, fractionLength: 0) + TextSpacing.nonBreaking + "тыс"
+        return number(thousands * Money.minorUnitsPerMajor, fractionLength: 0) + thousandsSuffix
+    }
+
+    /// `cal.cell.amount.thousands` в каталоге App недоступен Core: «12 тыс» (ru), «12K» (en).
+    private var thousandsSuffix: String {
+        locale.language.languageCode == .english ? "K" : TextSpacing.nonBreaking + "тыс"
     }
 
     private func fractionLength(for minor: Int64) -> Int {
