@@ -204,6 +204,8 @@ nonisolated enum Theme {
         static let calendarCell = Tokens.Size.calendarCellHeight
         /// Волосяная линия.
         static let hairline: CGFloat = 0.5
+        /// Переключатель «Обозначение» (знак | BYN) в строке настроек, макет `12-settings`.
+        static let symbolStylePicker: CGFloat = 120
     }
 }
 

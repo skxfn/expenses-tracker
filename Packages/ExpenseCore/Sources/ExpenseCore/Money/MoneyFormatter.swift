@@ -75,11 +75,13 @@ public struct MoneyFormatter: Sendable {
     /// Знак белорусского рубля (design/INTEGRATION.md §3.3.1): U+20C5, предварительный код Unicode 19.0.
     /// В системных шрифтах его нет — в приложении рисуется своим шрифтом (`CurrencySignFont`).
     public static let belarusianRubleSign = "\u{20C5}"
+    /// ISO-код белорусского рубля — единственная валюта с настройкой «Обозначение».
+    public static let belarusianRubleCode = "BYN"
 
     /// Обозначение BYN не из ICU: ICU даёт «Br» (`ru_BY`) или «BYN» (`ru_RU`), а в суммах нужен знак
     /// или код по настройке. `nil` — другая валюта, обозначение даёт ICU.
     private var symbolOverride: String? {
-        guard currencyCode == "BYN" else { return nil }
+        guard currencyCode == Self.belarusianRubleCode else { return nil }
         return switch symbolStyle {
         case .sign: Self.belarusianRubleSign
         case .code: currencyCode
