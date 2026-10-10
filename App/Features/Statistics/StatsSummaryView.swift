@@ -7,7 +7,8 @@ import ExpenseCore
 struct StatsSummaryView: View {
     let lead: String
     let summary: StatsSummary
-    let comparison: AttributedString
+    /// `nil` — сравнивать не с чем (`StatsTrend.incomparable`): строки нет.
+    let comparison: SummaryTexts.Comparison?
     let meta: String
     var filterMark: String?
     /// Итог для VoiceOver: «412,30 рубля».
@@ -37,7 +38,10 @@ struct StatsSummaryView: View {
             .minimumScaleFactor(0.6)
             .padding(.bottom, Theme.Spacing.xs)
             VStack(alignment: .leading, spacing: 2) {
-                StatsPhrase(text: comparison)
+                if let comparison {
+                    StatsPhrase(text: comparison.text)
+                        .accessibilityLabel(Text(verbatim: comparison.spoken))
+                }
                 Text(verbatim: meta)
                     .typeStyle(.subheadline)
                     .foregroundStyle(Theme.secondary)

@@ -28,6 +28,8 @@ public struct StatisticsEngine: Sendable {
         let inPeriod = matching.filter { period.contains($0.date) }
         let comparison = comparisonInterval(for: period, now: now)
         let previousTotal = Self.total(of: matching.filter { comparison.containsHalfOpen($0.date) })
+        let previousInterval = period.previous(in: calendar).interval
+        let hasPreviousExpenses = previousTotal > 0 || matching.contains { previousInterval.containsHalfOpen($0.date) }
 
         let averaging = averagingInterval(of: period, now: now)
         let dayCount = slices(of: averaging, by: .day).count
@@ -44,6 +46,7 @@ public struct StatisticsEngine: Sendable {
             averagePerDayMinor: Money.divideRounded(averagedTotal, by: dayCount),
             averagedDayCount: dayCount,
             previousTotalMinor: previousTotal,
+            hasPreviousExpenses: hasPreviousExpenses,
             change: change,
             comparisonInterval: comparison,
             comparisonReference: comparisonReference(for: period, now: now)

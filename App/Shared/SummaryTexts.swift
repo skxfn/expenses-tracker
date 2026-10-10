@@ -12,11 +12,27 @@ struct SummaryTexts {
 
     // MARK: - Сравнение (§4.7, D5)
 
+    /// Фраза-сравнение: на экране — с выделением и знаком валюты, для VoiceOver — сумма словами (`a11y.money`).
+    struct Comparison {
+        /// «на **38 ⃅ меньше**, чем в прошлом месяце»: выделенная часть — `stronglyEmphasized`.
+        let text: AttributedString
+        /// «на 38 рублей меньше, чем в прошлом месяце».
+        let spoken: String
+    }
+
     /// «на **38 ⃅ меньше**, чем в прошлом месяце» и формы: больше / примерно как / трат не было.
     /// Выделенная часть — `stronglyEmphasized`: стиль (SF 600 графитом) задаёт вид.
-    func comparison(_ summary: StatsSummary, period: StatsPeriod) -> AttributedString {
-        let reference = reference(summary.comparisonReference, period: period)
+    /// `nil` — сравнивать не с чем (`StatsTrend.incomparable`): фразы нет ни на экране, ни в озвучке.
+    func comparison(_ summary: StatsSummary, period: StatsPeriod) -> Comparison? {
         let difference = money.string(fromMinor: summary.differenceMinor, style: .difference)
+        guard let text = phrase(summary, period: period, difference: difference),
+              let spokenText = phrase(summary, period: period, difference: spoken(abs(summary.differenceMinor))) else { return nil }
+        return Comparison(text: text, spoken: String(spokenText.characters))
+    }
+
+    /// Фраза с готовой разницей: «38 ⃅» на экране, «38 рублей» в озвучке.
+    private func phrase(_ summary: StatsSummary, period: StatsPeriod, difference: String) -> AttributedString? {
+        let reference = reference(summary.comparisonReference, period: period)
         switch summary.trend {
         case .less: return L10n.attributed("home.compare", difference, reference)
         case .more: return L10n.attributed("home.compare.more", difference, reference)
@@ -28,6 +44,8 @@ struct SummaryTexts {
             default: "home.compare.noPrev"
             }
             return AttributedString(L10n.format(key, reference))
+        case .incomparable:
+            return nil
         }
     }
 

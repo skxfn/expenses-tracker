@@ -5,22 +5,23 @@ import ExpenseCore
 /// фраза-сравнение SF 15 (выделение — SF 600 графитом), treemap категорий 358 × 208.
 struct HomeTilesSummary: View {
     let content: HomeContent
-    let comparison: AttributedString
+    /// `nil` — сравнивать не с чем (`StatsTrend.incomparable`): строки нет.
+    let comparison: SummaryTexts.Comparison?
     let texts: HomeTexts
     let periodName: String
     let onSelect: (CategoryVizItemID) -> Void
 
-    @Environment(\.fontResolutionContext) private var fontContext
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HomeTotal(totalMinor: content.summary.totalMinor, texts: texts)
-            Text(HomePhrase.styled(comparison, emphasis: TypeStyle.callout, in: fontContext))
-                .typeStyle(.subheadline)
-                .foregroundStyle(Theme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, Theme.Spacing.md)
-                .contentTransition(.opacity)
+            if let comparison {
+                HomeComparisonText(comparison: comparison, emphasis: TypeStyle.callout)
+                    .typeStyle(.subheadline)
+                    .foregroundStyle(Theme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, Theme.Spacing.md)
+                    .contentTransition(.opacity)
+            }
             CategoryTilesView(homeData: content.overview, periodName: periodName, onSelect: onSelect)
                 .padding(.top, Theme.Spacing.lg)
         }
@@ -31,17 +32,33 @@ struct HomeTilesSummary: View {
 /// «Кольцо» на ауре над листом (`02-home-ring`): итог и фраза SF 13 в центре.
 struct HomeRingSummary: View {
     let content: HomeContent
-    let comparison: AttributedString
+    /// `nil` — сравнивать не с чем (`StatsTrend.incomparable`): фразы нет.
+    let comparison: SummaryTexts.Comparison?
     let periodName: String
     let onSelect: (CategoryVizItemID) -> Void
+
+    var body: some View {
+        HomeCategoryRing(data: content.overview, periodName: periodName, onSelect: onSelect) {
+            if let comparison {
+                HomeComparisonText(comparison: comparison, emphasis: TypeStyle.footnoteStrong)
+                    .contentTransition(.opacity)
+            }
+        }
+    }
+}
+
+/// Фраза-сравнение с выделением; VoiceOver читает её с суммой словами («на 38 рублей меньше…»).
+/// Шрифт выделения разрешается в окружении самой фразы: в центре кольца действует предел Dynamic Type
+/// (`vizDynamicTypeLimit`), и шрифт из окружения экрана дал бы выделение крупнее остальной фразы.
+private struct HomeComparisonText: View {
+    let comparison: SummaryTexts.Comparison
+    let emphasis: TypeStyle
 
     @Environment(\.fontResolutionContext) private var fontContext
 
     var body: some View {
-        HomeCategoryRing(data: content.overview, periodName: periodName, onSelect: onSelect) {
-            Text(HomePhrase.styled(comparison, emphasis: TypeStyle.footnoteStrong, in: fontContext))
-                .contentTransition(.opacity)
-        }
+        Text(HomePhrase.styled(comparison.text, emphasis: emphasis, in: fontContext))
+            .accessibilityLabel(Text(verbatim: comparison.spoken))
     }
 }
 
