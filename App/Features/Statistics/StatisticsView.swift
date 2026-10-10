@@ -2,238 +2,267 @@ import SwiftData
 import SwiftUI
 import ExpenseCore
 
-/// Вкладка «Статистика».
+/// Вкладка «Статистика» (макеты `04-stats*`, `05-stats-range`; INTEGRATION §2.1, §2.2, §4.6–4.8, §6).
+///
+/// Сверху на ауре — Large Title, шапка периода, сегмент и сводка; ниже бумажный лист с блоками:
+/// «Категории» (4 вида с раскрытием), «По дням» (у «Дня» — «По часам», у «Года» — по месяцам), «Темп»,
+/// «Привычки», «2026 по дням», «Крупнейшие траты». Раскрытая категория фильтрует сводку и все блоки под
+/// «Категориями» (пометка «только Продукты»). Тап по плитке на главной приходит `AppRouter.statisticsFocus`:
+/// период применяется сразу, категория раскрывается с анимацией.
 struct StatisticsView: View {
     @Query private var expenses: [Expense]
     @Query private var categories: [ExpenseCategory]
+    @AppStorage(SettingsKeys.statsCategoryView) private var categoryView: StatsCategoryView = .default
 
+    @State private var selection: PeriodSelection
     @State private var model = StatisticsModel()
+    @State private var expandedID: UUID?
+    /// Категория из `statisticsFocus`: раскрывается после перехода, чтобы было видно анимацию.
+    @State private var pendingExpansion: UUID?
+
+    @Environment(AppRouter.self) private var router
+    @Environment(PendingDeletion.self) private var pendingDeletion
     @Environment(\.moneyFormatter) private var money
 
+    init() {
+        let selection = PeriodSelection()
+        #if DEBUG
+        StatsDebugOptions.applyPeriod(to: selection)
+        #endif
+        _selection = State(initialValue: selection)
+    }
+
     var body: some View {
-        let source = StatisticsSource(expenses: expenses, categories: categories)
-        Group {
-            if model.hasExpenses {
-                content
+        let visible = expenses.filter { !pendingDeletion.hiddenIDs.contains($0.id) }
+        let input = StatisticsInput(
+            records: visible.map { ExpenseRecord($0) },
+            catalog: CategoryCatalogSnapshot(categories: categories),
+            period: selection.period,
+            now: selection.now,
+            expandedID: expandedID
+        )
+        let texts = StatsTexts(money: money, calendar: selection.calendar, now: selection.now)
+
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    header(texts)
+                        .padding(.horizontal, Theme.Spacing.screen)
+                    sheet(texts, expenses: visible)
+                        .padding(.top, Theme.Spacing.xl)
+                }
+            }
+            .onChange(of: router.statisticsFocus, initial: true) { _, focus in
+                applyFocus(focus, proxy: proxy)
+            }
+            #if DEBUG
+            .task { await StatsDebugOptions.scroll(proxy) }
+            #endif
+        }
+        .background { AuraBackground(tones: model.auraTones).ignoresSafeArea() }
+        .onChange(of: input, initial: true) { _, input in
+            model.update(input)
+        }
+        .task(id: pendingExpansion) {
+            guard let id = pendingExpansion else { return }
+            try? await Task.sleep(for: StatsLayout.focusExpansionDelay)
+            expandedID = id
+            pendingExpansion = nil
+        }
+        #if DEBUG
+        .onChange(of: model.categories) { _, data in
+            if StatsDebugOptions.expandsFirst, expandedID == nil {
+                expandedID = data.groups.first(where: \.isExpandable)?.id
+            }
+        }
+        #endif
+    }
+
+    // MARK: - Шапка и сводка
+
+    private func header(_ texts: StatsTexts) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+                PeriodHeader(selection: selection, style: .statistics, auraTones: model.auraTones)
+                PeriodSegment(selection: selection)
+            }
+            if model.hasExpenses, !model.isPeriodEmpty {
+                StatsSummaryView(
+                    lead: texts.lead(model.period, summary: model.summary),
+                    summary: model.summary,
+                    comparison: texts.comparison(model.summary),
+                    meta: texts.meta(model.summary),
+                    filterMark: filterMark(texts),
+                    spokenTotal: texts.spoken(model.summary.totalMinor)
+                )
+            }
+        }
+        .padding(.top, Theme.Spacing.sm)
+    }
+
+    // MARK: - Лист
+
+    /// Бумажный лист; фон уходит за нижний край и под таб-бар (`ignoresSafeArea` в прокрутке не дотягивается).
+    private func sheet(_ texts: StatsTexts, expenses: [Expense]) -> some View {
+        VStack(alignment: .leading, spacing: StatsLayout.sectionSpacing) {
+            if !model.hasExpenses {
+                emptyNone
+            } else if model.isPeriodEmpty {
+                emptyPeriod(texts)
             } else {
-                ContentUnavailableView {
-                    Label("Пока нет трат", systemImage: "chart.pie")
-                } description: {
-                    Text("Добавьте расходы на вкладке «Расходы» — здесь появятся итоги и графики.")
-                }
+                sections(texts, expenses: expenses)
             }
         }
-        .navigationTitle("Статистика")
-        .onChange(of: source, initial: true) { _, newSource in
-            model.update(source: newSource)
-        }
-    }
-
-    private var content: some View {
-        List {
-            periodSection
-            if let filterTitle = model.filterTitle {
-                filterSection(title: filterTitle)
-            }
-            if model.isPeriodEmpty {
-                Section {
-                    ContentUnavailableView(
-                        "Нет трат за этот период",
-                        systemImage: "calendar",
-                        description: Text("Выберите другой период стрелками или сменой вида.")
-                    )
-                }
-            } else {
-                summarySection
-                categoriesSection
-                if model.summary.count == 0 {
-                    Section {
-                        ContentUnavailableView(
-                            "В этой категории нет трат за период",
-                            systemImage: "line.3.horizontal.decrease.circle"
-                        )
-                    }
-                } else {
-                    chartsSections
-                    topSection
-                }
-            }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Theme.Spacing.screen)
+        .padding(.top, Theme.Spacing.xl)
+        .padding(.bottom, StatsLayout.sectionSpacing)
+        .background(alignment: .top) {
+            PaperSheetBackground()
+                .padding(.bottom, -StatsLayout.sheetOverscroll)
         }
     }
-
-    // MARK: - Период и фильтр
-
-    private var periodSection: some View {
-        Section {
-            Picker("Вид периода", selection: Binding(get: { model.kind }, set: { model.select($0) })) {
-                ForEach(StatsPeriodKind.allCases, id: \.self) { kind in
-                    Text(kind.title).tag(kind)
-                }
-            }
-            .pickerStyle(.segmented)
-
-            HStack {
-                Button {
-                    model.showPrevious()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .frame(minWidth: 44, minHeight: 44)
-                }
-                .accessibilityLabel("Предыдущий период")
-
-                Spacer()
-                Text(model.title)
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
-                Spacer()
-
-                Button {
-                    model.showNext()
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .frame(minWidth: 44, minHeight: 44)
-                }
-                .disabled(!model.canShowNext)
-                .accessibilityLabel("Следующий период")
-            }
-            .buttonStyle(.borderless)
-
-            if !model.isCurrentPeriod {
-                Button("Вернуться к текущему периоду") {
-                    model.showCurrent()
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-    }
-
-    private func filterSection(title: String) -> some View {
-        Section {
-            HStack {
-                Label("Только «\(title)»", systemImage: "line.3.horizontal.decrease.circle.fill")
-                Spacer()
-                Button("Сбросить") {
-                    model.clearFilter()
-                }
-                .buttonStyle(.borderless)
-            }
-        } footer: {
-            Text("Фильтр действует на всю статистику, кроме разбивки по категориям.")
-        }
-    }
-
-    // MARK: - Сводка
-
-    private var summarySection: some View {
-        Section("Итого") {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(money.string(fromMinor: model.summary.totalMinor))
-                    .font(.largeTitle.bold())
-                    .monospacedDigit()
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
-                changeText
-                    .font(.subheadline)
-            }
-            .padding(.vertical, 4)
-            .accessibilityElement(children: .combine)
-
-            // Изменение считается к предыдущему периоду целиком — показываем, к какой сумме.
-            if model.summary.change != nil {
-                LabeledContent(model.previousTitle, value: money.string(fromMinor: model.summary.previousTotalMinor))
-            }
-            LabeledContent("В среднем в день", value: money.string(fromMinor: model.summary.averagePerDayMinor))
-            LabeledContent("Количество трат", value: model.summary.count.formatted())
-        }
-    }
-
-    private var changeText: Text {
-        guard let change = model.summary.change else {
-            return Text("В прошлом периоде трат не было")
-                .foregroundStyle(.secondary)
-        }
-        let percent = change.formatted(.percent.precision(.fractionLength(0)).sign(strategy: .always(includingZero: false)))
-        // Рост трат — плохо (красный), снижение — хорошо (зелёный).
-        let color: Color = change > 0 ? .red : (change < 0 ? .green : .secondary)
-        return Text("\(percent) \(model.comparisonSuffix)")
-            .foregroundStyle(color)
-    }
-
-    // MARK: - Категории
-
-    private var categoriesSection: some View {
-        Section {
-            CategoryDonutChart(
-                rows: model.categoryRows,
-                isFiltered: model.filter != .all,
-                totalText: money.string(fromMinor: model.periodTotalMinor)
-            )
-            ForEach(model.categoryRows) { row in
-                Button {
-                    model.toggleFilter(row.filter)
-                } label: {
-                    CategoryAmountRow(
-                        appearance: row.appearance,
-                        subtitle: row.share.formatted(.percent.precision(.fractionLength(0...1))),
-                        amount: money.string(fromMinor: row.totalMinor),
-                        iconDiameter: 30,
-                        isSelected: row.isSelected
-                    )
-                }
-                .tint(.primary)
-                .accessibilityAddTraits(row.isSelected ? .isSelected : [])
-                .accessibilityHint(row.isSelected ? "Снять фильтр" : "Показать статистику только по этой категории")
-            }
-        } header: {
-            Text("По категориям")
-        } footer: {
-            Text("Нажмите на категорию, чтобы отфильтровать по ней всю статистику.")
-        }
-    }
-
-    // MARK: - Графики
 
     @ViewBuilder
-    private var chartsSections: some View {
-        Section("По времени") {
-            TimeSeriesChart(series: model.timeSeries, kind: model.kind)
-        }
-        if let cumulative = model.cumulative {
-            Section("Накопительно") {
-                CumulativeChart(
-                    comparison: cumulative,
-                    currentLabel: model.title,
-                    previousLabel: model.previousTitle
+    private func sections(_ texts: StatsTexts, expenses: [Expense]) -> some View {
+        let mark = filterMark(texts)
+
+        StatsCategorySection(
+            data: model.categories,
+            view: $categoryView,
+            expandedID: $expandedID,
+            periodName: texts.periodName(model.period)
+        )
+        .id(StatsAnchor.categories)
+
+        if let series = model.series {
+            VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+                StatsSectionHeader(title: seriesTitle(series.step), filterMark: mark)
+                StatsBarsChart(
+                    series: series,
+                    period: model.period,
+                    now: model.now,
+                    averageMinor: series.step == .day ? model.summary.averagePerDayMinor : nil,
+                    texts: texts
                 )
             }
+            .id(StatsAnchor.days)
         }
-        if model.showsWeekdays {
-            Section("В среднем по дням недели") {
-                WeekdayChart(rows: model.weekdays)
+
+        if let pace = model.pace {
+            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                StatsSectionHeader(title: Text("stats.pace.heading"), filterMark: mark)
+                StatsPaceView(pace: pace, period: model.period, texts: texts)
+            }
+            .id(StatsAnchor.pace)
+        }
+
+        if let habits = model.habits {
+            VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+                StatsSectionHeader(
+                    title: Text("stats.habits.heading"),
+                    filterMark: mark,
+                    note: habits.hasEnoughData ? L10n.format("stats.habits.note", money.currencySymbol) : nil
+                )
+                StatsHabitsView(state: habits, texts: texts)
+            }
+            .id(StatsAnchor.habits)
+        }
+
+        if let year = model.year {
+            VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+                StatsSectionHeader(title: Text(verbatim: L10n.format("stats.year.heading", String(year.year))), filterMark: mark)
+                StatsYearHeatmap(
+                    state: year,
+                    now: model.now,
+                    texts: texts,
+                    legend: CalendarStrings(money: money, calendar: model.calendar, now: model.now)
+                )
+            }
+            .id(StatsAnchor.year)
+        }
+
+        let top = topRows(texts, expenses: expenses)
+        if !top.isEmpty {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                StatsSectionHeader(title: Text("stats.top.heading"), filterMark: mark)
+                StatsTopSection(rows: top) { router.presentEdit(expenseID: $0) }
+            }
+            .id(StatsAnchor.top)
+        }
+    }
+
+    private func seriesTitle(_ step: StatsTimeStep) -> Text {
+        switch step {
+        case .hour: Text("stats.dayView.heading")
+        // TODO(copy): заголовка «По месяцам» для вида «Год» в copy.json нет.
+        case .month: Text(verbatim: "По месяцам")
+        case .day, .week: Text("stats.days.heading")
+        }
+    }
+
+    private func filterMark(_ texts: StatsTexts) -> String? {
+        model.filterGroup.map(texts.filterMark)
+    }
+
+    private func topRows(_ texts: StatsTexts, expenses: [Expense]) -> [ExpenseRowData] {
+        model.topIDs.compactMap { id in
+            expenses.first { $0.id == id }.map { ExpenseRowData(top: $0, dates: texts.dates) }
+        }
+    }
+
+    // MARK: - Пустые состояния
+
+    /// Трат нет совсем (`stats.empty.none`): Headline + строка SF 15 secondary.
+    private var emptyNone: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            Text("stats.empty.none.title")
+                .typeStyle(.headline)
+                .foregroundStyle(Theme.ink)
+            Text("stats.empty.none.body")
+                .typeStyle(.subheadline)
+                .foregroundStyle(Theme.secondary)
+        }
+    }
+
+    /// Период без трат: «В сентябре трат не было» / «… пока нет трат» и стеклянная «К последней трате».
+    private func emptyPeriod(_ texts: StatsTexts) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
+            Text(verbatim: texts.emptyPeriod(model.period))
+                .typeStyle(.headline)
+                .foregroundStyle(Theme.ink)
+            if model.lastExpenseDate != nil {
+                Button("home.empty.period.action", action: showLastExpense)
+                    .buttonStyle(.glassCapsule(.glass, height: Theme.Size.chip, expands: false))
             }
         }
     }
 
-    // MARK: - Топ
+    // MARK: - Действия
 
-    private var topSection: some View {
-        Section("Самые крупные траты") {
-            ForEach(model.topExpenses) { row in
-                CategoryAmountRow(
-                    appearance: row.appearance,
-                    title: row.note.isEmpty ? nil : row.note,
-                    subtitle: row.date.formatted(.dateTime.day().month(.abbreviated).hour().minute()),
-                    amount: money.string(fromMinor: row.amountMinor),
-                    iconDiameter: 30
-                )
-            }
+    /// Период того же вида с последней тратой; свой — той же длины, кончающийся днём последней траты.
+    private func showLastExpense() {
+        guard let date = model.lastExpenseDate else { return }
+        if let kind = selection.period.kind {
+            selection.apply(.current(kind, now: date, calendar: selection.calendar))
+        } else {
+            let first = selection.calendar.date(byAdding: .day, value: -(selection.dayCount - 1), to: date) ?? date
+            selection.applyCustom(from: first, through: date)
         }
+    }
+
+    /// Задание из главной: тот же период и раскрытая категория.
+    private func applyFocus(_ focus: StatisticsFocus?, proxy: ScrollViewProxy) {
+        guard let focus else { return }
+        router.statisticsFocus = nil
+        selection.apply(focus.period)
+        expandedID = nil
+        proxy.scrollTo(StatsAnchor.categories, anchor: .top)
+        pendingExpansion = focus.groupID
     }
 }
 
-#Preview {
-    NavigationStack {
-        StatisticsView()
-    }
-    .modelContainer(try! ModelContainerFactory.make(inMemory: true))
+/// Якоря прокрутки блоков (`-statsScroll` и переход из главной).
+enum StatsAnchor: String {
+    case categories, days, pace, habits, year, top
 }
