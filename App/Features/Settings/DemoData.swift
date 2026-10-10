@@ -115,14 +115,14 @@ enum DemoData {
         )
         try BackupImporter.apply(empty, to: context, mode: .replace)
         defaults.removeObject(forKey: SettingsKeys.didSeedDefaultCategories)
-        try ExpenseStore(context: context).seedDefaultCategoriesIfNeeded(defaults: defaults)
+        try ExpenseStore(context: context).seedDefaultCategoriesIfNeeded(defaults: defaults, names: DefaultCategories.localizedNames)
     }
 
     private static func addSubcategories(store: ExpenseStore) throws {
         for parent in try store.topLevelCategories() {
             let existing = Set(store.subcategories(of: parent, includingArchived: true).map(\.name))
-            for template in subcategories[parent.name] ?? [] where !existing.contains(template.name) {
-                try store.addSubcategory(name: template.name, iconName: template.icon, parent: parent)
+            for template in subcategories[templateName(parent)] ?? [] where !existing.contains(text(template.name)) {
+                try store.addSubcategory(name: text(template.name), iconName: template.icon, parent: parent)
             }
         }
     }
@@ -136,7 +136,7 @@ enum DemoData {
     ) throws -> BackupPayload {
         var random = SeededGenerator(seed: seed)
         let targets = try store.topLevelCategories().map { parent in
-            (parent: parent, children: store.subcategories(of: parent), profile: profiles[parent.name] ?? fallbackProfile)
+            (parent: parent, children: store.subcategories(of: parent), profile: profiles[templateName(parent)] ?? fallbackProfile)
         }
         let today = calendar.startOfDay(for: now)
         var expenses: [BackupPayload.ExpenseRecord] = []
@@ -161,21 +161,48 @@ enum DemoData {
                 let roll = Double.random(in: 0..<1, using: &random)
                 let happens = profile.monthlyDay.map { $0 == dayOfMonth } ?? (roll < profile.dailyChance * weekendFactor)
                 guard happens, let leaf = pickLeaf(profile.leaves, using: &random) else { continue }
-                let leafID = leaf.subcategory.flatMap { name in target.children.first { $0.name == name }?.id }
+                let leafID = leaf.subcategory.flatMap { name in target.children.first { $0.name == text(name) }?.id }
                 record(
                     day: day,
                     amount: Double.random(in: leaf.range ?? profile.range, using: &random),
-                    note: leaf.notes.randomElement(using: &random) ?? "",
+                    note: text(leaf.notes.randomElement(using: &random) ?? ""),
                     categoryID: leafID ?? target.parent.id
                 )
             }
         }
         for item in uncategorized where item.daysAgo < days {
             guard let day = calendar.date(byAdding: .day, value: -item.daysAgo, to: today) else { continue }
-            record(day: day, amount: Double(item.amountMinor) / 100, note: item.note, categoryID: nil)
+            record(day: day, amount: Double(item.amountMinor) / 100, note: text(item.note), categoryID: nil)
         }
         return BackupPayload(exportedAt: now, currencyCode: currencyCode, categories: [], expenses: expenses)
     }
+
+    /// Русское имя шаблона базовой категории — ключ таблиц выше; на английском базовые категории
+    /// создаются с именами из каталога (`DefaultCategories.localizedNames`).
+    private static func templateName(_ parent: ExpenseCategory) -> String {
+        guard let index = DefaultCategories.localizedNames.firstIndex(of: parent.name) else { return parent.name }
+        return DefaultCategories.all[index].name
+    }
+
+    /// Имена подкатегорий и заметки демо-данных на языке интерфейса — для скриншотов английской версии.
+    private static func text(_ russian: String) -> String {
+        AppLanguage.current == .english ? english[russian] ?? russian : russian
+    }
+
+    private static let english: [String: String] = [
+        "Супермаркет": "Supermarket", "Рынок": "Market", "Хлеб и выпечка": "Bread & Pastries",
+        "Обеды": "Lunches", "Кофе": "Coffee", "Доставка": "Delivery", "Такси": "Taxi", "Метро": "Metro",
+        "Аптека": "Pharmacy", "Друзья": "Friends",
+        "Евроопт": "Evroopt", "Гиппо": "Hippo", "Корона": "Korona", "Комаровка": "Komarovka",
+        "Овощи и фрукты": "Fruit & vegetables", "Круассаны": "Croissants", "Вода": "Water", "Молоко": "Milk",
+        "Бизнес-ланч": "Business lunch", "Столовая": "Canteen", "Капучино": "Cappuccino", "Раф": "Raf coffee",
+        "Пицца": "Pizza", "Суши": "Sushi", "Ужин с друзьями": "Dinner with friends", "В аэропорт": "To the airport",
+        "Самокат": "Scooter", "Коммуналка": "Utilities", "Интернет и мобильный": "Internet & mobile",
+        "Витамины": "Vitamins", "Стоматолог": "Dentist", "Анализы": "Lab tests", "Кино": "Movies",
+        "Боулинг": "Bowling", "Концерт": "Concert", "Кроссовки": "Sneakers", "Куртка": "Jacket", "Музыка": "Music",
+        "Облако": "Cloud storage", "На день рождения": "Birthday present", "Книги": "Books", "Курс": "Online course",
+        "Химчистка": "Dry cleaning", "Сувенир": "Souvenir", "Подарок коллеге": "Gift for a colleague"
+    ]
 
     private static func pickLeaf(_ leaves: [Leaf], using random: inout SeededGenerator) -> Leaf? {
         let total = leaves.reduce(0) { $0 + $1.weight }

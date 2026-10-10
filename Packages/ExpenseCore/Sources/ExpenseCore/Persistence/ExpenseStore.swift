@@ -305,12 +305,15 @@ public final class ExpenseStore {
     /// Создаёт базовые категории один раз за всё время жизни установки.
     /// Если пользователь потом удалит все категории, повторно они не появятся.
     /// Если категории уже есть (например, после импорта), только ставит флаг.
-    public func seedDefaultCategoriesIfNeeded(defaults: UserDefaults) throws {
+    /// - Parameter names: имена на языке интерфейса в порядке `DefaultCategories.all` (`default.group.N`
+    ///   в каталоге App); `nil` или недостающее имя — русское имя шаблона.
+    public func seedDefaultCategoriesIfNeeded(defaults: UserDefaults, names: [String]? = nil) throws {
         guard !defaults.bool(forKey: SettingsKeys.didSeedDefaultCategories) else { return }
         if try context.fetchCount(FetchDescriptor<ExpenseCategory>()) == 0 {
             for (index, template) in DefaultCategories.all.enumerated() {
+                let name = names.flatMap { $0.indices.contains(index) ? $0[index] : nil } ?? template.name
                 context.insert(ExpenseCategory(
-                    name: template.name,
+                    name: name,
                     iconName: template.iconName,
                     colorHex: template.colorHex,
                     sortOrder: index

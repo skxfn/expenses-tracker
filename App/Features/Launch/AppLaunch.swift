@@ -23,12 +23,21 @@ enum AppLaunch {
 
         // Без базовых категорий приложение работает; флаг при ошибке не ставится,
         // поэтому попытка повторится при следующем запуске.
-        try? ExpenseStore(context: container.mainContext).seedDefaultCategoriesIfNeeded(defaults: defaults)
+        try? ExpenseStore(context: container.mainContext)
+            .seedDefaultCategoriesIfNeeded(defaults: defaults, names: DefaultCategories.localizedNames)
 
         #if DEBUG
         DebugLaunchOptions.applyDemoDataIfRequested(to: container.mainContext, defaults: defaults)
         #endif
         return .ready(container)
+    }
+}
+
+extension DefaultCategories {
+    /// Имена базовых категорий на языке интерфейса (`default.group.N` в каталоге, порядок — `all`).
+    /// Только для первого запуска: созданные категории не переименовываются при смене языка.
+    static var localizedNames: [String] {
+        all.indices.map { L10n.format("default.group.\($0 + 1)") }
     }
 }
 
