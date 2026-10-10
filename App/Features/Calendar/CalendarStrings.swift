@@ -56,6 +56,16 @@ struct CalendarStrings {
         )
     }
 
+    /// Та же строка для VoiceOver: сумма словом (`a11y.money`), дата полностью, без «·» —
+    /// «480,15 рубля за 10 дней, больше всего 5 октября».
+    func summaryAccessibility(_ summary: CalendarModel.Summary, month: MonthGrid, isCurrent: Bool) -> String {
+        guard let peak = summary.peakDay, summary.totalMinor > 0 else {
+            return String(self.summary(summary, month: month, isCurrent: isCurrent).characters)
+        }
+        let text = L10n.attributed("cal.summary", spoken(summary.totalMinor), summary.dayCount, dates.dayMonth(peak))
+        return String(text.characters).replacingOccurrences(of: " · ", with: ", ")
+    }
+
     // MARK: Клетка дня
 
     /// Число в клетке.
