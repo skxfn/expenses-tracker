@@ -23,15 +23,10 @@ nonisolated extension GouacheTone {
 
     // MARK: Ступени подкатегорий
 
-    /// Номер ступени подкатегории 0…4 (`index % 5`; шестая подкатегория повторяет первую).
-    static func shadeStep(forSubcategoryIndex index: Int) -> Int {
-        ((index % GouacheShades.stepCount) + GouacheShades.stepCount) % GouacheShades.stepCount
-    }
-
-    /// Цвет ступени `step` (0 — основной тон). Свет — `subcategoryShades` с повтором (§8 п. 9),
-    /// ночь — `subcategoryShadesDark`.
+    /// Цвет ступени `step` (0 — основной тон; ступень даёт Core: `SubcategoryShades.step(of:)`).
+    /// Свет — `subcategoryShades` с повтором (§8 п. 9), ночь — `subcategoryShadesDark`.
     func shade(_ step: Int) -> Color {
-        let step = Self.shadeStep(forSubcategoryIndex: step)
+        let step = GouacheShades.normalized(step)
         return Color(
             light: tokens.shadesLight[GouacheShades.lightIndex(step, count: tokens.shadesLight.count)],
             dark: tokens.shadesDark[min(step, tokens.shadesDark.count - 1)]
@@ -41,7 +36,7 @@ nonisolated extension GouacheTone {
     /// Подпись на ступени `step`: на первой — `labelOnMain`; дальше в светлой deep или бумага по контрасту,
     /// в тёмной — night-ink.
     func labelOnShade(_ step: Int) -> Color {
-        let step = Self.shadeStep(forSubcategoryIndex: step)
+        let step = GouacheShades.normalized(step)
         return Color(
             light: tokens.labelsLight[GouacheShades.lightIndex(step, count: tokens.labelsLight.count)],
             dark: tokens.labelsDark[min(step, tokens.labelsDark.count - 1)]
@@ -51,8 +46,11 @@ nonisolated extension GouacheTone {
 
 /// Правило ступеней в одном месте (§8 п. 9: «до ответа дизайнера — 3 светлые ступени и повтор с 4-й»).
 nonisolated enum GouacheShades {
-    /// Ступеней у подкатегорий; дальше оттенки повторяются и различаются только иконкой.
-    static let stepCount = 5
+    /// Ступень 0…`SubcategoryShades.stepCount - 1` для любого целого.
+    static func normalized(_ step: Int) -> Int {
+        let count = SubcategoryShades.stepCount
+        return ((step % count) + count) % count
+    }
 
     /// Индекс в светлой таблице: ступени 4 и 5 повторяют 1 и 2, пока в design.json только 3 значения.
     static func lightIndex(_ step: Int, count: Int) -> Int {

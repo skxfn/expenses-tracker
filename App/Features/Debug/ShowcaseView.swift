@@ -172,7 +172,7 @@ private struct ToneRow: View {
                 .frame(width: 30, height: 30)
             if let tone {
                 HStack(spacing: Theme.Spacing.segmentGap) {
-                    ForEach(0..<GouacheShades.stepCount, id: \.self) { step in
+                    ForEach(0..<SubcategoryShades.stepCount, id: \.self) { step in
                         RoundedRectangle(cornerRadius: Theme.Radius.chipInner, style: .continuous)
                             .fill(tone.shade(step))
                             .overlay {
