@@ -61,7 +61,8 @@ public enum Money {
     }
 
     /// Округление до целых единиц валюты (половина — от нуля): `74_250` → `74_300`.
-    static func roundedToWholeUnits(_ minor: Int64) -> Int64 {
+    /// Публично для строк каталога, где «≈» уже стоит (`period.range.meta`): там сумма — `.phrase` от округлённой.
+    public static func roundedToWholeUnits(_ minor: Int64) -> Int64 {
         divideRounded(minor, by: Int(minorUnitsPerMajor)) * minorUnitsPerMajor
     }
 

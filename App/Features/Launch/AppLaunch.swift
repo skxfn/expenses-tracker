@@ -45,7 +45,13 @@ struct StoreFailure {
 
 #if DEBUG
 /// Аргументы запуска для отладки и скриншотов (читаются из `UserDefaults`, куда iOS кладёт `-ключ значение`):
-/// `-demoData YES` — заполнить демо-тратами, если расходов ещё нет; `-debugTab statistics` — открыть вкладку.
+/// `-demoData YES` — заполнить демо-тратами, если расходов ещё нет;
+/// `-debugTab expenses|calendar|statistics` — открыть вкладку;
+/// `-debugRoute settings` — сразу открыть пуш на вкладке «Траты» (настройки);
+/// `-debugPeriod YES|day|week|year|range|past|sheet` — вместо содержимого «Трат» и «Статистики» экран проверки
+/// шапки периода (`PeriodDebugScreen`, сценарии — `PeriodDebugScenario`);
+/// `-debugToast YES` — тост удаления на паузе (ничего не удаляет);
+/// `-debugAdd YES` — открыть шит новой траты, как по «+» (зум из круга).
 enum DebugLaunchOptions {
     static func applyDemoDataIfRequested(to context: ModelContext, defaults: UserDefaults) {
         guard
@@ -57,6 +63,23 @@ enum DebugLaunchOptions {
 
     static func initialTab(defaults: UserDefaults = .standard) -> AppTab? {
         defaults.string(forKey: "debugTab").flatMap(AppTab.init(rawValue:))
+    }
+
+    static func initialRoute(defaults: UserDefaults = .standard) -> AppRoute? {
+        defaults.string(forKey: "debugRoute") == "settings" ? .settings : nil
+    }
+
+    static func periodScenario(defaults: UserDefaults = .standard) -> PeriodDebugScenario? {
+        guard let value = defaults.string(forKey: "debugPeriod") else { return nil }
+        return PeriodDebugScenario(rawValue: value) ?? (defaults.bool(forKey: "debugPeriod") ? .month : nil)
+    }
+
+    static func showsDeletionToast(defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: "debugToast")
+    }
+
+    static func presentsAddSheet(defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: "debugAdd")
     }
 }
 #endif

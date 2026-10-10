@@ -9,6 +9,13 @@ enum AppTab: String, Hashable, CaseIterable {
     case statistics
 }
 
+/// Экраны, которые открываются пушем внутри вкладки. Назначения регистрирует корень (`ContentView`),
+/// экраны только ставят `NavigationLink(value:)`.
+enum AppRoute: Hashable {
+    /// Настройки — пушем из ⚙ в шапке главной.
+    case settings
+}
+
 /// Шит поверх всего приложения. Показывает корень (`ContentView`), экраны только просят.
 enum AppSheet: Identifiable, Hashable {
     case expense(ExpenseSheet.Mode)
