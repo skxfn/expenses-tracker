@@ -30,6 +30,27 @@ extension StatisticsEngine {
         return StatsHeatScale(thresholds: thresholds)
     }
 
+    /// Дневные суммы года, в который попадает `date`, по месяцам — строки тепловой карты «2026 по дням».
+    /// Месяцы по порядку, в каждом — все его дни подряд (пустые — с нулями).
+    public func yearDays(
+        forYearContaining date: Date,
+        records: [ExpenseRecord],
+        filter: StatsCategoryFilter = .all
+    ) -> [[StatsTimeBucket]] {
+        let year = StatsPeriod.current(.year, now: date, calendar: calendar)
+        var months: [[StatsTimeBucket]] = []
+        var currentMonth: Int?
+        for bucket in timeSeries(for: year, records: records, step: .day, filter: filter).buckets {
+            let month = calendar.component(.month, from: bucket.interval.start)
+            if month != currentMonth {
+                months.append([])
+                currentMonth = month
+            }
+            months[months.count - 1].append(bucket)
+        }
+        return months
+    }
+
     /// «Круглое» число не меньше одной единицы валюты: `2_340` (23,40) → `2_500` (25).
     static func roundedToNiceNumber(_ minor: Int64) -> Int64 {
         let step = niceStep(for: minor)
