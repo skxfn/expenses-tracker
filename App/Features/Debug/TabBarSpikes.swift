@@ -215,7 +215,7 @@ struct AddSheetSpikeContent: View {
                     .multilineTextAlignment(.trailing)
                     .fixedSize()
                     .focused($isAmountFocused)
-                    Text(verbatim: "Br").typeStyle(.currencyDisplay).foregroundStyle(Theme.secondary)
+                    Text(verbatim: "\u{20C5}").typeStyle(.currencyDisplay).foregroundStyle(Theme.secondary)
                 }
                 Text(verbatim: "Продукты · Супермаркет").typeStyle(.callout).foregroundStyle(Theme.secondary)
                 HStack(spacing: Theme.Spacing.md) {

@@ -2,6 +2,8 @@
 public enum SettingsKeys {
     /// `String` — ISO 4217 код валюты приложения.
     public static let currencyCode = "currencyCode"
+    /// `String` — `CurrencySymbolStyle.rawValue`, обозначение BYN в суммах: знак или код.
+    public static let currencySymbolStyle = "currencySymbolStyle"
     /// `Bool` — базовые категории уже создавались, повторно не создавать.
     public static let didSeedDefaultCategories = "didSeedDefaultCategories"
     /// `String` — `HomeOverviewStyle.rawValue`, обзор категорий на вкладке «Траты».

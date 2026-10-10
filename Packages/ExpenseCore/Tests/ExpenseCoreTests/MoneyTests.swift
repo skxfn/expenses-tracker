@@ -70,8 +70,8 @@ struct MoneyTests {
         #expect(usd.string(fromMinor: 5) == "$0.05")
 
         let byn = MoneyFormatter(currencyCode: "BYN", locale: Locale(identifier: "ru_BY"))
-        #expect(normalizedSpaces(byn.string(fromMinor: 120_050)) == "1 200,50 Br")
-        #expect(normalizedSpaces(byn.string(fromMinor: 1_000)) == "10 Br")
+        #expect(normalizedSpaces(byn.string(fromMinor: 120_050)) == "1 200,50 \u{20C5}")
+        #expect(normalizedSpaces(byn.string(fromMinor: 1_000)) == "10 \u{20C5}")
     }
 
     @Test func editingStringUsesLocaleSeparatorWithoutGrouping() {
@@ -97,7 +97,7 @@ struct MoneyTests {
     }
 }
 
-/// Режимы показа сумм (design/INTEGRATION.md §5.2) на `ru_RU`. `_` в ожиданиях — U+00A0.
+/// Режимы показа сумм (design/INTEGRATION.md §5.2) на `ru_RU`. `_` в ожиданиях — U+00A0, знак рубля — U+20C5.
 struct MoneyFormatterStyleTests {
     private let byn = MoneyFormatter(currencyCode: "BYN", locale: Locale(identifier: "ru_RU"))
 
@@ -105,10 +105,10 @@ struct MoneyFormatterStyleTests {
         byn.string(fromMinor: minor, style: style).replacingOccurrences(of: "\u{00A0}", with: "_")
     }
 
-    @Test func phraseUsesBrAndDropsZeroCents() {
-        #expect(format(3_800, .phrase) == "38_Br")
-        #expect(format(41_230, .phrase) == "412,30_Br")
-        #expect(format(120_050, .phrase) == "1_200,50_Br")
+    @Test func phraseUsesSignAndDropsZeroCents() {
+        #expect(format(3_800, .phrase) == "38_\u{20C5}")
+        #expect(format(41_230, .phrase) == "412,30_\u{20C5}")
+        #expect(format(120_050, .phrase) == "1_200,50_\u{20C5}")
         #expect(byn.string(fromMinor: 3_800) == byn.string(fromMinor: 3_800, style: .phrase))
     }
 
@@ -119,17 +119,17 @@ struct MoneyFormatterStyleTests {
     }
 
     @Test func approximateRoundsToWholeUnits() {
-        #expect(format(74_240, .approximate) == "≈_742_Br")
-        #expect(format(74_250, .approximate) == "≈_743_Br")
-        #expect(format(160_000, .approximate) == "≈_1_600_Br")
+        #expect(format(74_240, .approximate) == "≈_742_\u{20C5}")
+        #expect(format(74_250, .approximate) == "≈_743_\u{20C5}")
+        #expect(format(160_000, .approximate) == "≈_1_600_\u{20C5}")
     }
 
     @Test func differenceUsesMagnitudeAndWholeUnitsFromThousand() {
-        #expect(format(-3_800, .difference) == "38_Br")
-        #expect(format(2_380, .difference) == "23,80_Br")
-        #expect(format(99_999, .difference) == "999,99_Br")
-        #expect(format(100_000, .difference) == "1_000_Br")
-        #expect(format(-103_850, .difference) == "1_039_Br")
+        #expect(format(-3_800, .difference) == "38_\u{20C5}")
+        #expect(format(2_380, .difference) == "23,80_\u{20C5}")
+        #expect(format(99_999, .difference) == "999,99_\u{20C5}")
+        #expect(format(100_000, .difference) == "1_000_\u{20C5}")
+        #expect(format(-103_850, .difference) == "1_039_\u{20C5}")
         #expect(!format(.min, .difference).isEmpty)
     }
 
@@ -156,7 +156,7 @@ struct MoneyFormatterStyleTests {
 
     @Test func currencySymbolUsesOverridesAndLocale() {
         let ru = Locale(identifier: "ru_RU")
-        #expect(MoneyFormatter(currencyCode: "BYN", locale: ru).currencySymbol == "Br")
+        #expect(MoneyFormatter(currencyCode: "BYN", locale: ru).currencySymbol == "\u{20C5}")
         #expect(MoneyFormatter(currencyCode: "USD", locale: ru).currencySymbol == "$")
         #expect(MoneyFormatter(currencyCode: "EUR", locale: ru).currencySymbol == "€")
     }
@@ -172,11 +172,71 @@ struct MoneyFormatterStyleTests {
         }
     }
 
-    @Test func belarusianRegionKeepsSystemSymbol() {
+    /// ICU в `ru_BY` даёт «Br», в `ru_RU` — «BYN»: обозначение BYN не зависит от региона.
+    @Test func belarusianRegionUsesSignToo() {
         let ruBY = MoneyFormatter(currencyCode: "BYN", locale: Locale(identifier: "ru_BY"))
-        #expect(ruBY.string(fromMinor: 3_800) == "38\u{00A0}Br")
+        #expect(ruBY.string(fromMinor: 3_800) == "38\u{00A0}\u{20C5}")
+        #expect(ruBY.currencySymbol == "\u{20C5}")
         let usd = MoneyFormatter(currencyCode: "USD", locale: Locale(identifier: "ru_RU"))
         #expect(usd.string(fromMinor: 3_800) == "38\u{00A0}$")
+    }
+}
+
+/// Настройка «Обозначение» (design/INTEGRATION.md §3.3.1): знак U+20C5 или код BYN; другие валюты — ICU.
+struct CurrencySymbolStyleTests {
+    private static let allStyles: [MoneyFormatter.Style] = [.phrase, .plain, .approximate, .difference, .calendarCell, .wholeUnits]
+    private let ru = Locale(identifier: "ru_RU")
+
+    private func formatter(_ symbolStyle: CurrencySymbolStyle, code: String = "BYN") -> MoneyFormatter {
+        MoneyFormatter(currencyCode: code, locale: ru, symbolStyle: symbolStyle)
+    }
+
+    @Test func defaultIsSign() {
+        #expect(CurrencySymbolStyle.default == .sign)
+        #expect(MoneyFormatter(currencyCode: "BYN", locale: ru).symbolStyle == .sign)
+    }
+
+    @Test(arguments: [
+        (CurrencySymbolStyle.sign, "\u{20C5}"),
+        (.code, "BYN")
+    ])
+    func symbolFollowsStyleInEveryAmountStyle(symbolStyle: CurrencySymbolStyle, symbol: String) {
+        let byn = formatter(symbolStyle)
+        let nb = "\u{00A0}"
+        #expect(byn.currencySymbol == symbol)
+        #expect(byn.string(fromMinor: 3_800, style: .phrase) == "38\(nb)\(symbol)")
+        #expect(byn.string(fromMinor: 41_230, style: .phrase) == "412,30\(nb)\(symbol)")
+        #expect(byn.string(fromMinor: 160_000, style: .approximate) == "≈\(nb)1\(nb)600\(nb)\(symbol)")
+        #expect(byn.string(fromMinor: -2_380, style: .difference) == "23,80\(nb)\(symbol)")
+        #expect(byn.string(fromMinor: 103_850, style: .difference) == "1\(nb)039\(nb)\(symbol)")
+        // Без обозначения — одинаково при любой настройке.
+        #expect(byn.string(fromMinor: 3_800, style: .plain) == "38,00")
+        #expect(byn.string(fromMinor: 123_449, style: .calendarCell) == "1\(nb)234")
+        #expect(byn.string(fromMinor: 2_500, style: .wholeUnits) == "25")
+    }
+
+    @Test(arguments: CurrencySymbolStyle.allCases)
+    func symbolIsSeparatedByNoBreakSpaceOnly(symbolStyle: CurrencySymbolStyle) {
+        let byn = formatter(symbolStyle)
+        for minor in [Int64(1), 3_800, 99_999, 123_456_789] {
+            for style in Self.allStyles {
+                let text = byn.string(fromMinor: minor, style: style)
+                #expect(!text.unicodeScalars.contains { $0 == " " || $0 == "\u{202F}" }, "\(text)")
+                #expect(!text.contains("Br"), "\(text)")
+                if text.contains(byn.currencySymbol) {
+                    #expect(text.hasSuffix("\u{00A0}" + byn.currencySymbol), "\(text)")
+                }
+            }
+        }
+    }
+
+    @Test(arguments: CurrencySymbolStyle.allCases)
+    func otherCurrenciesIgnoreStyle(symbolStyle: CurrencySymbolStyle) {
+        let usd = formatter(symbolStyle, code: "USD")
+        #expect(usd.currencySymbol == "$")
+        #expect(usd.string(fromMinor: 3_800) == "38\u{00A0}$")
+        let eur = formatter(symbolStyle, code: "EUR")
+        #expect(eur.string(fromMinor: 41_230, style: .approximate) == "≈\u{00A0}412\u{00A0}€")
     }
 }
 

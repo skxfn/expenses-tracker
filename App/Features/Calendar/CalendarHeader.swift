@@ -46,12 +46,13 @@ struct CalendarHeader: View {
     }
 }
 
-/// Строка-итог месяца (`cal.summary`): «**412,30 Br** за 8 дней · больше всего 2 окт», SF 15;
+/// Строка-итог месяца (`cal.summary`): «**412,30 ⃅** за 8 дней · больше всего 2 окт», SF 15;
 /// выделенная сумма — SF 600 графитом. В строку (copy.json: nowrap), на крупном тексте — переносом.
 struct CalendarSummaryLine: View {
     let summary: AttributedString
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.fontResolutionContext) private var fontContext
 
     var body: some View {
         Text(styled)
@@ -66,7 +67,7 @@ struct CalendarSummaryLine: View {
         var text = summary
         for run in text.runs where run.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
             text[run.range].inlinePresentationIntent = nil
-            text[run.range].font = TypeStyle.callout.font.monospacedDigit()
+            text[run.range].font = CurrencySignFont.font(TypeStyle.callout.font.monospacedDigit(), in: fontContext)
             text[run.range].foregroundColor = Theme.ink
         }
         return text
