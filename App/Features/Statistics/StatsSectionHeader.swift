@@ -65,6 +65,8 @@ struct StatsSectionHeader: View {
                     if let note {
                         Text(verbatim: note)
                             .lineLimit(1)
+                            // Единицы — только для глаз: озвучка блока уже называет суммы с «рублями».
+                            .accessibilityHidden(true)
                     }
                 }
                 .typeStyle(.subheadline)

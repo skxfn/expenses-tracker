@@ -10,6 +10,8 @@ struct StatsSummaryView: View {
     /// `nil` — сравнивать не с чем (`StatsTrend.incomparable`): строки нет.
     let comparison: SummaryTexts.Comparison?
     let meta: String
+    /// «18 трат · в среднем 51,54 рубля в день» — для VoiceOver.
+    let spokenMeta: String
     var filterMark: String?
     /// Итог для VoiceOver: «412,30 рубля».
     let spokenTotal: String
@@ -45,6 +47,7 @@ struct StatsSummaryView: View {
                 Text(verbatim: meta)
                     .typeStyle(.subheadline)
                     .foregroundStyle(Theme.secondary)
+                    .accessibilityLabel(Text(verbatim: spokenMeta))
             }
             .contentTransition(.opacity)
         }

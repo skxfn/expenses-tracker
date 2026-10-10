@@ -72,7 +72,7 @@ struct StatsCategorySection: View {
                 }
             }
             Spacer(minLength: Theme.Spacing.sm)
-            GlassSegmentedControl(title: "stats.cats.heading", selection: $view, items: [
+            GlassSegmentedControl(title: "stats.viewSwitch.a11y", selection: $view, items: [
                 .init(value: .tiles, title: "viz.map.name", systemImage: VizSwitcherIcon.tiles),
                 .init(value: .strips, title: "viz.strips.name", systemImage: VizSwitcherIcon.strips),
                 .init(value: .sun, title: "viz.sun.name", systemImage: VizSwitcherIcon.sun),

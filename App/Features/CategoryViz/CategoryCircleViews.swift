@@ -33,7 +33,8 @@ struct HomeCategoryRing<Phrase: View>: View {
                     text: money.string(fromMinor: data.totalMinor, style: .plain),
                     value: Double(data.totalMinor),
                     size: .ringTotal,
-                    currency: money.currencySymbol
+                    currency: money.currencySymbol,
+                    accessibilityText: VizText(money: money).spoken(data.totalMinor)
                 )
                 .minimumScaleFactor(VizMetrics.centerAmountMinScale)
                 .frame(maxWidth: RingMetrics.home.centerWidth)
@@ -428,7 +429,9 @@ private struct StatsCircleCenter: View {
                 .typeStyle(.footnote)
                 .foregroundStyle(Theme.secondary)
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        // «480,15 рубля · 19 трат»: та же строка, вместо знака — сумма словами.
+        .accessibilityLabel(Text(verbatim: L10n.format("stats.center.meta", VizText(money: money).spoken(data.totalMinor), data.count)))
     }
 
     private func groupCenter(_ group: CategoryVizGroup) -> some View {

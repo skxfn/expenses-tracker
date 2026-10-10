@@ -105,6 +105,7 @@ struct StatisticsView: View {
                     summary: model.summary,
                     comparison: texts.shared.comparison(model.summary, period: model.period),
                     meta: texts.meta(model.summary),
+                    spokenMeta: texts.spokenMeta(model.summary),
                     filterMark: filterMark(texts),
                     spokenTotal: texts.shared.spoken(model.summary.totalMinor)
                 )

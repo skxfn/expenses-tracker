@@ -49,6 +49,11 @@ struct StatsTexts {
         L10n.format("stats.summary.meta", summary.count, money.string(fromMinor: summary.averagePerDayMinor))
     }
 
+    /// То же для VoiceOver: «18 трат · в среднем 51,54 рубля в день».
+    func spokenMeta(_ summary: StatsSummary) -> String {
+        L10n.format("stats.summary.meta", summary.count, shared.spoken(summary.averagePerDayMinor))
+    }
+
     /// Пометка отфильтрованного блока: «только Продукты».
     func filterMark(_ group: CategoryVizGroup) -> String {
         L10n.format("viz.drill.filter", VizText.name(group))
