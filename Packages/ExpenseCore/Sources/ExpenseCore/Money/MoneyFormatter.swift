@@ -69,6 +69,16 @@ public struct MoneyFormatter: Sendable {
     /// В суммах всегда «Br» (design/copy.json → глоссарий «Валюта в суммах»).
     private static let symbolOverrides = ["BYN": "Br"]
 
+    /// Символ валюты для подписи рядом с суммой: «Br», «$», «€», «₽».
+    public var currencySymbol: String {
+        if let symbol = Self.symbolOverrides[currencyCode] { return symbol }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = locale
+        formatter.currencyCode = currencyCode
+        return formatter.currencySymbol
+    }
+
     // MARK: - Внутреннее
 
     private func currency(_ minor: Int64, fractionLength: Int) -> String {

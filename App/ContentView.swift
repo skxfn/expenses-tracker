@@ -33,7 +33,7 @@ struct ContentView: View {
         }
         .environment(router)
         .environment(pendingDeletion)
-        .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode))
+        .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app))
     }
 
     private static var initialTab: AppTab {
