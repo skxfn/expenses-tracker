@@ -26,6 +26,8 @@ struct GlassCapsuleButtonStyle: ButtonStyle {
             .foregroundStyle(foreground)
             .opacity(isEnabled ? 1 : Theme.disabledArrowOpacity)
             .lineLimit(1)
+            // Длинная подпись («Записать на 30 сентября», крупный шрифт) ужимается, а не обрезается.
+            .minimumScaleFactor(0.7)
             .padding(.horizontal, Theme.Spacing.xl)
             .frame(maxWidth: expands ? .infinity : nil, minHeight: height)
             .contentShape(Capsule())

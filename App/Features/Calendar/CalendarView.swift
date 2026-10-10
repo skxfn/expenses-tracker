@@ -298,7 +298,7 @@ struct CalendarView: View {
             )
             repeatTick += 1
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 }

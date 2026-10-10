@@ -117,7 +117,7 @@ struct ExpensesView: View {
         do {
             try ExpenseStore(context: modelContext).deleteExpense(expense)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 }
