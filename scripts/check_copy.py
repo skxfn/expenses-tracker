@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Сверяет String Catalog `App/Resources/Localizable.xcstrings` с `design/copy.json`.
+"""Сверяет String Catalog `App/Resources/Localizable.xcstrings` с `design/copy.json` (ru) и `design/copy.en.json` (en).
 
 Использование:
     python3 scripts/check_copy.py
 
 Проверяет:
-  - каталог совпадает с тем, что выдаёт gen_strings.py (руками не правлен, не устарел);
+  - каталог и InfoPlist.xcstrings совпадают с тем, что выдаёт gen_strings.py (руками не правлены, не устарели);
   - каждый id из copy.json покрыт: ключ, разбиение, общая фраза (alias) или пропуск с причиной;
-  - строки каталога, подставленные примерами из SPEC, дают `final` дословно (с неразрывными пробелами,
-    разметка выделения `**` не учитывается), а варианты из risk/context встречаются там, откуда взяты;
-  - разметка `**…**` — только у ключей gen_strings.EMPHASIZED и парная; других знаков Markdown
-    в строках нет (SwiftUI `Text("ключ")` разбирает Markdown в любой строке каталога);
-  - нет лишних и недостающих ключей; плюрализация — полные формы ru (one/few/many/other);
-  - строк из `dropped` и запрещённых слов (§5.1, D1) нет;
-  - каталог компилируется `xcstringstool` (если есть Xcode).
+    id в copy.en.json — те же;
+  - для каждого языка строки каталога, подставленные примерами из SPEC (en — EN_SPEC), дают `final`
+    дословно (с неразрывными пробелами, разметка выделения `**` не учитывается), а варианты из
+    risk/context/why встречаются там, откуда взяты;
+  - разметка `**…**` — только у ключей gen_strings.EMPHASIZED и парная, в обоих языках; других знаков
+    Markdown в строках нет (SwiftUI `Text("ключ")` разбирает Markdown в любой строке каталога);
+  - нет лишних и недостающих ключей; у каждого ключа оба языка; плюрализация — полные формы
+    (ru: one/few/many/other, en: one/other);
+  - строк из `dropped` и запрещённых слов (§5.1, D1; en — glossary и voice copy.en.json) нет;
+  - каталог компилируется `xcstringstool` (если есть Xcode), в каждом языке — все ключи.
 Выход 1 и список ошибок, если что-то не так.
 """
 import json
@@ -38,16 +41,25 @@ FORBIDDEN = [
     (re.compile(r"[Бб]экап"), "«резервная копия» (glossary)"),
     (re.compile(r"[Гг]рупп"), "слово «группа» не используется (D1)"),
 ]
+FORBIDDEN_EN = [
+    (re.compile(r"\b[Tt]ransactions?\b"), "«expense», не «transaction» (glossary, E1)"),
+    (re.compile(r"\b[Ss]pendings\b"), "«spendings» в английском нет (glossary)"),
+    (re.compile(r"\b[Ww]e\b"), "«we» не используется (E4)"),
+    (re.compile(r"\bOops\b"), "без «Oops» (voice)"),
+    (re.compile(r"\bBr\b"), "знак рубля — U+20C5, не «Br» (E7)"),
+    (re.compile(r"\be\.g\."), "«For example», не «e.g.» (voice)"),
+]
 EMPHASIS = "**"
 MARKDOWN = re.compile(r"[*_`\[\]\\~]")  # после удаления парных ** таких знаков быть не должно
 SPECIFIER = re.compile(r"%(?:(\d+)\$)?(@|lld|%)")
 SUBSTITUTION = re.compile(r"%#@(\w+)@")
-PLURAL_FORMS = ("one", "few", "many", "other")
 
 
-def category(n):
-    """Категория плюрализации ru (CLDR) для целого числа."""
+def category(n, lang):
+    """Категория плюрализации (CLDR) для целого числа: ru — one/few/many, en — one/other."""
     n = abs(int(n))
+    if lang == "en":
+        return "one" if n == 1 else "other"
     if n % 10 == 1 and n % 100 != 11:
         return "one"
     if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
@@ -77,11 +89,12 @@ def printf(fmt, args):
     return SPECIFIER.sub(repl, fmt), used
 
 
-def render(entry, args):
-    loc = entry["localizations"][g.LANG]
+def render(entry, args, lang):
+    loc = entry["localizations"][lang]
     if "variations" in loc:
-        fmt = loc["variations"]["plural"][category(args[0])]["stringUnit"]["value"]
+        fmt = loc["variations"]["plural"][category(args[0], lang)]["stringUnit"]["value"]
         text, used = printf(fmt, args)
+        used.add(0)  # число выбрало форму, даже если в форме его нет
     else:
         subs, used_subs = loc.get("substitutions", {}), set()
 
@@ -89,7 +102,7 @@ def render(entry, args):
             sub = subs[m.group(1)]
             n = args[sub["argNum"] - 1]
             used_subs.add(sub["argNum"] - 1)
-            form = sub["variations"]["plural"][category(n)]["stringUnit"]["value"]
+            form = sub["variations"]["plural"][category(n, lang)]["stringUnit"]["value"]
             return form.replace("%arg", str(n))
 
         text, used = printf(SUBSTITUTION.sub(repl, loc["stringUnit"]["value"]), args)
@@ -108,10 +121,10 @@ def plain(s):
     return s.replace(EMPHASIS, "")
 
 
-def check_markup(strings, errors):
+def check_markup(strings, lang, errors):
     marked = set()
     for key, entry in strings.items():
-        for value in values(entry):
+        for value in values(entry, lang):
             if EMPHASIS in value:
                 marked.add(key)
                 marks = [m.start() for m in re.finditer(re.escape(EMPHASIS), value)]
@@ -120,45 +133,59 @@ def check_markup(strings, errors):
                     value[o + 2:o + 3].isspace() or value[c - 1:c].isspace() or c == o + 2
                     for o, c in zip(marks[::2], marks[1::2]))
                 if broken:
-                    errors.append(f"{key}: непарная или оторванная пробелом разметка в «{value}»")
+                    errors.append(f"{key} [{lang}]: непарная или оторванная пробелом разметка в «{value}»")
             if MARKDOWN.search(plain(value)):
-                errors.append(f"{key}: знак Markdown в «{value}» — SwiftUI Text разберёт его как разметку")
+                errors.append(f"{key} [{lang}]: знак Markdown в «{value}» — SwiftUI Text разберёт его как разметку")
     for key in sorted(marked ^ set(g.EMPHASIZED)):
-        errors.append(f"{key}: разметка ** {'есть, но ключа нет в EMPHASIZED' if key in marked else 'в EMPHASIZED, но в строке её нет'}")
+        errors.append(f"{key} [{lang}]: разметка ** {'есть, но ключа нет в EMPHASIZED' if key in marked else 'в EMPHASIZED, но в строке её нет'}")
+
+
+def number_count_ok(value, lang, form, placeholder):
+    """В форме ровно одно число; en «one» может обойтись без него («Its subcategory», «Previous day»)."""
+    if placeholder == "%arg":
+        count = value.count("%arg")
+    else:
+        count = [m.group(2) for m in SPECIFIER.finditer(value)].count("lld")
+    return count == 1 or (lang == "en" and form == "one" and count == 0)
 
 
 def check_structure(key, entry, errors):
     loc = entry.get("localizations", {})
-    if set(loc) != {g.LANG}:
-        errors.append(f"{key}: языки {sorted(loc)} вместо {g.LANG}")
+    if set(loc) != set(g.LANGS):
+        errors.append(f"{key}: языки {sorted(loc)} вместо {sorted(g.LANGS)}")
         return
-    loc = loc[g.LANG]
+    for lang in g.LANGS:
+        check_localization(key, loc[lang], lang, errors)
+
+
+def check_localization(key, loc, lang, errors):
+    forms = g.PLURAL_FORMS[lang]
     if "variations" in loc:
         f = loc["variations"]["plural"]
-        if tuple(sorted(f)) != tuple(sorted(PLURAL_FORMS)):
-            errors.append(f"{key}: формы {sorted(f)}, нужны {PLURAL_FORMS}")
+        if tuple(sorted(f)) != tuple(sorted(forms)):
+            errors.append(f"{key} [{lang}]: формы {sorted(f)}, нужны {forms}")
         for name, u in f.items():
-            if [m.group(0) for m in SPECIFIER.finditer(u["stringUnit"]["value"])].count("%lld") != 1:
-                errors.append(f"{key}.{name}: в форме должен быть ровно один %lld")
+            if not number_count_ok(u["stringUnit"]["value"], lang, name, "%lld"):
+                errors.append(f"{key}.{name} [{lang}]: в форме должен быть ровно один %lld")
         return
     value = loc["stringUnit"]["value"]
     subs = loc.get("substitutions", {})
     referenced = SUBSTITUTION.findall(value)
     if sorted(referenced) != sorted(subs):
-        errors.append(f"{key}: в строке {referenced}, в substitutions {sorted(subs)}")
+        errors.append(f"{key} [{lang}]: в строке {referenced}, в substitutions {sorted(subs)}")
     if subs and re.search(r"%(@|lld)", SUBSTITUTION.sub("", value)):
-        errors.append(f"{key}: при substitutions остальные аргументы — только позиционные (%2$@)")
+        errors.append(f"{key} [{lang}]: при substitutions остальные аргументы — только позиционные (%2$@)")
     for name, sub in subs.items():
         f = sub["variations"]["plural"]
-        if tuple(sorted(f)) != tuple(sorted(PLURAL_FORMS)) or sub.get("formatSpecifier") != "lld":
-            errors.append(f"{key}/{name}: формы {sorted(f)}, спецификатор {sub.get('formatSpecifier')}")
+        if tuple(sorted(f)) != tuple(sorted(forms)) or sub.get("formatSpecifier") != "lld":
+            errors.append(f"{key}/{name} [{lang}]: формы {sorted(f)}, спецификатор {sub.get('formatSpecifier')}")
         for form, u in f.items():
-            if u["stringUnit"]["value"].count("%arg") != 1:
-                errors.append(f"{key}/{name}.{form}: в форме должен быть ровно один %arg")
+            if not number_count_ok(u["stringUnit"]["value"], lang, form, "%arg"):
+                errors.append(f"{key}/{name}.{form} [{lang}]: в форме должен быть ровно один %arg")
 
 
-def values(entry):
-    loc = entry["localizations"][g.LANG]
+def values(entry, lang):
+    loc = entry["localizations"][lang]
     if "variations" in loc:
         return [u["stringUnit"]["value"] for u in loc["variations"]["plural"].values()]
     return [loc["stringUnit"]["value"]] + [u["stringUnit"]["value"] for s in loc.get("substitutions", {}).values()
@@ -185,18 +212,44 @@ def compile_check(strings, errors):
         if run.returncode != 0:
             errors.append(f"xcstringstool: {run.stderr.strip() or run.stdout.strip()}")
             return
-        compiled = set()
-        for ext in (".strings", ".stringsdict"):
-            path = Path(out) / f"{g.LANG}.lproj" / (g.CATALOG.stem + ext)
-            if path.exists():
-                compiled |= set(plistlib.loads(path.read_bytes()))
-        if compiled != set(strings):
-            errors.append(f"xcstringstool: скомпилировано {len(compiled)} ключей из {len(strings)}; "
-                          f"нет: {sorted(set(strings) - compiled)[:5]}")
+        for lang in g.LANGS:
+            compiled = set()
+            for ext in (".strings", ".stringsdict"):
+                path = Path(out) / f"{lang}.lproj" / (g.CATALOG.stem + ext)
+                if path.exists():
+                    compiled |= set(plistlib.loads(path.read_bytes()))
+            if compiled != set(strings):
+                errors.append(f"xcstringstool [{lang}]: скомпилировано {len(compiled)} ключей из {len(strings)}; "
+                              f"нет: {sorted(set(strings) - compiled)[:5]}")
+
+
+def check_language(lang, copy_l, spec_of, strings, errors):
+    """final каждого id этого языка собирается из каталога дословно; варианты — там, откуда взяты."""
+    def t(key, *args):
+        if key not in strings:
+            raise KeyError(f"нет ключа {key}")
+        return render(strings[key], args, lang)
+
+    for item in g.items(copy_l):
+        if g.spec_for(item).kind == "skip":
+            continue
+        spec = spec_of(item)
+        try:
+            actual = plain(spec.expect(t))
+            expected = item["final"]
+            same = nbsp(actual) == nbsp(expected) if spec.nbsp_fix else actual == expected
+            if not same:
+                errors.append(f"{item['id']} [{lang}]: каталог даёт {actual!r}, в final {expected!r}")
+            for also in spec.also:
+                text, where = also(t, item)
+                if nbsp(plain(text)) not in nbsp(where):
+                    errors.append(f"{item['id']} [{lang}]: вариант {text!r} не найден в {where!r}")
+        except (KeyError, ValueError, IndexError) as e:
+            errors.append(f"{item['id']} [{lang}]: {e.args[0] if e.args else e!r}")
 
 
 def main():
-    copy = g.load_copy()
+    copy, copy_en = g.load_copy(), g.load_copy_en()
     catalog_text = g.CATALOG.read_text(encoding="utf-8")
     catalog = json.loads(catalog_text)
     strings = catalog["strings"]
@@ -204,14 +257,22 @@ def main():
 
     if catalog.get("sourceLanguage") != g.LANG:
         errors.append(f"sourceLanguage {catalog.get('sourceLanguage')} вместо {g.LANG}")
-    if g.dumps(g.build(copy)) != catalog_text:
+    if g.dumps(g.build(copy, copy_en)) != catalog_text:
         errors.append("каталог не совпадает с выводом gen_strings.py: запустите python3 scripts/gen_strings.py")
+    infoplist = g.INFOPLIST_CATALOG.read_text(encoding="utf-8") if g.INFOPLIST_CATALOG.exists() else ""
+    if g.dumps(g.build_infoplist(copy, copy_en)) != infoplist:
+        errors.append(f"{g.INFOPLIST_CATALOG.name} не совпадает с выводом gen_strings.py")
 
     ids = [it["id"] for it in g.items(copy)]
     if len(ids) != len(set(ids)):
         errors.append(f"в copy.json повторяются id: {sorted({i for i in ids if ids.count(i) > 1})}")
+    ids_en = [it["id"] for it in g.items(copy_en)]
+    if sorted(ids_en) != sorted(ids):
+        errors.append(f"id copy.en.json и copy.json расходятся: {sorted(set(ids) ^ set(ids_en))}")
     for id in sorted(set(g.SPEC) - set(ids)):
         errors.append(f"SPEC: id {id} нет в copy.json")
+    for id in sorted(set(g.EN_SPEC) - set(ids)):
+        errors.append(f"EN_SPEC: id {id} нет в copy.json")
 
     planned = g.plan(copy)
     for key in sorted(planned.keys() - strings.keys()):
@@ -221,29 +282,13 @@ def main():
     for key, entry in strings.items():
         check_structure(key, entry, errors)
 
-    def t(key, *args):
-        if key not in strings:
-            raise KeyError(f"нет ключа {key}")
-        return render(strings[key], args)
-
     for item in g.items(copy):
         spec = g.spec_for(item)
-        if spec.kind == "skip":
-            if not spec.note:
-                errors.append(f"{item['id']}: пропуск без причины")
-            continue
-        try:
-            actual = plain(spec.expect(t))
-            expected = item["final"]
-            same = nbsp(actual) == nbsp(expected) if spec.nbsp_fix else actual == expected
-            if not same:
-                errors.append(f"{item['id']}: каталог даёт {actual!r}, в final {expected!r}")
-            for also in spec.also:
-                text, where = also(t, item)
-                if nbsp(plain(text)) not in nbsp(where):
-                    errors.append(f"{item['id']}: вариант {text!r} не найден в {where!r}")
-        except (KeyError, ValueError, IndexError) as e:
-            errors.append(f"{item['id']}: {e.args[0] if e.args else e!r}")
+        if spec.kind == "skip" and not spec.note:
+            errors.append(f"{item['id']}: пропуск без причины")
+    _, en_specs = g.en_plan(copy, copy_en)
+    check_language("ru", copy, g.spec_for, strings, errors)
+    check_language("en", copy_en, lambda item: en_specs[item["id"]], strings, errors)
 
     for id in dropped_ids(copy):
         if "*" in id:
@@ -254,13 +299,13 @@ def main():
         for hit in hits:
             errors.append(f"{hit}: в dropped, но остался")
 
-    for key, entry in strings.items():
-        for value in values(entry):
-            for pattern, why in FORBIDDEN:
-                if pattern.search(value):
-                    errors.append(f"{key}: «{value}» — {why}")
-
-    check_markup(strings, errors)
+    for lang, forbidden in (("ru", FORBIDDEN), ("en", FORBIDDEN_EN)):
+        for key, entry in strings.items():
+            for value in values(entry, lang):
+                for pattern, why in forbidden:
+                    if pattern.search(value):
+                        errors.append(f"{key} [{lang}]: «{value}» — {why}")
+        check_markup(strings, lang, errors)
     compile_check(strings, errors)
 
     if errors:
@@ -272,7 +317,8 @@ def main():
     for item in g.items(copy):
         kind = g.spec_for(item).kind
         kinds[kind] = kinds.get(kind, 0) + 1
-    print(f"OK: {len(strings)} ключей, {len(ids)} id ({', '.join(f'{k} {v}' for k, v in sorted(kinds.items()))})")
+    print(f"OK: {len(strings)} ключей × {len(g.LANGS)} языка, {len(ids)} id "
+          f"({', '.join(f'{k} {v}' for k, v in sorted(kinds.items()))})")
 
 
 if __name__ == "__main__":

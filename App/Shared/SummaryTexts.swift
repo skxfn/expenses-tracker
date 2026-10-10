@@ -21,7 +21,13 @@ struct SummaryTexts {
         case .less: return L10n.attributed("home.compare", difference, reference)
         case .more: return L10n.attributed("home.compare.more", difference, reference)
         case .same: return AttributedString(L10n.format("home.compare.same", reference))
-        case .noPrevious: return AttributedString(L10n.format("home.compare.noPrev", reference))
+        case .noPrevious:
+            // Идущий период: по-английски «No expenses by this time last month» (`noPrev.current`).
+            let key = switch summary.comparisonReference {
+            case .lastWeek, .lastMonth, .lastYear: "home.compare.noPrev.current"
+            default: "home.compare.noPrev"
+            }
+            return AttributedString(L10n.format(key, reference))
         }
     }
 

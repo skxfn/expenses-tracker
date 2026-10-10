@@ -181,7 +181,7 @@ struct StatsTexts {
     func paceAccessibility(_ pace: StatsPaceState, period: StatsPeriod) -> String {
         let previousPeriod = period.previous(in: calendar)
         let currentDay = pace.comparison.current.last
-        let dayNumber = currentDay.map { calendar.component(.day, from: $0.date) } ?? 0
+        let dayNumber = String(currentDay.map { calendar.component(.day, from: $0.date) } ?? 0)
         var parts = [L10n.format("stats.pace.a11y")]
         if let currentDay {
             parts.append(L10n.format(
@@ -231,7 +231,7 @@ struct StatsTexts {
         let items = habits.averages.map { average in
             L10n.format("stats.habits.a11y.item", RussianWords.weekday(average.weekday, .nominative), shared.spoken(average.averageMinor))
         }
-        return L10n.format("stats.habits.a11y", items.joined(separator: ", "))
+        return L10n.format("stats.habits.a11y", items.joined(separator: L10n.format("stats.habits.a11y.separator")))
     }
 
     // MARK: - Год

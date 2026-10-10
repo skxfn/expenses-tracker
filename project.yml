@@ -5,6 +5,10 @@ options:
     iOS: "26.0"
   projectFormat: xcode16_0
   developmentLanguage: ru
+  # Второй язык — en (Localizable.xcstrings, InfoPlist.xcstrings). XcodeGen берёт knownRegions из lproj
+  # и каталогов вне synced folder, а App/ — synced folder: en дописывается в knownRegions после генерации.
+  postGenCommand: >-
+    perl -0pi -e 's/(knownRegions = \(\n(\t+)Base,\n)(?!\t+en,)/$1$2en,\n/' Expenses.xcodeproj/project.pbxproj
 packages:
   ExpenseCore:
     path: Packages/ExpenseCore

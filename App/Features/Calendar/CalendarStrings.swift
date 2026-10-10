@@ -107,12 +107,14 @@ struct CalendarStrings {
         return ["0", L10n.format(belowKey, first)] + bounds.map { L10n.format("cal.legend.items.from", $0) }
     }
 
-    /// `cal.legend.a11y`: «Шкала: 0, меньше 25, от 25, от 50, от 75 рублей за день».
+    /// `cal.legend.a11y`: «Шкала: 0, меньше 25, от 25, от 50, от 75 рублей за день»; последний порог —
+    /// со словом валюты (`cal.legend.a11y.last`), без порогов — «Шкала: 0 рублей за день».
     func legendAccessibility(_ scale: StatsHeatScale) -> String {
         let bounds = scale.thresholds.map { money.string(fromMinor: $0, style: .wholeUnits) }
-        guard let first = bounds.first else { return L10n.format("cal.legend.a11y", "0") }
+        guard let first = bounds.first, let last = bounds.last else { return L10n.format("cal.legend.a11y", spoken(0)) }
         let items = ["0", L10n.format("cal.legend.a11y.below", first)]
-            + bounds.map { L10n.format("cal.legend.a11y.from", $0) }
+            + bounds.dropLast().map { L10n.format("cal.legend.a11y.from", $0) }
+            + [L10n.format("cal.legend.a11y.last", last)]
         return L10n.format("cal.legend.a11y", items.joined(separator: ", "))
     }
 
