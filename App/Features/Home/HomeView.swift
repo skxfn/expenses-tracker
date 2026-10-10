@@ -11,13 +11,6 @@ import ExpenseCore
 /// Лист — фон строк и подложка за `List` от верха листа до низа экрана (`HomeSheetUnderlay`).
 /// Свайпы строк работают только в `List`: вправо — «Повторить» (копия на сейчас), влево — «Удалить» с тостом.
 struct HomeView: View {
-    @Query(sort: [
-        SortDescriptor(\Expense.date, order: .reverse),
-        SortDescriptor(\Expense.createdAt, order: .reverse)
-    ])
-    private var expenses: [Expense]
-    @Query private var categories: [ExpenseCategory]
-
     @AppStorage(SettingsKeys.homeOverviewStyle) private var storedOverviewStyle = HomeOverviewStyle.default
     @Environment(AppRouter.self) private var router
     @Environment(PendingDeletion.self) private var pendingDeletion
@@ -25,7 +18,9 @@ struct HomeView: View {
     @Environment(\.moneyFormatter) private var money
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    @State private var period = HomeView.initialPeriod()
+    @State private var period: PeriodSelection
+    /// Траты периода и всё, что из них считается: пересчёт — при смене `inputs` и сохранении базы, не в `body`.
+    @State private var model: HomeModel
     @State private var sheetTop = HomeSheetTop()
     /// Строка только что сохранённой траты: подсветка tint 12 % гаснет (save-reward).
     @State private var highlightedID: UUID?
@@ -33,15 +28,14 @@ struct HomeView: View {
     @State private var repeatCount = 0
     @State private var errorMessage: String?
 
+    init() {
+        let period = Self.initialPeriod()
+        _period = State(initialValue: period)
+        _model = State(initialValue: HomeModel(period: period.period, now: period.now, calendar: period.calendar))
+    }
+
     var body: some View {
-        let visible = expenses.filter { !pendingDeletion.hiddenIDs.contains($0.id) }
-        let content = HomeContent(
-            expenses: visible,
-            categories: categories,
-            period: period.period,
-            now: period.now,
-            calendar: period.calendar
-        )
+        let content = model.content
         let texts = HomeTexts(money: money, calendar: period.calendar, now: period.now)
 
         VStack(spacing: Theme.Spacing.xs) {
@@ -57,6 +51,24 @@ struct HomeView: View {
         .sensoryFeedback(Haptic.selection, trigger: selectionCount)
         .sensoryFeedback(Haptic.success, trigger: repeatCount)
         .errorAlert($errorMessage)
+        .onChange(of: inputs, initial: true) { _, inputs in
+            model.reload(inputs, context: modelContext)
+        }
+        // Любое сохранение (запись, правка, удаление, категории, копия) — новая выборка. Сразу, а не в следующем
+        // кадре: строка новой траты должна быть в ленте, когда `savedExpenseID` прокручивает к ней.
+        .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave)) { _ in
+            model.reload(inputs, context: modelContext)
+        }
+    }
+
+    /// Вход выборки, кроме самих данных: период, «сейчас» и строки, скрытые до удаления.
+    private var inputs: HomeModel.Inputs {
+        HomeModel.Inputs(
+            period: period.period,
+            now: period.now,
+            calendar: period.calendar,
+            hiddenIDs: pendingDeletion.hiddenIDs
+        )
     }
 
     // MARK: - Лента
@@ -89,8 +101,9 @@ struct HomeView: View {
             .listSectionSpacing(0)
             .environment(\.defaultMinListRowHeight, 0)
             .motion(Motion.enter, value: content.rowIDs)
-            // Другой период — новый список с начала, без анимации всех строк сразу.
-            .id(period.period)
+            // Другой период — новый список с начала, без анимации всех строк сразу. Ключ — период данных:
+            // список меняется вместе с ними, а не кадром раньше.
+            .id(content.period)
             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { sheetTop.listTop = $0 }
             .background(alignment: .top) { HomeSheetUnderlay(sheetTop: sheetTop) }
             .onChange(of: router.savedExpenseID) { _, id in
@@ -98,7 +111,7 @@ struct HomeView: View {
             }
             .task(id: highlightedID) { await fadeHighlight() }
             #if DEBUG
-            .task { await HomeDebug.scrollIfRequested(content, proxy: proxy) }
+            .task { await HomeDebug.scrollIfRequested(model, proxy: proxy) }
             .task { await HomeDebug.simulateSaveIfRequested(store: ExpenseStore(context: modelContext), router: router) }
             #endif
         }
@@ -119,14 +132,14 @@ struct HomeView: View {
                 .padding(.vertical, Theme.Spacing.xl)
                 .sheetTopRow(sheetTop)
         case .emptyPeriod(let latest):
-            HomeEmptyPeriod(message: texts.shared.emptyPeriod(period.period)) {
+            HomeEmptyPeriod(message: texts.shared.emptyPeriod(content.period)) {
                 showLatestExpense(latest)
             }
             .padding(.vertical, Theme.Spacing.xl)
             .sheetTopRow(sheetTop)
         case .filled:
-            let comparison = texts.shared.comparison(content.summary, period: period.period)
-            let periodName = texts.periodName(period.period)
+            let comparison = texts.shared.comparison(content.summary, period: content.period)
+            let periodName = texts.periodName(content.period)
             switch overviewStyle {
             case .tiles:
                 HomeTilesSummary(

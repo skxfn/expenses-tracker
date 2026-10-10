@@ -12,8 +12,8 @@ struct HomeFeedDay: Identifiable {
 }
 
 /// Данные главной за выбранный период: итог со сравнением «к той же дате» (D5), обзор категорий,
-/// лента по дням и тона ауры. Строится из моделей `@Query` (траты — уже без скрытых `PendingDeletion`),
-/// дальше только значения: расчёты — `StatisticsEngine`, строки — снимки `ExpenseRowData`.
+/// лента по дням и тона ауры. Строится в `HomeModel` из выборки периода и отрезка сравнения (траты — уже
+/// без скрытых `PendingDeletion`), дальше только значения: расчёты — `StatisticsEngine`, строки — снимки `ExpenseRowData`.
 struct HomeContent {
     enum State {
         /// Трат нет совсем (`home.empty.firstRun`): ни итога, ни обзора, ни ауры.
@@ -23,6 +23,8 @@ struct HomeContent {
         case filled
     }
 
+    /// Период, за который посчитано, — ключ ленты: другой период — новый список.
+    let period: StatsPeriod
     let summary: StatsSummary
     let overview: CategoryVizData
     let days: [HomeFeedDay]
@@ -30,8 +32,11 @@ struct HomeContent {
     let auraTones: [GouacheTone]
     let state: State
 
-    /// - Parameter expenses: от новых к старым (сортировка `@Query`), без скрытых.
-    init(expenses: [Expense], categories: [ExpenseCategory], period: StatsPeriod, now: Date, calendar: Calendar) {
+    /// - Parameters:
+    ///   - expenses: периода и отрезка сравнения (`StatisticsEngine.comparisonInterval`), от новых к старым, без скрытых.
+    ///   - latest: дата последней траты всей базы (без скрытых); `nil` — трат нет совсем.
+    init(expenses: [Expense], latest: Date?, categories: [ExpenseCategory], period: StatsPeriod, now: Date, calendar: Calendar) {
+        self.period = period
         let records = expenses.map(ExpenseRecord.init)
         let engine = StatisticsEngine(calendar: calendar)
         let catalog = CategoryCatalogSnapshot(categories: categories)
@@ -42,7 +47,7 @@ struct HomeContent {
         auraTones = Array(overview.groups.compactMap(\.tone).prefix(AuraBackground.defaultLayout.count))
         days = Self.days(expenses.filter { period.contains($0.date) }, calendar: calendar)
 
-        if let latest = expenses.first?.date {
+        if let latest {
             state = days.isEmpty ? .emptyPeriod(latest: latest) : .filled
         } else {
             state = .firstRun

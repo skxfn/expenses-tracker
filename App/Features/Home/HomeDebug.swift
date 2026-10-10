@@ -46,9 +46,12 @@ enum HomeDebug {
         return nil
     }
 
-    static func scrollIfRequested(_ content: HomeContent, proxy: ScrollViewProxy) async {
-        guard options.contains("scrolled"), content.days.count > 2, let target = content.days[2].rows.first?.id else { return }
+    /// Данные — из модели после паузы: первая выборка делается при появлении экрана.
+    static func scrollIfRequested(_ model: HomeModel, proxy: ScrollViewProxy) async {
+        guard options.contains("scrolled") else { return }
         try? await Task.sleep(for: .milliseconds(600))
+        let days = model.content.days
+        guard days.count > 2, let target = days[2].rows.first?.id else { return }
         proxy.scrollTo(target, anchor: .top)
     }
 
