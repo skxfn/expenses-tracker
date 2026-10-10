@@ -110,8 +110,8 @@ struct SpikeHomeHeader: View {
 struct SpikeSummary: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            AmountText(text: "412,30", value: 41_230, size: .total, currency: "Br")
-            Text("на **38 Br меньше**, чем в прошлом месяце")
+            AmountText(text: "412,30", value: 41_230, size: .total, currency: "\u{20C5}")
+            Text("на **38 \u{20C5} меньше**, чем в прошлом месяце")
                 .typeStyle(.subheadline)
                 .foregroundStyle(Theme.secondary)
         }

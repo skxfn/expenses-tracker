@@ -9,7 +9,7 @@ import ExpenseCore
 
 // MARK: - Общее
 
-private struct ShowcaseSection<Content: View>: View {
+struct ShowcaseSection<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
 
@@ -24,7 +24,7 @@ private struct ShowcaseSection<Content: View>: View {
     }
 }
 
-private struct ShowcasePageLayout<Content: View>: View {
+struct ShowcasePageLayout<Content: View>: View {
     let title: String
     var aura: [GouacheTone] = []
     @ViewBuilder let content: Content
@@ -233,7 +233,7 @@ struct ComponentsShowcase: View {
             ])
 
             VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                AmountText(text: Self.format(total), value: Double(total), size: .total, currency: "Br")
+                AmountText(text: Self.format(total), value: Double(total), size: .total, currency: "\u{20C5}")
                     .onTapGesture { total += 1_111 }
                 ShowcaseSection(title: "Табличные цифры: столбец должен быть ровным") {
                     VStack(alignment: .trailing, spacing: 2) {
@@ -281,7 +281,7 @@ struct ComponentsShowcase: View {
             .paperSheetBackground()
 
             SettingsGroup(header: "Резервная копия", footer: "Последняя копия: 1 окт") {
-                SettingsRow("Валюта", value: "Белорусский рубль · Br", showsChevron: true)
+                SettingsRow("Валюта", value: "Белорусский рубль · \u{20C5}", showsChevron: true)
                 SettingsRow("Версия", value: "1.0.0")
             }
         }

@@ -6,6 +6,7 @@ struct ExpensesApp: App {
 
     init() {
         UnboundedFont.register()
+        CurrencySignFont.register()
     }
 
     var body: some Scene {

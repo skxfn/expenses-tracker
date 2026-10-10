@@ -1,19 +1,19 @@
 import Foundation
 
 /// Форматирование сумм из minor-единиц. Копейки показываются, только если они есть:
-/// `120000` → «1 200 Br», `1250` → «12,50 Br».
+/// `120000` → «1 200 ⃅», `1250` → «12,50 ⃅».
 public struct MoneyFormatter: Sendable {
     /// Как показать сумму (design/copy.json → voice «Деньги», design/INTEGRATION.md §5.2).
     public enum Style: Sendable {
-        /// Во фразах: с символом, нулевые копейки отбрасываются — «38 Br», «412,30 Br».
+        /// Во фразах: с символом, нулевые копейки отбрасываются — «38 ⃅», «412,30 ⃅».
         case phrase
         /// Ячейки, плитки, строки ленты, топ: всегда 2 знака, без символа — «38,00».
         case plain
-        /// Округлённая сумма — прогноз и шит периода: целые единицы, «≈ 742 Br».
+        /// Округлённая сумма — прогноз и шит периода: целые единицы, «≈ 742 ⃅».
         /// Прогноз до двух значащих цифр округляет `StatsForecast.roundedMinor`.
         case approximate
         /// Разница во фразе-сравнении, по модулю: до 1 000 — как `phrase`, от 1 000 — целыми и без «≈»:
-        /// «на 23,80 Br меньше», «на 1 039 Br меньше».
+        /// «на 23,80 ⃅ меньше», «на 1 039 ⃅ меньше».
         case difference
         /// Клетка календаря (`cal.cell.amount`): «64,10» · «1 234» · «12 тыс».
         case calendarCell
@@ -23,10 +23,13 @@ public struct MoneyFormatter: Sendable {
 
     public let currencyCode: String
     public let locale: Locale
+    /// Обозначение BYN: знак или код (настройка «Обозначение»). На другие валюты не влияет.
+    public let symbolStyle: CurrencySymbolStyle
 
-    public init(currencyCode: String, locale: Locale = .autoupdatingCurrent) {
+    public init(currencyCode: String, locale: Locale = .autoupdatingCurrent, symbolStyle: CurrencySymbolStyle = .default) {
         self.currencyCode = currencyCode
         self.locale = locale
+        self.symbolStyle = symbolStyle
     }
 
     /// Сумма в нужном виде. Пробелы — U+00A0 (`TextSpacing.normalized`).
@@ -69,13 +72,23 @@ public struct MoneyFormatter: Sendable {
     /// Клетка календаря: от 10 000 — «тыс».
     static let calendarCellThousandsFromMinor: Int64 = 1_000_000
 
-    /// Символы, которые ICU даёт не везде: «Br» для BYN есть только в `ru_BY`, а в `ru_RU` — «BYN».
-    /// В суммах всегда «Br» (design/copy.json → глоссарий «Валюта в суммах»).
-    private static let symbolOverrides = ["BYN": "Br"]
+    /// Знак белорусского рубля (design/INTEGRATION.md §3.3.1): U+20C5, предварительный код Unicode 19.0.
+    /// В системных шрифтах его нет — в приложении рисуется своим шрифтом (`CurrencySignFont`).
+    public static let belarusianRubleSign = "\u{20C5}"
 
-    /// Символ валюты для подписи рядом с суммой: «Br», «$», «€», «₽».
+    /// Обозначение BYN не из ICU: ICU даёт «Br» (`ru_BY`) или «BYN» (`ru_RU`), а в суммах нужен знак
+    /// или код по настройке. `nil` — другая валюта, обозначение даёт ICU.
+    private var symbolOverride: String? {
+        guard currencyCode == "BYN" else { return nil }
+        return switch symbolStyle {
+        case .sign: Self.belarusianRubleSign
+        case .code: currencyCode
+        }
+    }
+
+    /// Символ валюты для подписи рядом с суммой: «⃅» или «BYN», «$», «€», «₽».
     public var currencySymbol: String {
-        if let symbol = Self.symbolOverrides[currencyCode] { return symbol }
+        if let symbolOverride { return symbolOverride }
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.locale = locale
@@ -86,13 +99,13 @@ public struct MoneyFormatter: Sendable {
     // MARK: - Внутреннее
 
     private func currency(_ minor: Int64, fractionLength: Int) -> String {
-        let text = Money.major(fromMinor: minor).formatted(
-            .currency(code: currencyCode)
-                .locale(locale)
-                .precision(.fractionLength(fractionLength))
-        )
-        guard let symbol = Self.symbolOverrides[currencyCode] else { return text }
-        return text.replacingOccurrences(of: currencyCode, with: symbol)
+        let style = Decimal.FormatStyle.Currency(code: currencyCode, locale: locale)
+            .precision(.fractionLength(fractionLength))
+        let major = Money.major(fromMinor: minor)
+        guard let symbolOverride else { return major.formatted(style) }
+        // Код ISO в выводе есть при любой локали — его и заменяем (место и пробел даёт ICU).
+        return major.formatted(style.presentation(.isoCode))
+            .replacingOccurrences(of: currencyCode, with: symbolOverride)
     }
 
     private func number(_ minor: Int64, fractionLength: Int) -> String {

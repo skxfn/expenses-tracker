@@ -48,6 +48,8 @@
 - Календарь: месяц без шита (‹ › и свайп), раскладка — `MonthGrid` в Core, пороги шкалы — `MoneyFormatter.Style.wholeUnits`; будущие дни без трат не выбираются. Линза «сегодня» — `.clear`, подкрашенный цветом клетки, с тенью снаружи (иначе на светлых клетках не видна).
 - Запись траты: логика — Core `Entry/` (`AmountInput`, `EntryDate`, `ExpenseDraft`, `EntryBatch`, `SwatchRow`); ошибки Core в UI — только через `UserFacingError.message(for:)` (тексты copy.json).
 - DEBUG-аргументы: `-demoData YES`, `-debugTab expenses|calendar|statistics`, `-debugPeriod YES|day|week|year|range|past|sheet`, `-debugRoute settings`, `-debugToast YES`, `-debugAdd YES`, `-debugSheet add|edit|filled`, `-debugSubsheet picker|date|batch`, `-debugScreen settings|category|categories`, `-currencyCode BYN`, `-debugShowcase …`.
+- Визуализации категорий — `App/Features/CategoryViz/`; данные — `CategoryVizData` + `CategoryCatalogSnapshot` (Core, без SwiftData). Главная: `CategoryTilesView(homeData:…)` / `HomeCategoryRing`; статистика: `StatsCategorySection`. Размеры с макетов — `VizMetrics`/`RingMetrics`. Переключатель «Категории / Подкатегории» — только в раскрытых «Плитках» (на макетах его нет; толкование). Витрина: `-debugShowcase viz` + `-vizView home|homeRing|tiles|strips|sun|ring`, `-vizData demo|many|uncategorized|few|one|empty`, `-vizExpand YES`.
+- Иконка приложения сейчас — `AppIcon.appiconset` с тремя PNG (светлая/тёмная/тонированная), собранными из слоёв `design/app-icon/` скриптом `scripts/compose_app_icon.swift` (временная замена). Целевой вариант — `AppIcon.icon` из Icon Composer по INTEGRATION §3.8 (собирается только в GUI); после него appiconset удалить. В `source.json` `iconURL` пока аватар GitHub — заменить на иконку при релизе.
 ## Ловушки
 - Xcode 26: без установленной iOS-платформы (`xcodebuild -downloadPlatform iOS`) сборка по схеме падает «iOS 26.5 is not installed»; `-target Expenses -sdk iphoneos` при этом собирается.
 - SwiftData: `transaction {}` при ошибке не откатывает — нужен явный `rollback()`, после него заново выбрать модели (старые ссылки падают «model instance was invalidated»).
@@ -76,3 +78,5 @@
 - `period.range.meta` уже содержит «≈» — сумму давать `.phrase` от `Money.roundedToWholeUnits`, не `.approximate`.
 - iOS 26.5: панель `ToolbarItem(.keyboard)` со скрытым общим фоном не входит в safe area клавиатуры — под неё свой отступ (`ExpenseEntryView`); проверить на iOS 27. Клавиатура шита записи остаётся поверх дочернего шита, пока не снять фокус.
 - Симулятор под нагрузкой (load average сотни): `simctl launch` зависает — `shutdown`, `boot`, `bootstatus`. Ввод через MCP-симулятор (`text`) переключает его на аппаратную клавиатуру.
+- `ViewThatFits` проверяет идеальную ширину — многострочный `Text` её не уменьшает; перенос имени по словам держится на скрытом «пробнике» с самым длинным словом (`CategoryViz`).
+- scratchpad общий у параллельных агентов — скрипты и снимки только в своей подпапке.
