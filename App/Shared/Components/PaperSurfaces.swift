@@ -131,7 +131,7 @@ extension SettingsRow where Accessory == EmptyView {
     ThemePreview {
         VStack(spacing: Theme.Spacing.xl) {
             SettingsGroup(footer: "Последняя копия: 1 окт") {
-                SettingsRow("Валюта", value: "Белорусский рубль · Br", showsChevron: true)
+                SettingsRow("Валюта", value: "Белорусский рубль · \u{20C5}", showsChevron: true)
                 SettingsRow("Категории", value: "12", showsChevron: true)
             }
             SettingsGroup(header: "О приложении") {

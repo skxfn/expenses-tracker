@@ -1,17 +1,17 @@
 import SwiftUI
 
-/// Сумма Unbounded с табличными цифрами и «Br» справа (DESIGN.md → Typography, «Правило денег»).
+/// Сумма Unbounded с табличными цифрами и знаком «⃅» справа (DESIGN.md → Typography, «Правило денег»).
 /// Строку готовит форматтер (§5.2: режимы показа сумм), `value` — только для направления анимации цифр
 /// (`Double(minor)`, не для расчётов). Внутрь SF-фразы не вставлять: там сумма набирается SF 600.
 struct AmountText: View {
     enum Size {
-        /// 60 + «Br» 26 — сумма в шите записи.
+        /// 60 + «⃅» 26 — сумма в шите записи.
         case display
-        /// 40 + «Br» 20 — итог периода.
+        /// 40 + «⃅» 20 — итог периода.
         case total
-        /// 28 + «Br» 14 — итог в центре кольца.
+        /// 28 + «⃅» 14 — итог в центре кольца.
         case ringTotal
-        /// 15 — строки ленты, плитки, быстрые суммы (без «Br»).
+        /// 15 — строки ленты, плитки, быстрые суммы (без «⃅»).
         case inline
         /// 15/600 — сумма в заголовке дня.
         case inlineStrong
@@ -77,9 +77,9 @@ private struct AmountTextDemo: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-            AmountText(text: "12,50", value: 1_250, size: .display, currency: "Br")
-            AmountText(text: Self.format(minor), value: Double(minor), size: .total, currency: "Br")
-            AmountText(text: "412,30", value: 41_230, size: .ringTotal, currency: "Br")
+            AmountText(text: "12,50", value: 1_250, size: .display, currency: "\u{20C5}")
+            AmountText(text: Self.format(minor), value: Double(minor), size: .total, currency: "\u{20C5}")
+            AmountText(text: "412,30", value: 41_230, size: .ringTotal, currency: "\u{20C5}")
             HStack {
                 AmountText(text: "44,70", value: 4_470, size: .inline)
                 Spacer()

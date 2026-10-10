@@ -10,7 +10,7 @@
 
 Отступления от «ключ = id, значение = final» описаны явной таблицей SPEC ниже (не эвристикой):
   - «·» и «/» как перечисление вариантов → ключи `<id>.<вариант>`;
-  - подстановки ({Категория}, {сумма}, пример «38 Br» и т. п.) → `%@`, позиционно `%1$@`, если их несколько;
+  - подстановки ({Категория}, {сумма}, пример «38 ⃅» и т. п.) → `%@`, позиционно `%1$@`, если их несколько;
   - количества → `%lld` с плюрализацией ru (one / few / many / other);
   - данные без текста (даты, числа, имена) → без ключа, собираются в коде;
   - составные фразы (сравнение с прошлым периодом) → шаблон + ключи фраз-отсылок;
@@ -26,6 +26,7 @@ COPY_JSON = ROOT / "design/copy.json"
 CATALOG = ROOT / "App/Resources/Localizable.xcstrings"
 LANG = "ru"
 NB = " "  # неразрывный пробел
+SIGN = "\u20c5"  # знак белорусского рубля (INTEGRATION §3.3.1); в примерах вместо «Br»
 
 
 # ---------------------------------------------------------------------------
@@ -161,11 +162,11 @@ DATE = "%@ — короткая дата D7 («8 окт»)"
 # (DESIGN.md «Callout», макеты design/mockups/light). Выводить через L10n.attributed.
 # «по аналогии» — вариант того же места, который на макетах не нарисован.
 EMPHASIZED = {
-    "home.compare": "01-home, 02-home-ring, 04-stats, 05-stats-range: «38 Br меньше»",
-    "home.compare.more": "по аналогии с home.compare: «38 Br больше»",
+    "home.compare": "01-home, 02-home-ring, 04-stats, 05-stats-range: «38 ⃅ меньше»",
+    "home.compare.more": "по аналогии с home.compare: «38 ⃅ больше»",
     "feed.dayHeader.today": "01-home, DESIGN.md «Заголовок дня»: «Сегодня» графитом, дата secondary",
     "feed.dayHeader.yesterday": "01-home: «Вчера» графитом, дата secondary",
-    "cal.summary": "09-calendar, context «сумма полужирным»: «412,30 Br»",
+    "cal.summary": "09-calendar, context «сумма полужирным»: «412,30 ⃅»",
     "stats.cats.caption.group": "04-stats, 05-stats-range: «Продукты: 35%»",
     "stats.cats.caption.sub": "04-stats-map-drill: «Супермаркет: 69%»",
     "stats.habits.insight.day": "04-stats: «по пятницам»",
@@ -188,30 +189,30 @@ skip("header.title.year", "данные: номер года")
 
 # Сравнение с прошлым периодом (D5): шаблон × фраза-отсылка. Отсылки — из правила D5 в voice.
 custom("home.compare",
-       {"home.compare": Key("на **%1$@ меньше**, чем %2$@", args="%1$@ — разница со знаком валюты, во фразе («38 Br»); %2$@ — отсылка home.compare.*.current/past или range.compare"),
+       {"home.compare": Key("на **%1$@ меньше**, чем %2$@", args="%1$@ — разница со знаком валюты, во фразе («38 ⃅»); %2$@ — отсылка home.compare.*.current/past или range.compare"),
         "home.compare.month.current": Key("в прошлом месяце")},
-       lambda t: t("home.compare", f"38{NB}Br", t("home.compare.month.current")))
+       lambda t: t("home.compare", f"38{NB}{SIGN}", t("home.compare.month.current")))
 custom("home.compare.more", {"home.compare.more": Key("на **%1$@ больше**, чем %2$@", args="как у home.compare")},
-       lambda t: t("home.compare.more", f"38{NB}Br", t("home.compare.month.current")), kind="fmt")
+       lambda t: t("home.compare.more", f"38{NB}{SIGN}", t("home.compare.month.current")), kind="fmt")
 custom("home.compare.same", {"home.compare.same": Key("примерно как %@", args="%@ — отсылка (см. home.compare)")},
        lambda t: t("home.compare.same", t("home.compare.month.current")), kind="fmt")
 custom("home.compare.noPrev", {"home.compare.noPrev": Key("%@ трат не было", args="%@ — отсылка (см. home.compare)")},
        lambda t: t("home.compare.noPrev", t("home.compare.month.current")), kind="fmt")
 custom("home.compare.day",
        {"home.compare.day.current": Key("вчера"), "home.compare.day.past": Key("накануне")},
-       lambda t: f"{t('home.compare.more', f'12{NB}Br', t('home.compare.day.current'))} · …, чем {t('home.compare.day.past')}")
+       lambda t: f"{t('home.compare.more', f'12{NB}{SIGN}', t('home.compare.day.current'))} · …, чем {t('home.compare.day.past')}")
 custom("home.compare.week",
        {"home.compare.week.current": Key("на прошлой неделе"),
         "home.compare.week.past": Key("за %@", args="%@ — диапазон прошедшей недели D7 («21–27 сен»)")},
-       lambda t: t("home.compare.more", f"12{NB}Br", t("home.compare.week.current")),
+       lambda t: t("home.compare.more", f"12{NB}{SIGN}", t("home.compare.week.current")),
        also=[lambda t, it: ("чем " + t("home.compare.week.past", "21–27 сен"), it["context"])])
 custom("home.compare.past",
        {"home.compare.month.past": Key("в %@", args="%@ — месяц в предложном падеже («августе»)")},
-       lambda t: t("home.compare", f"38{NB}Br", t("home.compare.month.past", "августе")))
+       lambda t: t("home.compare", f"38{NB}{SIGN}", t("home.compare.month.past", "августе")))
 custom("home.compare.year",
        {"home.compare.year.current": Key("в прошлом году"),
         "home.compare.year.past": Key("в %@", args="%@ — год («2024»)")},
-       lambda t: f"{t('home.compare', f'120{NB}Br', t('home.compare.year.current'))} · …, чем {t('home.compare.year.past', '2024')}")
+       lambda t: f"{t('home.compare', f'120{NB}{SIGN}', t('home.compare.year.current'))} · …, чем {t('home.compare.year.past', '2024')}")
 
 split("home.empty.firstRun", " · ",
       ("home.empty.firstRun.title", Key("Пока нет трат")),
@@ -245,7 +246,7 @@ skip("header.title.custom.cross", "данные: диапазон дат D7")
 skip("header.title.custom.day", "данные: дата D7")
 custom("range.compare",
        {"range.compare": Key("за %@", args="%@ — предыдущий отрезок своего периода D7 («2–4 окт»)")},
-       lambda t: t("home.compare", f"23,80{NB}Br", t("range.compare", f"2–4{NB}окт")), kind="fmt")
+       lambda t: t("home.compare", f"23,80{NB}{SIGN}", t("range.compare", f"2–4{NB}окт")), kind="fmt")
 plural("range.summary.lead", whole(DAY, "Потрачено за "), 3, args="%lld — число дней")
 split("period.presets", " · ",
       "Эта неделя", "Этот месяц",
@@ -257,9 +258,9 @@ fmt("period.range.from", "С %@", f"24{NB}сен", args=DATE)
 fmt("period.range.to", "По %@", f"8{NB}окт", args=DATE)
 custom("period.range.meta",
        {"period.range.meta": Key(f"· %#@days@ ≈{NB}%2$@", subs={"days": (1, DAY)},
-                                 args="%1$lld — число дней; %2$@ — округлённая сумма со знаком валюты («742 Br»)"),
+                                 args="%1$lld — число дней; %2$@ — округлённая сумма со знаком валюты («742 ⃅»)"),
         "period.range.meta.short": Key(plural=whole(DAY, "· "), args="%lld — число дней (запас при переполнении, risk)")},
-       lambda t: t("period.range.meta", 15, f"742{NB}Br"),
+       lambda t: t("period.range.meta", 15, f"742{NB}{SIGN}"),
        also=[lambda t, it: (t("period.range.meta.short", 15), it["final"])], kind="fmt")
 fmt("period.apply", "Показать %@", f"24{NB}сен{NB}– 8{NB}окт", args="%@ — диапазон D7")
 
@@ -286,13 +287,13 @@ skip("cal.header.month", "данные: месяц и год (год серым 
 custom("cal.summary",
        {"cal.summary": Key("**%1$@** за %#@days@ · больше всего %3$@", subs={"days": (2, DAY)},
                            args="%1$@ — итог со знаком валюты; %2$lld — число дней; %3$@ — дата D7")},
-       lambda t: t("cal.summary", f"412,30{NB}Br", 8, f"2{NB}окт"), kind="fmt")
+       lambda t: t("cal.summary", f"412,30{NB}{SIGN}", 8, f"2{NB}окт"), kind="fmt")
 alias("cal.summary.empty",
       lambda t: f"{t('home.empty.period.in.past', 'ноябре')} · {t('home.empty.period.in.current', 'октябре')}",
       "home.empty.period.in.past / home.empty.period.in.current")
 split("cal.weekdays", " · ", *((f"cal.weekdays.{d}", Key(w)) for d, w in
       zip(("mon", "tue", "wed", "thu", "fri", "sat", "sun"), ("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"))))
-fmt("cal.legend.title", "%@ за день", "Br", args="%@ — знак валюты")
+fmt("cal.legend.title", "%@ за день", SIGN, args="%@ — знак валюты")
 custom("cal.legend.items",
        {"cal.legend.items.below": Key("до %@", args="%@ — первый порог"),
         "cal.legend.items.from": Key("%@+", args="%@ — порог"),
@@ -315,12 +316,12 @@ split("stats.summary.lead.variants", " · ",
       ("stats.summary.lead.month", Key("Потрачено за %@", args="%@ — месяц строчными («сентябрь»)"), ("сентябрь",)),
       ("stats.summary.lead.yearToDate", Key("Потрачено с начала года")),
       ("stats.summary.lead.year", Key(f"Потрачено за %@{NB}год", args="%@ — год («2025»)"), ("2025",)))
-alias("stats.compare", lambda t: t("home.compare", f"38{NB}Br", t("home.compare.month.current")),
+alias("stats.compare", lambda t: t("home.compare", f"38{NB}{SIGN}", t("home.compare.month.current")),
       "= home.compare (больше / столько же / пусто — home.compare.*)")
 custom("stats.summary.meta",
        {"stats.summary.meta": Key("%#@count@ · в среднем %2$@ в день", subs={"count": (1, TRATA)},
                                   args="%1$lld — число трат; %2$@ — средняя со знаком валюты")},
-       lambda t: t("stats.summary.meta", 18, f"51,54{NB}Br"), kind="fmt")
+       lambda t: t("stats.summary.meta", 18, f"51,54{NB}{SIGN}"), kind="fmt")
 fmt("stats.cats.caption.group", f"Больше всего{NB}— **%1$@: %2$@**", "{Категория}", "{доля}%",
     args="%1$@ — имя категории; %2$@ — доля D7 («35%», «<1%»)")
 fmt("stats.cats.caption.sub", f"Больше всего{NB}— **%1$@: %2$@**", "{Подкатегория}", "{доля}%",
@@ -328,11 +329,11 @@ fmt("stats.cats.caption.sub", f"Больше всего{NB}— **%1$@: %2$@**", 
 custom("stats.center.meta",
        {"stats.center.meta": Key("%1$@ · %#@count@", subs={"count": (2, TRATA)},
                                  args="%1$@ — знак валюты; %2$lld — число трат")},
-       lambda t: t("stats.center.meta", "Br", 18), kind="fmt")
+       lambda t: t("stats.center.meta", SIGN, 18), kind="fmt")
 fmt("stats.list.sub.share", "%@ категории", "69%", args="%@ — доля D7")
 fmt("stats.list.noSub", "%@, подкатегорий нет", "6%", args="%@ — доля D7")
 fmt("stats.days.avg", "в среднем %@", "51,54", args="%@ — сумма без знака валюты")
-alias("stats.days.tip", lambda t: f"{t('header.title.day.today')}  57,20{NB}Br",
+alias("stats.days.tip", lambda t: f"{t('header.title.day.today')}  57,20{NB}{SIGN}",
       "два Text: день (header.title.day.today / .yesterday или дата D7) и сумма")
 fmt("stats.pace.note", "к %@ при текущем темпе", f"31{NB}октября",
     args="%@ — конец периода в дательном («31 октября», «воскресенью»)")
@@ -342,7 +343,7 @@ split("stats.pace.note.variants", " · ",
       ("stats.pace.note.past", Key("итог за %@", args="%@ — прошедший период («сентябрь»)"), ("сентябрь",)))
 split("stats.pace.legend", " · ", "октябрь", "сентябрь", ("stats.pace.legend.forecast", Key("прогноз")),
       note="названия периодов — данные")
-fmt("stats.habits.note", "в среднем за день, %@", "Br", args="%@ — знак валюты")
+fmt("stats.habits.note", "в среднем за день, %@", SIGN, args="%@ — знак валюты")
 fmt("stats.habits.insight.weekend", "**В будни** тратится больше, чем в выходные")
 fmt("stats.habits.insight.day", "Больше всего тратится **%@**", "по пятницам",
     args="%@ — «по» + день недели в дательном мн. ч. («по пятницам»)")
@@ -362,7 +363,7 @@ custom("viz.counts",
        lambda t: (lambda g, s: f"{g} · {s} → «{g}» или «{s}»")(t("viz.counts.groups", 15), t("viz.counts.subs", 25)))
 plural("viz.subCount", whole(SUBCAT), P(3, "{N}"), args="%lld — число подкатегорий")
 plural("viz.more", whole(CAT, "Ещё "), 4, args="%lld — число свёрнутых категорий")
-alias("viz.center.groups", lambda t: t("stats.center.meta", "Br", 18), "= stats.center.meta")
+alias("viz.center.groups", lambda t: t("stats.center.meta", SIGN, 18), "= stats.center.meta")
 fmt("viz.drill.share", "%@ всех трат", "35%", args="%@ — доля D7")
 fmt("viz.drill.filter", "только %@", "Продукты", args="%@ — имя категории")
 split("stats.empty.none", " · ",
@@ -395,7 +396,7 @@ skip("categories.active", "пометка: у секции нет заголов
 
 # --- Настройки -------------------------------------------------------------
 
-fmt("settings.currency.value", "%1$@ · %2$@", "Белорусский рубль", "Br",
+fmt("settings.currency.value", "%1$@ · %2$@", "Белорусский рубль", SIGN,
     args="%1$@ — название валюты; %2$@ — знак")
 skip("currency.searchEmpty", "текст даёт система (ContentUnavailableView.search)")
 skip("permissions", "пометка: разрешений Info.plist нет")
