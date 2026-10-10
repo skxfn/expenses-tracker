@@ -60,4 +60,16 @@ public struct MonthGrid: Sendable, Hashable {
         guard candidate > latestDay else { return candidate }
         return contains(latestDay) ? latestDay : candidate
     }
+
+    /// Наступили новые сутки (`previous` → `now`), пока календарь открыт. Показанный текущий месяц
+    /// сменяется новым текущим; выбранное прежнее «сегодня» — новым «сегодня»; иначе выбранный день
+    /// остаётся, а вне месяца — тот же номер (`day(matching:notAfter:)`). В тех же сутках — без изменений.
+    public func rolledOver(selected: Date, from previous: Date, to now: Date) -> (month: MonthGrid, selected: Date) {
+        guard !calendar.isDate(now, inSameDayAs: previous) else { return (self, selected) }
+        let month = contains(previous) && !contains(now) ? MonthGrid(containing: now, calendar: calendar) : self
+        if calendar.isDate(selected, inSameDayAs: previous), month.contains(now) {
+            return (month, calendar.startOfDay(for: now))
+        }
+        return (month, month.contains(selected) ? selected : month.day(matching: selected, notAfter: now))
+    }
 }

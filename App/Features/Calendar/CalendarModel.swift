@@ -3,8 +3,10 @@ import Observation
 import ExpenseCore
 
 /// Состояние вкладки «Календарь» (макет 09): месяц, выбранный день и всё, что из них считается
-/// по тратам. Траты приходят снимками `ExpenseRecord` из `@Query` экрана — уже без строк,
-/// скрытых `PendingDeletion`. Изменений данных здесь нет: только чтение.
+/// по тратам. Траты модель выбирает из хранилища сама и только нужные: год показанного месяца
+/// (шкала heat — по году) снимками `ExpenseRecord` и строки выбранного дня; заново — когда данные
+/// сохранены (`reload`), сменился год или день. Строки, скрытые `PendingDeletion`, не учитываются.
+/// Изменений данных здесь нет: только чтение.
 @Observable
 final class CalendarModel {
     /// День в сетке.
@@ -41,7 +43,15 @@ final class CalendarModel {
     private(set) var topGroupIDs: [UUID] = []
 
     private var dailyTotals: [Date: Int64] = [:]
-    private var records: [ExpenseRecord] = []
+    private var store: ExpenseStore?
+    private var hiddenIDs: Set<UUID> = []
+    /// Траты года показанного месяца (вместе со скрытыми) и какой это год.
+    private var yearRecords: [ExpenseRecord] = []
+    private var loadedYear: DateInterval?
+    /// Дата последней траты вообще, без скрытых, — для «К последней трате».
+    private var latestExpenseDate: Date?
+    /// Строки выбранного дня (вместе со скрытыми), новые сверху.
+    private var selectedDayRows: [ExpenseRowData] = []
 
     init(calendar: Calendar = .autoupdatingCurrent, now: Date = .now) {
         self.calendar = calendar
@@ -52,15 +62,39 @@ final class CalendarModel {
 
     // MARK: Данные
 
-    /// Новые траты или новое «сейчас» (смена суток, возврат из фона).
-    func update(records: [ExpenseRecord], now: Date) {
-        self.records = records
-        self.now = now
+    /// Подключить хранилище и выбрать траты (появление экрана).
+    func connect(_ store: ExpenseStore, hiddenIDs: Set<UUID>, now: Date = .now) {
+        self.store = store
+        self.hiddenIDs = hiddenIDs
+        reload(now: now)
+    }
+
+    /// Данные сохранены (`ModelContext.didSave`): выбрать траты заново.
+    func reload(now: Date = .now) {
+        advance(to: now)
+        loadYear(force: true)
+        loadLatestExpense()
+        finishUpdate()
+    }
+
+    /// Новое «сейчас» без новых данных: возврат из фона, смена дня (`onCalendarDayChange`).
+    func refresh(now: Date = .now) {
+        advance(to: now)
+        loadYear(force: false)
+        finishUpdate()
+    }
+
+    /// Строки, которые ждут удаления (`PendingDeletion`), скрываются сразу — хранилище ещё не изменилось.
+    func setHiddenIDs(_ ids: Set<UUID>) {
+        guard ids != hiddenIDs else { return }
+        hiddenIDs = ids
+        loadLatestExpense()
         recompute()
-        // Выбранный день мог оказаться в будущем (смена часового пояса, удалённая будущая трата).
-        if !day(selectedDay).isSelectable {
-            selectedDay = month.day(matching: selectedDay, notAfter: now)
-        }
+    }
+
+    /// Строки листа выбранного дня, новые сверху.
+    var dayRows: [ExpenseRowData] {
+        selectedDayRows.filter { !hiddenIDs.contains($0.id) }
     }
 
     func day(_ date: Date) -> Day {
@@ -76,11 +110,6 @@ final class CalendarModel {
     }
 
     var selected: Day { day(selectedDay) }
-
-    /// Попадает ли момент в выбранный день — фильтр трат листа дня.
-    func isInSelectedDay(_ date: Date) -> Bool {
-        calendar.isDate(date, inSameDayAs: selectedDay)
-    }
 
     /// Дата для «Записать на …»: `nil` — сегодня (как «+»), иначе выбранный день с текущим временем,
     /// чтобы записи одного дня шли в порядке ввода.
@@ -111,7 +140,7 @@ final class CalendarModel {
     /// Последняя трата вне показанного месяца, когда в нём трат нет — для «К последней трате»
     /// (INTEGRATION §2.2, «Период без трат»); иначе `nil`.
     var latestExpenseOutsideEmptyMonth: Date? {
-        guard summary.totalMinor == 0, let latest = records.map(\.date).max(), !month.contains(latest) else { return nil }
+        guard summary.totalMinor == 0, let latest = latestExpenseDate, !month.contains(latest) else { return nil }
         return latest
     }
 
@@ -120,13 +149,16 @@ final class CalendarModel {
         guard let latest = latestExpenseOutsideEmptyMonth else { return }
         month = MonthGrid(containing: latest, calendar: calendar)
         selectedDay = calendar.startOfDay(for: latest)
+        loadYear(force: false)
         recompute()
+        loadSelectedDay()
     }
 
     /// Выбрать день; будущий день без трат не выбирается.
     func select(_ date: Date) {
         guard month.contains(date), day(date).isSelectable else { return }
         selectedDay = calendar.startOfDay(for: date)
+        loadSelectedDay()
     }
 
     // MARK: Внутреннее
@@ -135,10 +167,55 @@ final class CalendarModel {
     private func show(_ newMonth: MonthGrid) {
         month = newMonth
         selectedDay = newMonth.day(matching: selectedDay, notAfter: now)
+        loadYear(force: false)
         recompute()
+        loadSelectedDay()
+    }
+
+    /// Новое «сейчас»; если наступили новые сутки — текущий месяц и «сегодня» сдвигаются
+    /// (`MonthGrid.rolledOver`).
+    private func advance(to now: Date) {
+        let previous = self.now
+        self.now = now
+        guard !calendar.isDate(now, inSameDayAs: previous) else { return }
+        let rolled = month.rolledOver(selected: selectedDay, from: previous, to: now)
+        month = rolled.month
+        selectedDay = rolled.selected
+    }
+
+    private func finishUpdate() {
+        recompute()
+        // Выбранный день мог оказаться в будущем (смена часового пояса, удалённая будущая трата).
+        if !day(selectedDay).isSelectable {
+            selectedDay = month.day(matching: selectedDay, notAfter: now)
+        }
+        loadSelectedDay()
+    }
+
+    /// Траты года показанного месяца — только при смене года или `force` (данные сохранены).
+    /// Ошибка выборки — пустой календарь, как пустой `@Query`.
+    private func loadYear(force: Bool) {
+        let year = StatsPeriod.current(.year, now: month.start, calendar: calendar).interval
+        guard let store, force || year != loadedYear else { return }
+        yearRecords = ((try? store.expenses(in: year)) ?? []).map { ExpenseRecord($0) }
+        loadedYear = year
+    }
+
+    private func loadLatestExpense() {
+        let recent = (try? store?.recentExpenses(limit: hiddenIDs.count + 1)) ?? []
+        latestExpenseDate = recent.first { !hiddenIDs.contains($0.id) }?.date
+    }
+
+    private func loadSelectedDay() {
+        guard let store, let interval = calendar.dateInterval(of: .day, for: selectedDay) else {
+            selectedDayRows = []
+            return
+        }
+        selectedDayRows = ((try? store.expenses(in: interval)) ?? []).map { ExpenseRowData($0) }
     }
 
     private func recompute() {
+        let records = hiddenIDs.isEmpty ? yearRecords : yearRecords.filter { !hiddenIDs.contains($0.id) }
         let engine = StatisticsEngine(calendar: calendar)
         let series = engine.timeSeries(for: month.period, records: records, step: .day)
         dailyTotals = Dictionary(

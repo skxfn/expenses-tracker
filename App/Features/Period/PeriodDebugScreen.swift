@@ -11,6 +11,8 @@ enum PeriodDebugScenario: String {
     case range
     /// Прошлый месяц: виден чип «Сегодня».
     case past
+    /// Сентябрь прошлого года — самый длинный заголовок: месяц, год и чип «Сегодня».
+    case pastYear
     /// Сразу открыт шит «Период».
     case sheet
 }
@@ -34,6 +36,10 @@ struct PeriodDebugScreen: View {
             selection.applyCustom(from: first, through: last)
         case .past:
             selection.showPrevious()
+        case .pastYear:
+            let year = selection.calendar.component(.year, from: selection.now) - 1
+            let september = selection.calendar.date(from: DateComponents(year: year, month: 9, day: 15)) ?? selection.now
+            selection.apply(.current(.month, now: september, calendar: selection.calendar))
         case .sheet:
             selection.presentPicker()
         case .month, .day, .week, .year:
@@ -78,7 +84,7 @@ struct PeriodDebugScreen: View {
         case .day: .day
         case .week: .week
         case .year: .year
-        case .month, .range, .past, .sheet: .month
+        case .month, .range, .past, .pastYear, .sheet: .month
         }
     }
 }

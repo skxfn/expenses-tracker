@@ -50,6 +50,8 @@ struct CalendarHeader: View {
 /// выделенная сумма — SF 600 графитом. В строку (copy.json: nowrap), на крупном тексте — переносом.
 struct CalendarSummaryLine: View {
     let summary: AttributedString
+    /// Для VoiceOver: сумма словом «рубль», без «·» (`CalendarStrings.summaryAccessibility`).
+    let accessibilityText: String
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.fontResolutionContext) private var fontContext
@@ -61,6 +63,7 @@ struct CalendarSummaryLine: View {
             .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
             .minimumScaleFactor(0.8)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(Text(verbatim: accessibilityText))
     }
 
     private var styled: AttributedString {
