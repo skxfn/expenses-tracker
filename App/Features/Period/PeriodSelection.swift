@@ -137,9 +137,10 @@ final class PeriodSelection {
         isPickerPresented = true
     }
 
-    /// Обновить «сейчас». Если смотрели текущий период, а день сменился, — переходим в новый текущий.
+    /// Обновить «сейчас» при смене дня (периоды и сравнения считаются днями — чаще не пересчитываем).
+    /// Если смотрели текущий период, переходим в новый текущий.
     func refresh(now: Date = .now) {
-        guard now != self.now else { return }
+        guard !calendar.isDate(now, inSameDayAs: self.now) else { return }
         let wasCurrent = isCurrent
         self.now = now
         if wasCurrent, !isCurrent {

@@ -46,7 +46,7 @@ struct ContentView: View {
         }
         .errorAlert($pendingDeletion.errorMessage)
         #if DEBUG
-        .task { showDebugToastIfRequested() }
+        .task { await applyDebugRequests() }
         #endif
         .environment(router)
         .environment(pendingDeletion)
@@ -172,10 +172,16 @@ struct ContentView: View {
     private static let periodScenario = DebugLaunchOptions.periodScenario()
 
     /// `-debugToast YES`: тост на паузе с несуществующим id — хранилище не меняется.
-    private func showDebugToastIfRequested() {
-        guard DebugLaunchOptions.showsDeletionToast() else { return }
-        pendingDeletion.schedule(.init(id: UUID(), title: ""), store: ExpenseStore(context: modelContext))
-        pendingDeletion.pause()
+    /// `-debugAdd YES`: шит новой траты после появления таб-бара (зум из «+»).
+    private func applyDebugRequests() async {
+        if DebugLaunchOptions.showsDeletionToast() {
+            pendingDeletion.schedule(.init(id: UUID(), title: ""), store: ExpenseStore(context: modelContext))
+            pendingDeletion.pause()
+        }
+        if DebugLaunchOptions.presentsAddSheet() {
+            try? await Task.sleep(for: .seconds(1))
+            router.presentAdd()
+        }
     }
     #endif
 }

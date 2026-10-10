@@ -13,11 +13,31 @@ struct PeriodRangeCalendar: View {
     let firstMonth: Date
     @Binding var draft: PeriodRangeDraft
 
-    @State private var position = ScrollPosition(idType: Date.self)
+    /// Недели ленты (начала недель) и начальная верхняя неделя — считаются один раз при открытии.
+    private let weeks: [Date]
+    private let initialWeek: Date
+    /// Последний показанный день — конец текущего месяца.
+    private let lastDay: Date
+    @State private var position: ScrollPosition
 
     /// Полоса между концами: графит 10 % (DESIGN.md → Period Picker).
     static let bandOpacity: Double = 0.1
     static let rowHeight: CGFloat = 48
+
+    init(calendar: Calendar, today: Date, firstMonth: Date, draft: Binding<PeriodRangeDraft>) {
+        self.calendar = calendar
+        self.today = today
+        self.firstMonth = firstMonth
+        _draft = draft
+        let lastDay = Self.lastDay(today: today, calendar: calendar)
+        let weeks = Self.weeks(from: firstMonth, through: lastDay, calendar: calendar)
+        let initialWeek = Self.initialWeek(anchor: draft.wrappedValue.start ?? today, weeks: weeks, calendar: calendar)
+        self.weeks = weeks
+        self.initialWeek = initialWeek
+        self.lastDay = lastDay
+        // Начальная позиция — сразу в `ScrollPosition`: `scrollTo` в `onAppear` у `LazyVStack` промахивается.
+        _position = State(initialValue: ScrollPosition(id: initialWeek, anchor: .top))
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -49,9 +69,6 @@ struct PeriodRangeCalendar: View {
         .paperSheetBackground()
         .accessibilityElement(children: .contain)
         .accessibilityLabel("period.calendar.a11y")
-        .onAppear {
-            position.scrollTo(id: initialWeek, anchor: .top)
-        }
     }
 
     // MARK: - Шапка календаря
@@ -98,14 +115,13 @@ struct PeriodRangeCalendar: View {
         position.viewID(type: Date.self) ?? initialWeek
     }
 
-    /// Последний показанный день — конец текущего месяца.
-    private var lastDay: Date {
+    private static func lastDay(today: Date, calendar: Calendar) -> Date {
         let month = calendar.dateInterval(of: .month, for: today)
         return month.flatMap { calendar.date(byAdding: .day, value: -1, to: $0.end) } ?? today
     }
 
-    private var weeks: [Date] {
-        guard let first = weekStart(of: firstMonth) else { return [] }
+    private static func weeks(from firstMonth: Date, through lastDay: Date, calendar: Calendar) -> [Date] {
+        guard let first = calendar.dateInterval(of: .weekOfYear, for: firstMonth)?.start else { return [] }
         var result: [Date] = []
         var week = first
         while week <= lastDay {
@@ -117,15 +133,10 @@ struct PeriodRangeCalendar: View {
     }
 
     /// Неделя начала выбора — третьей строкой, как в макете.
-    private var initialWeek: Date {
-        let anchor = draft.start ?? today
-        let week = weekStart(of: anchor) ?? anchor
+    private static func initialWeek(anchor: Date, weeks: [Date], calendar: Calendar) -> Date {
+        let week = calendar.dateInterval(of: .weekOfYear, for: anchor)?.start ?? anchor
         let shifted = calendar.date(byAdding: .weekOfYear, value: -2, to: week) ?? week
         return max(shifted, weeks.first ?? shifted)
-    }
-
-    private func weekStart(of day: Date) -> Date? {
-        calendar.dateInterval(of: .weekOfYear, for: day)?.start
     }
 }
 
