@@ -9,6 +9,8 @@ struct GlassSegmentedControl<Value: Hashable>: View {
         let title: LocalizedStringKey
         /// Иконка вместо текста (переключатель видов в статистике); `title` остаётся подписью VoiceOver.
         var systemImage: String?
+        /// Подпись VoiceOver, если видимый текст — знак («Ƃ» → «Знак рубля»).
+        var accessibilityTitle: LocalizedStringKey?
     }
 
     let title: LocalizedStringKey
@@ -58,7 +60,7 @@ struct GlassSegmentedControl<Value: Hashable>: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(item.title)
+        .accessibilityLabel(item.accessibilityTitle ?? item.title)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityShowsLargeContentViewer()
     }

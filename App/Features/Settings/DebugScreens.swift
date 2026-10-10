@@ -52,6 +52,7 @@ private struct DebugScreenRoot: View {
     let screen: DebugScreen
 
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
+    @AppStorage(SettingsKeys.currencySymbolStyle) private var symbolStyle = CurrencySymbolStyle.default
     @Environment(\.modelContext) private var modelContext
     @State private var editorMode: CategoryEditorMode?
     @State private var importSession: ImportSession?
@@ -64,7 +65,7 @@ private struct DebugScreenRoot: View {
                 NavigationStack { root }
             }
         }
-        .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app))
+        .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app, symbolStyle: symbolStyle))
         .sheet(item: $editorMode) { mode in
             CategoryEditorSheet(mode: mode)
                 .defaultScrollAnchor(DebugScreen.scrollAnchor())
