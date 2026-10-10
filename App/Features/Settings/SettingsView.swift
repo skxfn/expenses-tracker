@@ -7,6 +7,7 @@ import ExpenseCore
 /// версия и лицензии. Корень экрана — этот тип; стек навигации даёт оболочка.
 struct SettingsView: View {
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
+    @AppStorage(SettingsKeys.currencySymbolStyle) private var symbolStyle = CurrencySymbolStyle.default
     @AppStorage(SettingsKeys.homeOverviewStyle) private var overviewStyle = HomeOverviewStyle.default
     @AppStorage(BackupModel.lastExportDateKey) private var lastExportTimestamp: Double = 0
     @Query(sort: [SortDescriptor(\ExpenseCategory.sortOrder), SortDescriptor(\ExpenseCategory.createdAt)])
@@ -57,6 +58,32 @@ struct SettingsView: View {
 
     // MARK: - Группы
 
+    /// «Обозначение»: знак рубля (по умолчанию) | BYN — только для BYN (INTEGRATION §3.3.1, макет `12-settings`).
+    private var symbolRow: some View {
+        HStack(spacing: Theme.Spacing.md) {
+            Text("settings.currency.symbol")
+                .typeStyle(.body)
+                .foregroundStyle(Theme.ink)
+            Spacer(minLength: Theme.Spacing.sm)
+            GlassSegmentedControl(
+                title: "settings.currency.symbol",
+                selection: $symbolStyle,
+                items: [
+                    .init(
+                        value: .sign,
+                        title: LocalizedStringKey(MoneyFormatter.belarusianRubleSign),
+                        accessibilityTitle: "settings.currency.symbol.sign.a11y"
+                    ),
+                    .init(value: .code, title: "settings.currency.symbol.code")
+                ]
+            )
+            .frame(width: Theme.Size.symbolStylePicker)
+            .accessibilityHint(Text("settings.currency.symbol.a11y.hint"))
+        }
+        .padding(.horizontal, Theme.Spacing.lg)
+        .frame(minHeight: Theme.Size.field)
+    }
+
     private var generalGroup: some View {
         let topLevel = categories.filter { $0.parent == nil && !$0.isArchived }
         let subcategoryCount = categories.filter { !$0.isArchived && $0.parent.map { !$0.isArchived } == true }.count
@@ -64,7 +91,10 @@ struct SettingsView: View {
             NavigationLink {
                 CurrencyPickerView()
             } label: {
-                SettingsRow("settings.currency", value: CurrencyOption(code: currencyCode).nameWithSymbol, showsChevron: true)
+                SettingsRow("settings.currency", value: CurrencyOption(code: currencyCode).nameWithSymbol(style: symbolStyle), showsChevron: true)
+            }
+            if currencyCode == MoneyFormatter.belarusianRubleCode {
+                symbolRow
             }
             NavigationLink {
                 CategoriesView()

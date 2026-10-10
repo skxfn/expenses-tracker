@@ -17,14 +17,14 @@ struct CurrencyOption: Identifiable, Hashable {
     static let popular = CurrencySettings.popularCodes.map { CurrencyOption(code: $0) }
     static let other = CurrencySettings.otherCodes.map { CurrencyOption(code: $0) }
 
-    /// Знак в суммах: «Br», «$», «€» — как в форматтере сумм.
-    var symbol: String {
-        MoneyFormatter(currencyCode: code, locale: .app).currencySymbol
+    /// Обозначение в суммах: знак рубля или «BYN» (настройка «Обозначение»), «$», «€» — как в форматтере сумм.
+    func symbol(style: CurrencySymbolStyle) -> String {
+        MoneyFormatter(currencyCode: code, locale: .app, symbolStyle: style).currencySymbol
     }
 
-    /// «Белорусский рубль · Br» — значение строки «Валюта» (`settings.currency.value`).
-    var nameWithSymbol: String {
-        L10n.format("settings.currency.value", name, symbol)
+    /// «Белорусский рубль · <знак>» — значение строки «Валюта» (`settings.currency.value`).
+    func nameWithSymbol(style: CurrencySymbolStyle) -> String {
+        L10n.format("settings.currency.value", name, symbol(style: style))
     }
 
     /// «Белорусский рубль · BYN» — в восстановлении копии виден код (`settings.currency.value`, `copy.json` → why).
