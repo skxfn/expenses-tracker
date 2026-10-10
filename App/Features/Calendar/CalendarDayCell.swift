@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Клетка дня (DESIGN.md → Calendar): 52, r 6, число SF 13/600, сумма SF 13/500, заливка heat-0…4.
-/// Будущий день — без клетки, число серым. Сегодня — стеклянная линза поверх клетки.
+/// Будущий день — без клетки, число серым. Сегодня — стеклянная линза поверх клетки (`TodayLens`, рисует
+/// `CalendarGrid` слоем над сеткой), цифры клетки под ней скрыты.
 /// Выбранный не-сегодняшний день — обводка 2 графитом со смещением 2 (как фокус).
 struct CalendarDayCell: View {
     let day: CalendarModel.Day
@@ -21,12 +22,6 @@ struct CalendarDayCell: View {
                 .opacity(day.isToday ? 0 : 1)
                 .background { cell }
                 .overlay { selectionOutline }
-                .overlay {
-                    if day.isToday {
-                        TodayLens(number: number, amount: amount, level: day.level)
-                            .padding(-CalendarMetrics.lensOutset)
-                    }
-                }
         }
     }
 
@@ -69,7 +64,7 @@ struct CalendarDayCell: View {
 
 /// Линза «сегодня» (`lens`, §3.4): прозрачное стекло r 12 с выступом 6 над клеткой heat, цифры крупнее,
 /// дата подчёркнута (2). Цвет цифр — по ступени клетки: на heat-4 светлые (design.json → openQuestions).
-private struct TodayLens: View {
+struct TodayLens: View {
     let number: String
     let amount: String?
     let level: Int
