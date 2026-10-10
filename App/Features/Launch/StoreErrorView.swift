@@ -1,34 +1,54 @@
 import SwiftUI
 
-/// Экран вместо приложения, если хранилище не открылось. Данные при этом не удаляются.
+/// Экран вместо приложения, если хранилище не открылось (`launch.error.*`), в стиле настроек.
+/// Данные при этом не удаляются: экран только объясняет, что делать, и показывает причину.
 struct StoreErrorView: View {
     let failure: StoreFailure
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    ContentUnavailableView {
-                        Label("Не удалось открыть данные", systemImage: "externaldrive.badge.exclamationmark")
-                    } description: {
-                        Text("Ваши траты не удалены. Попробуйте перезапустить приложение. Если ошибка повторяется — обновите приложение, не удаляя его.")
+            ScrollView {
+                VStack(alignment: .leading, spacing: SettingsLayout.groupSpacing) {
+                    VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                        Text("launch.error.title")
+                            .typeStyle(.title)
+                            .foregroundStyle(Theme.ink)
+                        Text("launch.error.body")
+                            .typeStyle(.body)
+                            .foregroundStyle(Theme.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal, Theme.Spacing.lg)
+
+                    SettingsGroup(header: "launch.error.reason") {
+                        detail(failure.summary, monospaced: false)
+                    }
+                    SettingsGroup(header: "launch.error.details") {
+                        detail(failure.details, monospaced: true)
                     }
                 }
-                Section("Причина") {
-                    Text(failure.summary)
-                        .textSelection(.enabled)
-                }
-                Section("Подробности для разработчика") {
-                    Text(failure.details)
-                        .font(.footnote.monospaced())
-                        .textSelection(.enabled)
-                }
+                .padding(.horizontal, Theme.Spacing.screen)
+                .padding(.vertical, Theme.Spacing.lg)
             }
-            .navigationTitle("Ошибка")
+            .background(Theme.canvas)
+            .navigationTitle("launch.error.navTitle")
+            .navigationBarTitleDisplayMode(.large)
         }
+    }
+
+    private func detail(_ text: String, monospaced: Bool) -> some View {
+        Text(verbatim: text)
+            .typeStyle(monospaced ? .footnote : .body)
+            .monospaced(monospaced)
+            .foregroundStyle(Theme.ink)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(Theme.Spacing.lg)
     }
 }
 
+#if DEBUG
 #Preview {
     StoreErrorView(failure: StoreFailure(CocoaError(.fileReadCorruptFile)))
 }
+#endif

@@ -2,107 +2,183 @@ import SwiftData
 import SwiftUI
 import ExpenseCore
 
-/// Вкладка «Настройки»: валюта, категории, резервная копия, версия.
+/// «Настройки» (макет `12-settings`): пуш из ⚙ на главной, системная кнопка «Назад», Large Title,
+/// группы r 22 на бумаге с аурой. Валюта, категории, вид диаграммы на вкладке «Траты», резервная копия,
+/// версия и лицензии. Корень экрана — этот тип; стек навигации даёт оболочка.
 struct SettingsView: View {
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
+    @AppStorage(SettingsKeys.homeOverviewStyle) private var overviewStyle = HomeOverviewStyle.default
     @AppStorage(BackupModel.lastExportDateKey) private var lastExportTimestamp: Double = 0
+    @Query(sort: [SortDescriptor(\ExpenseCategory.sortOrder), SortDescriptor(\ExpenseCategory.createdAt)])
+    private var categories: [ExpenseCategory]
+
     @Environment(\.modelContext) private var modelContext
     @State private var backup = BackupModel()
+    @State private var auraTones: [GouacheTone] = []
+
+    /// Сколько держится тост «Копия сохранена».
+    private static let toastDuration: Duration = .seconds(3)
 
     var body: some View {
-        Form {
-            Section {
-                NavigationLink {
-                    CurrencyPickerView()
-                } label: {
-                    LabeledContent("Валюта", value: currencyCode)
+        ScrollView {
+            VStack(alignment: .leading, spacing: SettingsLayout.groupSpacing) {
+                generalGroup
+                SettingsGroup(header: "settings.overview.heading") {
+                    OverviewStylePicker(selection: $overviewStyle)
                 }
-            } footer: {
-                Text("Смена валюты меняет только обозначение: уже введённые суммы не пересчитываются.")
+                backupGroup
+                aboutGroup
+                #if DEBUG
+                DebugDataSection()
+                #endif
             }
-
-            Section {
-                NavigationLink {
-                    CategoriesView()
-                } label: {
-                    Label("Категории", systemImage: "square.grid.2x2")
-                }
-            }
-
-            backupSection
-
-            Section("О приложении") {
-                LabeledContent("Версия", value: Self.appVersion)
-            }
-
-            #if DEBUG
-            DebugDataSection()
-            #endif
+            .padding(.horizontal, Theme.Spacing.screen)
+            .padding(.top, Theme.Spacing.sm)
+            .padding(.bottom, Theme.Spacing.xl)
         }
-        .navigationTitle("Настройки")
+        .settingsBackground(tones: auraTones)
+        .navigationTitle("settings.title")
+        .navigationBarTitleDisplayMode(.large)
         .sheet(item: $backup.importSession) { session in
             ImportView(session: session)
         }
-        .errorAlert($backup.errorMessage)
+        .failureAlert($backup.alert)
+        .glassToast(isPresented: backup.isExportDoneToastShown) {
+            GlassToast(message: "settings.backup.exportDone")
+        }
+        .task(id: backup.isExportDoneToastShown) {
+            guard backup.isExportDoneToastShown else { return }
+            AccessibilityNotification.Announcement(String(localized: "settings.backup.exportDone")).post()
+            try? await Task.sleep(for: Self.toastDuration)
+            backup.isExportDoneToastShown = false
+        }
+        .onAppear(perform: loadAuraTones)
     }
 
-    private var backupSection: some View {
-        Section {
-            // Экспорт и импорт висят на разных кнопках: два файловых диалога на одном view конфликтуют.
-            Button {
-                backup.prepareExport(context: modelContext, currencyCode: currencyCode)
-            } label: {
-                Label("Экспортировать в файл", systemImage: "square.and.arrow.up")
-            }
-            .fileExporter(
-                isPresented: $backup.isExporterPresented,
-                document: backup.exportDocument,
-                contentTypes: BackupDocument.readableContentTypes,
-                defaultFilename: backup.exportFileName,
-                onCompletion: { result in
-                    if backup.finishExport(result) {
-                        lastExportTimestamp = Date.now.timeIntervalSince1970
-                    }
-                },
-                onCancellation: { backup.cancelExport() }
-            )
+    // MARK: - Группы
 
-            Button {
-                backup.isImporterPresented = true
+    private var generalGroup: some View {
+        let topLevel = categories.filter { $0.parent == nil && !$0.isArchived }
+        let subcategoryCount = categories.filter { !$0.isArchived && $0.parent.map { !$0.isArchived } == true }.count
+        return SettingsGroup {
+            NavigationLink {
+                CurrencyPickerView()
             } label: {
-                Label("Импортировать из файла", systemImage: "square.and.arrow.down")
+                SettingsRow("settings.currency", value: CurrencyOption(code: currencyCode).nameWithSymbol, showsChevron: true)
             }
-            .fileImporter(
-                isPresented: $backup.isImporterPresented,
-                allowedContentTypes: BackupDocument.readableContentTypes
-            ) { result in
-                backup.openImportedFile(result)
+            NavigationLink {
+                CategoriesView()
+            } label: {
+                SettingsRow(title: "settings.categories", value: "\(topLevel.count)", showsChevron: true) {
+                    CategoryFan(tones: CategoryFan.tones(of: topLevel))
+                }
             }
-        } header: {
-            Text("Резервная копия")
-        } footer: {
-            Text(lastExportText)
+            .accessibilityLabel(Text(verbatim: L10n.format("settings.categories.a11y", topLevel.count, subcategoryCount)))
+        }
+        .buttonStyle(.pressable(Motion.PressScale.row))
+    }
+
+    private var backupGroup: some View {
+        SettingsFootnoted(lastExportText) {
+            SettingsGroup(header: "settings.backup.heading") {
+                // Сохранение и восстановление висят на разных кнопках: два файловых окна на одном view конфликтуют.
+                Button {
+                    backup.prepareExport(context: modelContext, currencyCode: currencyCode)
+                } label: {
+                    actionRow("settings.backup.export", systemImage: "square.and.arrow.up")
+                }
+                .fileExporter(
+                    isPresented: $backup.isExporterPresented,
+                    document: backup.exportDocument,
+                    contentTypes: BackupDocument.readableContentTypes,
+                    defaultFilename: backup.exportFileName,
+                    onCompletion: { result in
+                        if backup.finishExport(result) {
+                            lastExportTimestamp = Date.now.timeIntervalSince1970
+                        }
+                    },
+                    onCancellation: { backup.cancelExport() }
+                )
+
+                Button {
+                    backup.isImporterPresented = true
+                } label: {
+                    actionRow("settings.backup.import", systemImage: "square.and.arrow.down")
+                }
+                .fileImporter(
+                    isPresented: $backup.isImporterPresented,
+                    allowedContentTypes: BackupDocument.readableContentTypes
+                ) { result in
+                    backup.openImportedFile(result)
+                }
+            }
+            .buttonStyle(.pressable(Motion.PressScale.row))
         }
     }
 
-    private var lastExportText: String {
-        guard lastExportTimestamp > 0 else { return "Экспорт ещё не выполнялся." }
-        let date = Date(timeIntervalSince1970: lastExportTimestamp)
-        return "Последний экспорт: \(date.formatted(date: .long, time: .shortened))."
+    private var aboutGroup: some View {
+        SettingsGroup(header: "settings.about.heading") {
+            SettingsRow("settings.about.version", value: Self.appVersion)
+                .accessibilityElement(children: .combine)
+            NavigationLink {
+                LicensesView()
+            } label: {
+                SettingsRow("settings.about.licenses", showsChevron: true)
+            }
+            .buttonStyle(.pressable(Motion.PressScale.row))
+        }
     }
 
-    /// «1.0.0 (1)» из Info.plist.
+    /// Строка-действие: подпись слева, иконка справа (макет: «Сохранить копию ⇪»).
+    private func actionRow(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        SettingsRow(title: title) {
+            Image(systemName: systemImage)
+                .typeStyle(.headline)
+                .foregroundStyle(Theme.secondary)
+                .accessibilityHidden(true)
+        }
+    }
+
+    // MARK: - Данные
+
+    /// «Последняя копия: 1 окт» (дата D7, год — если не текущий) или «Копий ещё не было».
+    private var lastExportText: String {
+        guard lastExportTimestamp > 0 else { return String(localized: "settings.backup.never") }
+        let date = Date(timeIntervalSince1970: lastExportTimestamp)
+        return L10n.format("settings.backup.last", RussianDateFormatter(calendar: .current, now: .now).short(date))
+    }
+
+    /// «1.0.0 (1)» из Info.plist: сборка нужна при установке через SideStore (`settings.about.version` → why).
     private static var appVersion: String {
         let info = Bundle.main.infoDictionary
         let version = info?["CFBundleShortVersionString"] as? String ?? "—"
         let build = info?["CFBundleVersion"] as? String ?? "—"
         return "\(version) (\(build))"
     }
+
+    /// Аура — тинты крупнейших категорий текущего месяца, как на главной; без трат — чистая бумага.
+    private func loadAuraTones() {
+        guard
+            let month = Calendar.current.dateInterval(of: .month, for: .now),
+            let expenses = try? ExpenseStore(context: modelContext).expenses(in: month)
+        else { return }
+        var totals: [GouacheTone: Int64] = [:]
+        for expense in expenses {
+            guard
+                let group = expense.category?.parent ?? expense.category,
+                let tone = GouacheTone(mainHex: group.colorHex)
+            else { continue }
+            totals[tone, default: 0] += expense.amountMinor
+        }
+        auraTones = totals.sorted { $0.value > $1.value }.prefix(AuraBackground.defaultLayout.count).map(\.key)
+    }
 }
 
+#if DEBUG
 #Preview {
     NavigationStack {
         SettingsView()
     }
     .modelContainer(try! ModelContainerFactory.make(inMemory: true))
 }
+#endif
