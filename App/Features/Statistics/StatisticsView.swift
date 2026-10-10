@@ -9,8 +9,8 @@ import ExpenseCore
 /// «Привычки», «2026 по дням», «Крупнейшие траты». Раскрытая категория фильтрует сводку и все блоки под
 /// «Категориями» (пометка «только Продукты»). Тап по плитке на главной приходит `AppRouter.statisticsFocus`:
 /// период применяется сразу, категория раскрывается с анимацией.
+/// Траты читает и держит `StatisticsModel` (при появлении и после сохранений базы), не `@Query` в `body`.
 struct StatisticsView: View {
-    @Query private var expenses: [Expense]
     @Query private var categories: [ExpenseCategory]
     @AppStorage(SettingsKeys.statsCategoryView) private var categoryView: StatsCategoryView = .default
 
@@ -22,6 +22,7 @@ struct StatisticsView: View {
 
     @Environment(AppRouter.self) private var router
     @Environment(PendingDeletion.self) private var pendingDeletion
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.moneyFormatter) private var money
 
     init() {
@@ -33,13 +34,12 @@ struct StatisticsView: View {
     }
 
     var body: some View {
-        let visible = expenses.filter { !pendingDeletion.hiddenIDs.contains($0.id) }
         let input = StatisticsInput(
-            records: visible.map { ExpenseRecord($0) },
             catalog: CategoryCatalogSnapshot(categories: categories),
             period: selection.period,
             now: selection.now,
-            expandedID: expandedID
+            expandedID: expandedID,
+            hiddenIDs: pendingDeletion.hiddenIDs
         )
         let texts = StatsTexts(money: money, calendar: selection.calendar, now: selection.now)
 
@@ -49,7 +49,7 @@ struct StatisticsView: View {
                     header(texts)
                         .padding(.horizontal, Theme.Spacing.screen)
                         .id(StatsAnchor.summary)
-                    sheet(texts, expenses: visible)
+                    sheet(texts)
                         .padding(.top, Theme.Spacing.md)
                 }
             }
@@ -63,6 +63,12 @@ struct StatisticsView: View {
         .background { AuraBackground(tones: model.auraTones).ignoresSafeArea() }
         .onChange(of: input, initial: true) { _, input in
             model.update(input)
+        }
+        .onAppear { model.appear(in: modelContext) }
+        .onDisappear { model.disappear() }
+        // Следующим проходом главного цикла: сохранение уже закончено.
+        .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave).receive(on: DispatchQueue.main)) { _ in
+            model.dataDidChange(in: modelContext)
         }
         .task(id: pendingExpansion) {
             guard let id = pendingExpansion else { return }
@@ -110,14 +116,14 @@ struct StatisticsView: View {
     // MARK: - Лист
 
     /// Бумажный лист; фон уходит за нижний край и под таб-бар (`ignoresSafeArea` в прокрутке не дотягивается).
-    private func sheet(_ texts: StatsTexts, expenses: [Expense]) -> some View {
+    private func sheet(_ texts: StatsTexts) -> some View {
         VStack(alignment: .leading, spacing: StatsLayout.sectionSpacing) {
             if !model.hasExpenses {
                 emptyNone
             } else if model.isPeriodEmpty {
                 emptyPeriod(texts)
             } else {
-                sections(texts, expenses: expenses)
+                sections(texts)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -131,7 +137,7 @@ struct StatisticsView: View {
     }
 
     @ViewBuilder
-    private func sections(_ texts: StatsTexts, expenses: [Expense]) -> some View {
+    private func sections(_ texts: StatsTexts) -> some View {
         let mark = filterMark(texts)
 
         StatsCategorySection(
@@ -189,7 +195,7 @@ struct StatisticsView: View {
             .id(StatsAnchor.year)
         }
 
-        let top = topRows(texts, expenses: expenses)
+        let top = topRows(texts)
         if !top.isEmpty {
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 StatsSectionHeader(title: Text("stats.top.heading"), filterMark: mark)
@@ -212,8 +218,12 @@ struct StatisticsView: View {
         model.filterGroup.map(texts.filterMark)
     }
 
-    private func topRows(_ texts: StatsTexts, expenses: [Expense]) -> [ExpenseRowData] {
-        model.topIDs.compactMap { id in
+    /// Строки «Крупнейших трат»: модели — одной выборкой по `topIDs` (их не больше `StatisticsModel.topLimit`).
+    private func topRows(_ texts: StatsTexts) -> [ExpenseRowData] {
+        let ids = model.topIDs
+        guard !ids.isEmpty else { return [] }
+        let expenses = (try? modelContext.fetch(FetchDescriptor<Expense>(predicate: #Predicate { ids.contains($0.id) }))) ?? []
+        return ids.compactMap { id in
             expenses.first { $0.id == id }.map { ExpenseRowData(top: $0, dates: texts.dates) }
         }
     }

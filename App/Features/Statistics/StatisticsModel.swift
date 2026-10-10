@@ -1,15 +1,18 @@
 import Foundation
 import Observation
+import SwiftData
 import ExpenseCore
 
-/// Входные данные статистики: снимки трат и каталога (без SwiftData), период и раскрытая категория.
+/// Входные данные статистики: снимок каталога (без SwiftData), период, раскрытая категория и скрытые траты.
+/// Сами траты модель читает из базы сама (`appear(in:)`, `dataDidChange(in:)`).
 struct StatisticsInput: Equatable {
-    var records: [ExpenseRecord] = []
     var catalog = CategoryCatalogSnapshot([])
     var period: StatsPeriod
     var now: Date
     /// Раскрытая категория раздела «Категории»: фильтрует все остальные блоки (`.group`).
     var expandedID: UUID?
+    /// Траты, помеченные на удаление (`PendingDeletion.hiddenIDs`): ещё в базе, но в расчёт не идут.
+    var hiddenIDs: Set<UUID> = []
 }
 
 /// «Темп»: прогноз идущего периода (`forecast`) или итог прошедшего и накопительные кривые.
@@ -61,6 +64,12 @@ final class StatisticsModel {
 
     let engine: StatisticsEngine
     @ObservationIgnored private var hasComputed = false
+    /// Все траты базы снимками. Читаются при появлении экрана и после сохранений, а не в `body`:
+    /// перевод 20 тыс. моделей в `ExpenseRecord` и выборка — сотни миллисекунд.
+    @ObservationIgnored private var storedRecords: [ExpenseRecord] = []
+    /// База менялась после последнего чтения.
+    @ObservationIgnored private var isStale = true
+    @ObservationIgnored private var isVisible = false
 
     init(calendar: Calendar = .autoupdatingCurrent, now: Date = .now) {
         engine = StatisticsEngine(calendar: calendar)
@@ -84,13 +93,44 @@ final class StatisticsModel {
     /// Тоны ауры: крупнейшие категории периода (без фильтра).
     var auraTones: [GouacheTone] { Array(categories.groups.compactMap(\.tone).prefix(3)) }
 
+    // MARK: - Траты из базы
+
+    /// Экран появился: перечитать траты, если база менялась, пока его не было видно.
+    func appear(in context: ModelContext) {
+        isVisible = true
+        reloadIfStale(from: context)
+    }
+
+    func disappear() {
+        isVisible = false
+    }
+
+    /// База сохранена (`ModelContext.didSave`): на виду — перечитать сразу, иначе — при следующем появлении.
+    func dataDidChange(in context: ModelContext) {
+        isStale = true
+        if isVisible { reloadIfStale(from: context) }
+    }
+
+    private func reloadIfStale(from context: ModelContext) {
+        guard isStale else { return }
+        isStale = false
+        let expenses = (try? context.fetch(FetchDescriptor<Expense>())) ?? []
+        storedRecords = expenses.map(ExpenseRecord.init)
+        // До первого `update(_:)` период ещё не задан — посчитает он.
+        if hasComputed { recompute() }
+    }
+
     // MARK: - Расчёт
 
     func update(_ input: StatisticsInput) {
         guard !hasComputed || input != self.input else { return }
-        hasComputed = true
         self.input = input
-        let records = input.records
+        recompute()
+    }
+
+    private func recompute() {
+        hasComputed = true
+        let records = input.hiddenIDs.isEmpty ? storedRecords : storedRecords.filter { !input.hiddenIDs.contains($0.id) }
         let period = input.period
         let now = input.now
 
