@@ -53,6 +53,13 @@ public final class ExpenseStore {
         try context.save()
     }
 
+    /// Трата по `id`; `nil` — уже удалена.
+    public func expense(id: UUID) throws -> Expense? {
+        var descriptor = FetchDescriptor<Expense>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        return try context.fetch(descriptor).first
+    }
+
     /// Расходы с датой в полуинтервале `[start, end)` — как у `Calendar.dateInterval(of:for:)`,
     /// чтобы полночь следующего периода не попадала в текущий. Новые сверху.
     public func expenses(in interval: DateInterval) throws -> [Expense] {

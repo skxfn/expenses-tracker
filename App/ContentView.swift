@@ -1,37 +1,38 @@
 import SwiftUI
 import ExpenseCore
 
-enum AppTab: String {
-    case expenses
-    case statistics
-    case settings
-}
-
-/// Корень приложения: вкладки и форматтер сумм в окружении.
+/// Корень приложения: вкладки, общие шиты, отложенное удаление и форматтер сумм в окружении.
+/// Внешний вид таб-бара с «+» — этап «Оболочка».
 struct ContentView: View {
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
-    @State private var selectedTab = ContentView.initialTab
+    @State private var router = AppRouter(tab: ContentView.initialTab)
+    @State private var pendingDeletion = PendingDeletion()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            NavigationStack {
-                ExpensesView()
-            }
-            .tabItem { Label("Расходы", systemImage: "list.bullet.rectangle") }
-            .tag(AppTab.expenses)
+        TabView(selection: $router.tab) {
+            NavigationStack { HomeView() }
+                .tabItem { Label("tabbar.expenses", systemImage: "list.bullet.rectangle") }
+                .tag(AppTab.expenses)
 
-            NavigationStack {
-                StatisticsView()
-            }
-            .tabItem { Label("Статистика", systemImage: "chart.pie") }
-            .tag(AppTab.statistics)
+            NavigationStack { CalendarView() }
+                .tabItem { Label("tabbar.calendar", systemImage: "calendar") }
+                .tag(AppTab.calendar)
 
-            NavigationStack {
-                SettingsView()
-            }
-            .tabItem { Label("Настройки", systemImage: "gearshape") }
-            .tag(AppTab.settings)
+            NavigationStack { StatisticsView() }
+                .tabItem { Label("tabbar.statistics", systemImage: "chart.pie") }
+                .tag(AppTab.statistics)
         }
+        .sheet(item: $router.sheet) { sheet in
+            switch sheet {
+            case .expense(let mode): ExpenseSheet(mode: mode)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background { pendingDeletion.commitNow() }
+        }
+        .environment(router)
+        .environment(pendingDeletion)
         .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode))
     }
 
