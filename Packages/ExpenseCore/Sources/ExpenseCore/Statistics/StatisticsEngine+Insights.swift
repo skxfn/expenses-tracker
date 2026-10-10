@@ -11,6 +11,15 @@ extension StatisticsEngine {
         }
     }
 
+    /// «Привычки» (средние по дням недели) — только у месяца и года: у дня и недели они повторяют
+    /// столбики «По дням», у своего периода дней недели может не набраться (§4.8).
+    public func showsHabits(for period: StatsPeriod) -> Bool {
+        switch period.kind {
+        case .month, .year: true
+        case .day, .week, nil: false
+        }
+    }
+
     /// «По часам» в виде «День» — только для сегодняшнего дня: у трат прошлых дней время случайное (§8, п. 15).
     public func showsHourly(for period: StatsPeriod, now: Date) -> Bool {
         period.kind == .day && period.contains(now)

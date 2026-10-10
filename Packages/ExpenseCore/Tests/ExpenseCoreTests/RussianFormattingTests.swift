@@ -76,14 +76,16 @@ import Testing
 
     @Test func paceTargets() {
         let week = StatsPeriod.current(.week, now: F.now, calendar: F.minsk)
-        #expect(dates.paceTarget(for: week) == "к воскресенью")
+        #expect(dates.paceTarget(for: week) == "воскресенью")
         let sundayFirst = F.makeCalendar(timeZone: "Europe/Minsk", firstWeekday: 1)
         let usWeek = StatsPeriod.current(.week, now: F.now, calendar: sundayFirst)
-        #expect(RussianDateFormatter(calendar: sundayFirst, now: F.now).paceTarget(for: usWeek) == "к субботе")
+        #expect(RussianDateFormatter(calendar: sundayFirst, now: F.now).paceTarget(for: usWeek) == "субботе")
 
-        #expect(visible(dates.paceTarget(for: F.october) ?? "") == "к 31_октября")
+        #expect(visible(dates.paceTarget(for: F.october) ?? "") == "31_октября")
         let year = StatsPeriod.current(.year, now: F.now, calendar: F.minsk)
-        #expect(visible(dates.paceTarget(for: year) ?? "") == "к 31_декабря")
+        #expect(visible(dates.paceTarget(for: year) ?? "") == "31_декабря")
+        #expect(dates.hour(F.date(2026, 10, 8, 9)) == "9:00")
+        #expect(dates.hour(F.date(2026, 10, 8, 14, 30)) == "14:30")
         #expect(dates.paceTarget(for: .current(.day, now: F.now, calendar: F.minsk)) == nil)
         #expect(dates.paceTarget(for: .custom(DateInterval(start: F.date(2026, 10, 1), end: F.date(2026, 10, 3)))) == nil)
     }
