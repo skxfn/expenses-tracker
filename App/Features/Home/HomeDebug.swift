@@ -4,7 +4,8 @@ import ExpenseCore
 
 /// `-debugHome ring,range,empty,scrolled,saved` (через запятую) — состояния главной для скриншотов без касаний:
 /// `ring` — обзор «Кольцо» (настройка не меняется); `range` — свой период: 3 дня, кончающиеся вчера
-/// (как «5–7 окт» в `03-home-range`); `empty` — прошедший месяц без трат (год назад: демо-данные — 3 месяца);
+/// (как «5–7 окт» в `03-home-range`); `day`, `week`, `year` — текущий период этого вида, `past` — прошлый месяц;
+/// `empty` — прошедший месяц без трат (год назад: демо-данные — 3 месяца);
 /// `scrolled` — лента прокручена к третьему дню (виден закреплённый заголовок); `saved` — через 2 с в базу
 /// пишется копия последней траты и подсвечивается, как после «Сохранить» (база меняется!).
 /// Первый запуск — без `-demoData` на чистой установке.
@@ -33,6 +34,14 @@ enum HomeDebug {
             let yearAgo = selection.calendar.date(byAdding: .year, value: -1, to: selection.now) ?? selection.now
             selection.apply(.current(.month, now: yearAgo, calendar: selection.calendar))
             return selection
+        }
+        if options.contains("past") {
+            let selection = PeriodSelection()
+            selection.showPrevious()
+            return selection
+        }
+        if let kind = [StatsPeriodKind.day, .week, .year].first(where: { options.contains($0.rawValue) }) {
+            return PeriodSelection(kind: kind)
         }
         return nil
     }
