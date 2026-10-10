@@ -4,7 +4,7 @@ import SwiftUI
 /// Страницы DEBUG-витрины и спайков. Открыть: launch-аргумент `-debugShowcase YES` (оглавление)
 /// или `-debugShowcase <страница>` — сразу страницу (для скриншотов без касаний).
 enum ShowcasePage: String, CaseIterable, Identifiable {
-    case tokens, tones, components, glass, fonts
+    case tokens, tones, components, glass, fonts, currencySign
     case tabBarSystem, tabBarCustom, feed, addSheet
 
     var id: String { rawValue }
@@ -16,6 +16,7 @@ enum ShowcasePage: String, CaseIterable, Identifiable {
         case .components: "Компоненты"
         case .glass: "Стекло и кнопки"
         case .fonts: "Unbounded: регистрация и tnum"
+        case .currencySign: "Знак рубля: подстановка"
         case .tabBarSystem: "Спайк: системный TabView + «+»"
         case .tabBarCustom: "Спайк: свой бар поверх TabView"
         case .feed: "Спайк: лента на List"
@@ -89,6 +90,7 @@ struct ShowcaseDestination: View {
         case .components: ComponentsShowcase()
         case .glass: GlassShowcase()
         case .fonts: FontsShowcase()
+        case .currencySign: CurrencySignShowcase()
         case .tabBarSystem: TabBarSystemSpike()
         case .tabBarCustom: TabBarCustomSpike()
         case .feed: FeedSpike()
