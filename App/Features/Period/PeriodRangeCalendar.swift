@@ -66,6 +66,8 @@ struct PeriodRangeCalendar: View {
             }
             .scrollPosition($position, anchor: .top)
         }
+        // Сетка 7 × 48 жёсткая (INTEGRATION §6): крупнее — Large Content Viewer у дней, как в календаре.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .paperSheetBackground()
         .accessibilityElement(children: .contain)
         .accessibilityLabel("period.calendar.a11y")
@@ -207,6 +209,8 @@ private struct PeriodDayCell: View {
     let isShown: Bool
     @Binding var draft: PeriodRangeDraft
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     private var isFuture: Bool { day > today }
     private var isEndpoint: Bool { day == draft.start || day == draft.end }
     private var isFirstOfMonth: Bool { calendar.component(.day, from: day) == 1 }
@@ -223,6 +227,9 @@ private struct PeriodDayCell: View {
             .disabled(isFuture)
             .accessibilityLabel(accessibilityLabel)
             .accessibilityAddTraits(draft.contains(day) ? .isSelected : [])
+            .accessibilityShowsLargeContentViewer {
+                Text(verbatim: isFirstOfMonth ? dates.short(day) : number)
+            }
         } else {
             Color.clear
                 .frame(height: PeriodRangeCalendar.rowHeight)
@@ -230,8 +237,15 @@ private struct PeriodDayCell: View {
         }
     }
 
+    /// Отступ метки месяца от верха круга на крупном тексте (число 28 занимает середину круга 48).
+    private static let compactLabelInset: CGFloat = 1
+
+    private var number: String { "\(calendar.component(.day, from: day))" }
+    /// «окт» над 1-м числом.
+    private var monthLabel: String { dates.monthShort(calendar.component(.month, from: day)) }
+
     private var label: some View {
-        Text(verbatim: "\(calendar.component(.day, from: day))")
+        Text(verbatim: number)
             .typeStyle(.body)
             .monospacedDigit()
             .foregroundStyle(numberColor)
@@ -244,11 +258,15 @@ private struct PeriodDayCell: View {
                 }
             }
             .overlay(alignment: .top) {
-                if isFirstOfMonth, !isEndpoint {
-                    Text(verbatim: dates.monthShort(calendar.component(.month, from: day)))
+                // Метка месяца над 1-м числом — и на конце диапазона: иначе «1–10 окт» выглядит сентябрём.
+                // В круге 48 метке и числу тесно: метка не растёт с размером текста (месяц есть в VoiceOver
+                // и Large Content Viewer), а на крупном тексте поднимается к краю, чтобы не задеть число.
+                if isFirstOfMonth {
+                    Text(verbatim: monthLabel)
                         .typeStyle(.caption)
-                        .foregroundStyle(Theme.secondary)
-                        .padding(.top, Theme.Spacing.xs)
+                        .foregroundStyle(isEndpoint ? Theme.onInk : Theme.secondary)
+                        .dynamicTypeSize(...DynamicTypeSize.large)
+                        .padding(.top, dynamicTypeSize.isAccessibilitySize ? Self.compactLabelInset : Theme.Spacing.xs)
                 }
             }
             .frame(maxWidth: .infinity)
