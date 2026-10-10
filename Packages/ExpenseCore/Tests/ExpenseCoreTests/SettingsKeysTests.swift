@@ -9,11 +9,13 @@ import Testing
         #expect(StatsCategoryView.allCases.map(\.rawValue) == ["tiles", "strips", "sun", "ring"])
         #expect(HomeOverviewStyle.default == .tiles)
         #expect(StatsCategoryView.default == .tiles)
+        #expect(CurrencySymbolStyle.allCases.map(\.rawValue) == ["sign", "code"])
+        #expect(CurrencySymbolStyle.default == .sign)
     }
 
     @Test func keysAreUnique() {
         let keys = [
-            SettingsKeys.currencyCode, SettingsKeys.didSeedDefaultCategories,
+            SettingsKeys.currencyCode, SettingsKeys.currencySymbolStyle, SettingsKeys.didSeedDefaultCategories,
             SettingsKeys.homeOverviewStyle, SettingsKeys.statsCategoryView
         ]
         #expect(Set(keys).count == keys.count)
