@@ -1,0 +1,256 @@
+import SwiftUI
+import ExpenseCore
+
+/// Календарь шита «Период» на бумажном листе (макет `10-period`): сплошная лента недель от первого месяца
+/// до конца текущего, над первым числом месяца — «окт». Концы диапазона — графитовые круги 48 с текстом onInk,
+/// середина — полоса графит 10 % от края до края листа. Будущие дни неактивны.
+/// Сверху — месяц и год верхней видимой недели и дни недели (`cal.weekdays.*`).
+struct PeriodRangeCalendar: View {
+    let calendar: Calendar
+    /// Начало сегодняшнего дня.
+    let today: Date
+    /// С какого месяца начинать ленту.
+    let firstMonth: Date
+    @Binding var draft: PeriodRangeDraft
+
+    @State private var position = ScrollPosition(idType: Date.self)
+
+    /// Полоса между концами: графит 10 % (DESIGN.md → Period Picker).
+    static let bandOpacity: Double = 0.1
+    static let rowHeight: CGFloat = 48
+
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+                Text(verbatim: monthTitle(for: visibleWeek))
+                    .typeStyle(.headline)
+                    .foregroundStyle(Theme.ink)
+                    .padding(.horizontal, Theme.Spacing.xl)
+                    .accessibilityAddTraits(.isHeader)
+                weekdayHeader
+                    .padding(.horizontal, Theme.Spacing.screen)
+            }
+            .padding(.top, Theme.Spacing.xl)
+            .padding(.bottom, Theme.Spacing.sm)
+
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(weeks, id: \.self) { week in
+                        PeriodWeekRow(calendar: calendar, weekStart: week, today: today, firstDay: firstMonth,
+                                      lastDay: lastDay, draft: $draft)
+                    }
+                }
+                .scrollTargetLayout()
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("period.days.a11y")
+            }
+            .scrollPosition($position, anchor: .top)
+        }
+        .paperSheetBackground()
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("period.calendar.a11y")
+        .onAppear {
+            position.scrollTo(id: initialWeek, anchor: .top)
+        }
+    }
+
+    // MARK: - Шапка календаря
+
+    private var weekdayHeader: some View {
+        HStack(spacing: 0) {
+            ForEach(weekdayOrder, id: \.self) { weekday in
+                Text(Self.weekdayKey(weekday))
+                    .typeStyle(.footnote)
+                    .foregroundStyle(Theme.secondary)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    /// Нумерация `Calendar` (1 — воскресенье) в порядке недели с `calendar.firstWeekday`.
+    private var weekdayOrder: [Int] {
+        (0..<7).map { (calendar.firstWeekday - 1 + $0) % 7 + 1 }
+    }
+
+    private static func weekdayKey(_ weekday: Int) -> LocalizedStringKey {
+        switch weekday {
+        case 1: "cal.weekdays.sun"
+        case 2: "cal.weekdays.mon"
+        case 3: "cal.weekdays.tue"
+        case 4: "cal.weekdays.wed"
+        case 5: "cal.weekdays.thu"
+        case 6: "cal.weekdays.fri"
+        default: "cal.weekdays.sat"
+        }
+    }
+
+    /// «Сентябрь 2026»: месяц середины недели (у недели на стыке месяцев — того, где больше её дней).
+    private func monthTitle(for week: Date) -> String {
+        let middle = calendar.date(byAdding: .day, value: 3, to: week) ?? week
+        let month = RussianWords.month(calendar.component(.month, from: middle), .nominative)
+        return RussianWords.capitalized(month) + TextSpacing.nonBreaking + String(calendar.component(.year, from: middle))
+    }
+
+    // MARK: - Недели
+
+    private var visibleWeek: Date {
+        position.viewID(type: Date.self) ?? initialWeek
+    }
+
+    /// Последний показанный день — конец текущего месяца.
+    private var lastDay: Date {
+        let month = calendar.dateInterval(of: .month, for: today)
+        return month.flatMap { calendar.date(byAdding: .day, value: -1, to: $0.end) } ?? today
+    }
+
+    private var weeks: [Date] {
+        guard let first = weekStart(of: firstMonth) else { return [] }
+        var result: [Date] = []
+        var week = first
+        while week <= lastDay {
+            result.append(week)
+            guard let next = calendar.date(byAdding: .weekOfYear, value: 1, to: week) else { break }
+            week = next
+        }
+        return result
+    }
+
+    /// Неделя начала выбора — третьей строкой, как в макете.
+    private var initialWeek: Date {
+        let anchor = draft.start ?? today
+        let week = weekStart(of: anchor) ?? anchor
+        let shifted = calendar.date(byAdding: .weekOfYear, value: -2, to: week) ?? week
+        return max(shifted, weeks.first ?? shifted)
+    }
+
+    private func weekStart(of day: Date) -> Date? {
+        calendar.dateInterval(of: .weekOfYear, for: day)?.start
+    }
+}
+
+/// Неделя ленты: 7 дней и полоса диапазона под ними.
+private struct PeriodWeekRow: View {
+    let calendar: Calendar
+    let weekStart: Date
+    let today: Date
+    let firstDay: Date
+    let lastDay: Date
+    @Binding var draft: PeriodRangeDraft
+
+    private var days: [Date] {
+        (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: weekStart) }
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(days, id: \.self) { day in
+                PeriodDayCell(
+                    calendar: calendar,
+                    day: day,
+                    today: today,
+                    isShown: day >= calendar.startOfDay(for: firstDay) && day <= lastDay,
+                    draft: $draft
+                )
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.horizontal, Theme.Spacing.screen)
+        .frame(height: PeriodRangeCalendar.rowHeight)
+        .background { band }
+    }
+
+    /// Полоса графит 10 %: от центра конца до центра конца, через перенос недели — до края листа.
+    @ViewBuilder
+    private var band: some View {
+        if let start = draft.start, let end = draft.end, start != end,
+           let first = days.first, let last = days.last, start <= last, end >= first {
+            GeometryReader { proxy in
+                let column = (proxy.size.width - 2 * Theme.Spacing.screen) / 7
+                let center = { (day: Date) -> CGFloat in
+                    let index = calendar.dateComponents([.day], from: first, to: day).day ?? 0
+                    return Theme.Spacing.screen + column * (CGFloat(index) + 0.5)
+                }
+                let left = start < first ? 0 : center(start)
+                let right = end > last ? proxy.size.width : center(end)
+                Rectangle()
+                    .fill(Theme.ink.opacity(PeriodRangeCalendar.bandOpacity))
+                    .frame(width: max(right - left, 0))
+                    .offset(x: left)
+            }
+            .accessibilityHidden(true)
+        }
+    }
+}
+
+/// День: число SF 17; концы диапазона — графитовый круг 48; будущие — серым и неактивны.
+private struct PeriodDayCell: View {
+    let calendar: Calendar
+    let day: Date
+    let today: Date
+    let isShown: Bool
+    @Binding var draft: PeriodRangeDraft
+
+    private var isFuture: Bool { day > today }
+    private var isEndpoint: Bool { day == draft.start || day == draft.end }
+    private var isFirstOfMonth: Bool { calendar.component(.day, from: day) == 1 }
+
+    var body: some View {
+        if isShown {
+            Button {
+                draft.tap(day)
+            } label: {
+                label
+            }
+            .buttonStyle(.plain)
+            .disabled(isFuture)
+            .accessibilityLabel(accessibilityLabel)
+            .accessibilityAddTraits(draft.contains(day) ? .isSelected : [])
+        } else {
+            Color.clear
+                .frame(height: PeriodRangeCalendar.rowHeight)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var label: some View {
+        Text(verbatim: "\(calendar.component(.day, from: day))")
+            .typeStyle(.body)
+            .monospacedDigit()
+            .foregroundStyle(numberColor)
+            .frame(width: PeriodRangeCalendar.rowHeight, height: PeriodRangeCalendar.rowHeight)
+            .background {
+                if isEndpoint {
+                    Circle()
+                        .fill(Theme.ink)
+                        .paperShadow(Tokens.Shadow.segmentActive)
+                }
+            }
+            .overlay(alignment: .top) {
+                if isFirstOfMonth, !isEndpoint {
+                    Text(verbatim: RussianWords.month(calendar.component(.month, from: day), .abbreviated))
+                        .typeStyle(.caption)
+                        .foregroundStyle(Theme.secondary)
+                        .padding(.top, Theme.Spacing.xs)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+    }
+
+    private var numberColor: Color {
+        if isEndpoint { return Theme.onInk }
+        return isFuture ? Theme.tertiary : Theme.ink
+    }
+
+    private var accessibilityLabel: String {
+        let date = RussianDateFormatter(calendar: calendar, now: today).dayMonth(day)
+        if day == draft.start, draft.end != nil, draft.end != day {
+            return L10n.format("period.start.a11y", date)
+        }
+        if day == draft.end {
+            return L10n.format(day == today ? "period.end.a11y.today" : "period.end.a11y", date)
+        }
+        return date
+    }
+}
