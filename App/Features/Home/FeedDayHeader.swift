@@ -10,13 +10,14 @@ struct FeedDayHeader: View {
     let accessibilityText: String
 
     @Environment(\.moneyFormatter) private var money
+    @Environment(\.fontResolutionContext) private var fontContext
 
     /// Поля капсулы по бокам (DESIGN.md → Day Header: 14).
     private static let horizontalPadding: CGFloat = 14
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm) {
-            Text(HomePhrase.styled(title, emphasis: TypeStyle.callout))
+            Text(HomePhrase.styled(title, emphasis: TypeStyle.callout, in: fontContext))
                 .typeStyle(.callout)
                 .foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)

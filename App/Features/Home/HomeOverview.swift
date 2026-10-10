@@ -10,14 +10,16 @@ struct HomeTilesSummary: View {
     let periodName: String
     let onSelect: (CategoryVizItemID) -> Void
 
+    @Environment(\.fontResolutionContext) private var fontContext
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HomeTotal(totalMinor: content.summary.totalMinor, texts: texts)
-            Text(HomePhrase.styled(comparison, emphasis: TypeStyle.callout))
+            Text(HomePhrase.styled(comparison, emphasis: TypeStyle.callout, in: fontContext))
                 .typeStyle(.subheadline)
                 .foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, Theme.Spacing.sm)
+                .padding(.top, Theme.Spacing.md)
                 .contentTransition(.opacity)
             CategoryTilesView(homeData: content.overview, periodName: periodName, onSelect: onSelect)
                 .padding(.top, Theme.Spacing.lg)
@@ -33,9 +35,11 @@ struct HomeRingSummary: View {
     let periodName: String
     let onSelect: (CategoryVizItemID) -> Void
 
+    @Environment(\.fontResolutionContext) private var fontContext
+
     var body: some View {
         HomeCategoryRing(data: content.overview, periodName: periodName, onSelect: onSelect) {
-            Text(HomePhrase.styled(comparison, emphasis: TypeStyle.footnoteStrong))
+            Text(HomePhrase.styled(comparison, emphasis: TypeStyle.footnoteStrong, in: fontContext))
                 .contentTransition(.opacity)
         }
     }
@@ -95,13 +99,16 @@ struct HomeEmptyPeriod: View {
 }
 
 /// Выделение во фразе из `L10n.attributed`: выделенная часть — SF 600 с табличными цифрами графитом
-/// («Правило денег»: сумма внутри SF-фразы — SF 600), остальное — шрифт и цвет `Text`.
+/// («Правило денег»: сумма внутри SF-фразы — SF 600), остальное — шрифт (`typeStyle`) и цвет `Text`.
+/// Шрифт фрагмента — через `CurrencySignFont`, иначе знак рубля в сумме будет квадратом
+/// (`context` — `@Environment(\.fontResolutionContext)`).
 enum HomePhrase {
-    static func styled(_ text: AttributedString, emphasis: TypeStyle) -> AttributedString {
+    static func styled(_ text: AttributedString, emphasis: TypeStyle, in context: Font.Context) -> AttributedString {
         var result = text
+        let font = CurrencySignFont.font(emphasis.font.monospacedDigit(), in: context)
         for run in text.runs where run.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
             result[run.range].inlinePresentationIntent = nil
-            result[run.range].font = emphasis.font.monospacedDigit()
+            result[run.range].font = font
             result[run.range].foregroundColor = Theme.ink
         }
         return result

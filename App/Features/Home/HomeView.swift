@@ -99,6 +99,7 @@ struct HomeView: View {
             .task(id: highlightedID) { await fadeHighlight() }
             #if DEBUG
             .task { await HomeDebug.scrollIfRequested(content, proxy: proxy) }
+            .task { await HomeDebug.simulateSaveIfRequested(store: ExpenseStore(context: modelContext), router: router) }
             #endif
         }
     }
@@ -160,6 +161,7 @@ struct HomeView: View {
             ExpenseRow(data: row)
         }
         .buttonStyle(.pressable(Motion.PressScale.row))
+        .background { saveHighlight(row) }
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button {
                 repeatExpense(row.id)
@@ -178,15 +180,15 @@ struct HomeView: View {
         .accessibilityAction(named: Text("feed.row.a11y.delete")) { delete(row.id) }
         .accessibilityAction(named: Text("feed.row.a11y.repeat")) { repeatExpense(row.id) }
         .id(row.id)
-        .homeRow(background: rowBackground(row))
+        .homeRow(background: Theme.surface)
     }
 
-    /// Лист под строкой; у только что сохранённой — подсветка tint категории 12 %.
-    private func rowBackground(_ row: ExpenseRowData) -> some View {
-        Theme.surface.overlay {
-            CategoryPaint.main(row.tone)
-                .opacity(highlightedID == row.id ? Motion.saveHighlightOpacity : 0)
-        }
+    /// Подсветка только что сохранённой траты: tint категории 12 % на всю ширину листа.
+    /// В содержимом строки, а не в `listRowBackground`: фон строки `List` при смене состояния не обновляется.
+    private func saveHighlight(_ row: ExpenseRowData) -> some View {
+        CategoryPaint.main(row.tone)
+            .opacity(highlightedID == row.id ? Motion.saveHighlightOpacity : 0)
+            .padding(.horizontal, -Theme.Spacing.screen)
     }
 
     /// Зазор между днями: 16 до следующего заголовка (12 + его поле 4).

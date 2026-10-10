@@ -2,10 +2,11 @@
 import SwiftUI
 import ExpenseCore
 
-/// `-debugHome ring,range,empty,scrolled` (через запятую) — состояния главной для скриншотов без касаний:
+/// `-debugHome ring,range,empty,scrolled,saved` (через запятую) — состояния главной для скриншотов без касаний:
 /// `ring` — обзор «Кольцо» (настройка не меняется); `range` — свой период: 3 дня, кончающиеся вчера
 /// (как «5–7 окт» в `03-home-range`); `empty` — прошедший месяц без трат (год назад: демо-данные — 3 месяца);
-/// `scrolled` — лента прокручена к третьему дню (виден закреплённый заголовок).
+/// `scrolled` — лента прокручена к третьему дню (виден закреплённый заголовок); `saved` — через 2 с в базу
+/// пишется копия последней траты и подсвечивается, как после «Сохранить» (база меняется!).
 /// Первый запуск — без `-demoData` на чистой установке.
 enum HomeDebug {
     private static let options: Set<String> = Set(
@@ -40,6 +41,18 @@ enum HomeDebug {
         guard options.contains("scrolled"), content.days.count > 2, let target = content.days[2].rows.first?.id else { return }
         try? await Task.sleep(for: .milliseconds(600))
         proxy.scrollTo(target, anchor: .top)
+    }
+
+    /// `saved`: через 2 с записать копию последней траты и отдать её id, как «Сохранить» в шите (save-reward).
+    static func simulateSaveIfRequested(store: ExpenseStore, router: AppRouter) async {
+        guard options.contains("saved") else { return }
+        try? await Task.sleep(for: .seconds(2))
+        guard let latest = try? store.recentExpenses(limit: 1).first,
+              let saved = try? store.addExpense(
+                  amountMinor: latest.amountMinor, date: .now, note: latest.note, category: latest.category
+              )
+        else { return }
+        router.savedExpenseID = saved.id
     }
 }
 #endif
