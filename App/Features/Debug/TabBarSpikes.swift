@@ -185,6 +185,22 @@ struct AddSheetSpikeContent: View {
     @FocusState private var isAmountFocused: Bool
 
     private let tone = GouacheTone.shalfey
+    private let quickSums = [5, 10, 20, 50, 100]
+    /// `-spikeKeys group` — системная группа (одна общая капсула) вместо своих отдельных капсул.
+    private let separateKeys = UserDefaults.standard.string(forKey: "spikeKeys") != "group"
+
+    private func quickSumButton(_ value: Int) -> some View {
+        Button {
+            quickSumCount += 1
+        } label: {
+            Text(verbatim: "+\(value)")
+                .typeStyle(.amountInline)
+                .foregroundStyle(Theme.ink)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
 
     var body: some View {
         NavigationStack {
@@ -212,14 +228,25 @@ struct AddSheetSpikeContent: View {
             .padding(.top, Theme.Spacing.xl)
             .sheetHeader("Новая трата", onClose: { dismiss() })
             .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    ForEach([5, 10, 20, 50, 100], id: \.self) { value in
-                        Button {
-                            quickSumCount += 1
-                        } label: {
-                            Text(verbatim: "+\(value)")
-                                .typeStyle(.amountInline)
-                                .foregroundStyle(Theme.ink)
+                if separateKeys {
+                    // Свой ряд стеклянных клавиш 44 на всю ширину; общий фон панели снят.
+                    ToolbarItem(placement: .keyboard) {
+                        GlassEffectContainer(spacing: Theme.Spacing.sm) {
+                            HStack(spacing: Theme.Spacing.sm) {
+                                ForEach(quickSums, id: \.self) { value in
+                                    quickSumButton(value)
+                                        .frame(maxWidth: .infinity, minHeight: Theme.Size.chip)
+                                        .glass(.key)
+                                }
+                            }
+                        }
+                    }
+                    .sharedBackgroundVisibility(.hidden)
+                } else {
+                    // Системная группа: iOS 26 кладёт все пункты в одну стеклянную капсулу.
+                    ToolbarItemGroup(placement: .keyboard) {
+                        ForEach(quickSums, id: \.self) { value in
+                            quickSumButton(value)
                         }
                     }
                 }

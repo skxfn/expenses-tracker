@@ -222,7 +222,7 @@ struct ComponentsShowcase: View {
 
     private let swatches: [(String, GouacheTone?)] = [
         ("shopping-cart-1-fill", .shalfey), ("fork-knife-fill", .abrikos), ("teacup-fill", .abrikos),
-        ("car-fill", .kobalt), ("movie-fill", .ametist), (CategoryPaint.uncategorizedIconName, nil),
+        ("car-fill", .kobalt), (CategoryPaint.uncategorizedIconName, nil),
     ]
 
     var body: some View {

@@ -3,9 +3,11 @@ import SwiftUI
 import ExpenseCore
 
 /// Спайк ленты (§6, §7 этап 0): `List(.plain)` + `swipeActions` + липкие стеклянные заголовки дней +
-/// бумажный лист r 28 фоном строк + шапка в `safeAreaInset(edge: .top)`.
+/// бумажный лист r 28 фоном строк + шапка над списком.
 /// Аргументы: `-spikeEdge hidden|soft|hard` — край скролла (по умолчанию системный),
-/// `-spikeScrolled YES` — сразу прокрутить к третьему дню (видно закреплённый заголовок).
+/// `-spikeScrolled YES` — сразу прокрутить к третьему дню (видно закреплённый заголовок),
+/// `-spikeTopBar inset|bar` — шапка в `safeAreaInset(edge: .top)` или `safeAreaBar(edge: .top)` (iOS 26)
+/// вместо рекомендуемой «шапка над List в VStack»: у них закреплённый заголовок дня уезжает под статус-бар.
 struct FeedSpike: View {
     var body: some View {
         FeedSpikeContent()
@@ -18,6 +20,7 @@ struct FeedSpikeContent: View {
 
     private let edge = UserDefaults.standard.string(forKey: "spikeEdge")
     private let startsScrolled = UserDefaults.standard.bool(forKey: "spikeScrolled")
+    private let topBar = UserDefaults.standard.string(forKey: "spikeTopBar")
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -74,10 +77,8 @@ struct FeedSpikeContent: View {
             .listSectionSpacing(0)
             .environment(\.defaultMinListRowHeight, 0)
             .modifier(SpikeEdgeEffect(mode: edge))
+            .modifier(SpikeTopBar(mode: topBar))
             .background { AuraBackground(tones: [.shalfey, .abrikos]).ignoresSafeArea() }
-            .safeAreaInset(edge: .top, spacing: Theme.Spacing.md) {
-                SpikeHomeHeader()
-            }
             .task {
                 guard startsScrolled, let target = SpikeSamples.days[2].rows.first?.id else { return }
                 try? await Task.sleep(for: .milliseconds(400))
@@ -93,6 +94,24 @@ struct FeedSpikeContent: View {
 
     private var rowInsets: EdgeInsets {
         EdgeInsets(top: 0, leading: Theme.Spacing.screen, bottom: 0, trailing: Theme.Spacing.screen)
+    }
+}
+
+private struct SpikeTopBar: ViewModifier {
+    let mode: String?
+
+    func body(content: Content) -> some View {
+        switch mode {
+        case "bar":
+            content.safeAreaBar(edge: .top, spacing: Theme.Spacing.md) { SpikeHomeHeader() }
+        case "inset":
+            content.safeAreaInset(edge: .top, spacing: Theme.Spacing.md) { SpikeHomeHeader() }
+        default:
+            VStack(spacing: Theme.Spacing.md) {
+                SpikeHomeHeader()
+                content
+            }
+        }
     }
 }
 
