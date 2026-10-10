@@ -119,13 +119,13 @@ struct HomeView: View {
                 .padding(.vertical, Theme.Spacing.xl)
                 .sheetTopRow(sheetTop)
         case .emptyPeriod(let latest):
-            HomeEmptyPeriod(message: texts.emptyPeriod(period.period, isCurrent: period.isCurrent)) {
+            HomeEmptyPeriod(message: texts.shared.emptyPeriod(period.period)) {
                 showLatestExpense(latest)
             }
             .padding(.vertical, Theme.Spacing.xl)
             .sheetTopRow(sheetTop)
         case .filled:
-            let comparison = texts.comparison(content.summary, period: period.period)
+            let comparison = texts.shared.comparison(content.summary, period: period.period)
             let periodName = texts.periodName(period.period)
             switch overviewStyle {
             case .tiles:

@@ -56,7 +56,7 @@ private struct HomeTotal: View {
             value: Double(totalMinor),
             size: .total,
             currency: texts.money.currencySymbol,
-            accessibilityText: texts.spoken(totalMinor)
+            accessibilityText: texts.shared.spoken(totalMinor)
         )
         .minimumScaleFactor(0.5)
     }

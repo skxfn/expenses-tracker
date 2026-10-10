@@ -40,7 +40,7 @@ struct StatsPaceView: View {
                 value: Double(forecast.roundedMinor),
                 size: .total,
                 currency: money.currencySymbol,
-                accessibilityText: texts.spoken(forecast.roundedMinor)
+                accessibilityText: texts.shared.spoken(forecast.roundedMinor)
             )
         } else {
             AmountText(
@@ -48,7 +48,7 @@ struct StatsPaceView: View {
                 value: Double(pace.totalMinor),
                 size: .total,
                 currency: money.currencySymbol,
-                accessibilityText: texts.spoken(pace.totalMinor)
+                accessibilityText: texts.shared.spoken(pace.totalMinor)
             )
         }
     }

@@ -1,15 +1,17 @@
 import Foundation
 import ExpenseCore
 
-/// Строки статистики: ключи каталога (`stats.*`, `home.compare*`, `range.compare`, `home.empty.period.*`,
-/// `a11y.money`) + данные через форматтеры Core. Даты — `RussianDateFormatter` (D7), суммы — `MoneyFormatter.Style`.
+/// Строки статистики: ключи каталога (`stats.*`) + данные через форматтеры Core; сравнение, пустой период
+/// и озвучка сумм — общие с главной (`shared`). Даты — `RussianDateFormatter` (D7), суммы — `MoneyFormatter.Style`.
 struct StatsTexts {
     let money: MoneyFormatter
     let dates: RussianDateFormatter
+    let shared: SummaryTexts
 
     init(money: MoneyFormatter, calendar: Calendar, now: Date) {
         self.money = money
         dates = RussianDateFormatter(calendar: calendar, now: now)
+        shared = SummaryTexts(money: money, dates: dates)
     }
 
     private var calendar: Calendar { dates.calendar }
@@ -41,18 +43,6 @@ struct StatsTexts {
         }
     }
 
-    /// «на **38 ⃅ меньше**, чем в прошлом месяце» и формы (D5): больше / примерно как / трат не было.
-    func comparison(_ summary: StatsSummary) -> AttributedString {
-        let reference = comparisonReference(summary.comparisonReference)
-        let difference = money.string(fromMinor: summary.differenceMinor, style: .difference)
-        switch summary.trend {
-        case .less: return L10n.attributed("home.compare", difference, reference)
-        case .more: return L10n.attributed("home.compare.more", difference, reference)
-        case .same: return AttributedString(L10n.format("home.compare.same", reference))
-        case .noPrevious: return AttributedString(L10n.format("home.compare.noPrev", reference))
-        }
-    }
-
     /// «18 трат · в среднем 51,54 ⃅ в день».
     func meta(_ summary: StatsSummary) -> String {
         L10n.format("stats.summary.meta", summary.count, money.string(fromMinor: summary.averagePerDayMinor))
@@ -61,31 +51,6 @@ struct StatsTexts {
     /// Пометка отфильтрованного блока: «только Продукты».
     func filterMark(_ group: CategoryVizGroup) -> String {
         L10n.format("viz.drill.filter", VizText.name(group))
-    }
-
-    // MARK: - Пустой период
-
-    /// «В сентябре трат не было», «В октябре пока нет трат», «Сегодня пока нет трат», «6 окт трат не было»,
-    /// «С 2 по 4 окт трат не было» (`home.empty.period.*`): «пока нет» — период идёт, «не было» — прошёл.
-    func emptyPeriod(_ period: StatsPeriod) -> String {
-        let isCurrent = period.contains(now)
-        let start = period.interval.start
-        switch period.kind {
-        case .day:
-            return isCurrent
-                ? L10n.format("home.empty.period.day.current")
-                : L10n.format("home.empty.period.day.past", dates.short(start))
-        case .week where isCurrent:
-            return L10n.format("home.empty.period.week.current")
-        case .month:
-            let month = RussianWords.month(calendar.component(.month, from: start), .prepositional)
-            return L10n.format(isCurrent ? "home.empty.period.in.current" : "home.empty.period.in.past", month)
-        case .year:
-            return L10n.format(isCurrent ? "home.empty.period.in.current" : "home.empty.period.in.past", yearText(start))
-        case .week, nil:
-            // Своего «пока нет» для диапазона в copy.json нет — и для идущего свой период «не было».
-            return rangePast(period)
-        }
     }
 
     // MARK: - Названия периода
@@ -126,7 +91,7 @@ struct StatsTexts {
         case .month: RussianWords.capitalized(monthName(start)) + yearSuffix(start)
         case .day, .week: relativeDay(start) ?? dates.full(start)
         }
-        return title + ", " + spoken(bucket.totalMinor)
+        return title + ", " + shared.spoken(bucket.totalMinor)
     }
 
     /// Подпись под столбиком: число дня, «пн» у недели, час, «Янв» у года.
@@ -221,7 +186,7 @@ struct StatsTexts {
         if let currentDay {
             parts.append(L10n.format(
                 "stats.pace.a11y.current",
-                RussianWords.capitalized(periodName(period)), spoken(currentDay.cumulativeMinor), dayNumber
+                RussianWords.capitalized(periodName(period)), shared.spoken(currentDay.cumulativeMinor), dayNumber
             ))
         }
         let previous = pace.comparison.previous
@@ -231,11 +196,11 @@ struct StatsTexts {
             let name = RussianWords.capitalized(periodName(previousPeriod))
             // «… и 1 580 рублей за месяц» — строка есть только для месяца.
             parts.append(period.kind == .month
-                ? L10n.format("stats.pace.a11y.previous", name, spoken(sameDay.cumulativeMinor), dayNumber, spoken(previousTotal.cumulativeMinor))
-                : L10n.format("stats.pace.a11y.current", name, spoken(sameDay.cumulativeMinor), dayNumber))
+                ? L10n.format("stats.pace.a11y.previous", name, shared.spoken(sameDay.cumulativeMinor), dayNumber, shared.spoken(previousTotal.cumulativeMinor))
+                : L10n.format("stats.pace.a11y.current", name, shared.spoken(sameDay.cumulativeMinor), dayNumber))
         }
         if let forecast = pace.forecast {
-            parts.append(L10n.format("stats.pace.a11y.forecast", periodName(period), spoken(forecast.roundedMinor)))
+            parts.append(L10n.format("stats.pace.a11y.forecast", periodName(period), shared.spoken(forecast.roundedMinor)))
         }
         return parts.joined(separator: " ")
     }
@@ -264,7 +229,7 @@ struct StatsTexts {
     /// `stats.habits.a11y`: «В среднем за день: понедельник — 72 рубля, …».
     func habitsAccessibility(_ habits: StatsHabits) -> String {
         let items = habits.averages.map { average in
-            L10n.format("stats.habits.a11y.item", RussianWords.weekday(average.weekday, .nominative), spoken(average.averageMinor))
+            L10n.format("stats.habits.a11y.item", RussianWords.weekday(average.weekday, .nominative), shared.spoken(average.averageMinor))
         }
         return L10n.format("stats.habits.a11y", items.joined(separator: ", "))
     }
@@ -278,45 +243,11 @@ struct StatsTexts {
         let lastData = min(last, calendar.startOfDay(for: now))
         return L10n.format(
             "stats.year.a11y",
-            String(year.year), spoken(year.scale.thresholds.last ?? 0), dates.dayMonth(first), dates.dayMonth(lastData)
+            String(year.year), shared.spoken(year.scale.thresholds.last ?? 0), dates.dayMonth(first), dates.dayMonth(lastData)
         )
     }
 
-    // MARK: - Общее
-
-    /// `a11y.money`: «142,60 рубля», «5 рублей», «1 рубль».
-    func spoken(_ minor: Int64) -> String {
-        minor % Money.minorUnitsPerMajor == 0
-            ? L10n.format("a11y.money", minor / Money.minorUnitsPerMajor)
-            : L10n.format("a11y.money.fraction", money.string(fromMinor: minor, style: .plain))
-    }
-
     // MARK: - Внутреннее
-
-    private func comparisonReference(_ reference: StatsComparisonReference) -> String {
-        switch reference {
-        case .yesterday: L10n.format("home.compare.day.current")
-        case .dayBefore: L10n.format("home.compare.day.past")
-        case .lastWeek: L10n.format("home.compare.week.current")
-        case .lastMonth: L10n.format("home.compare.month.current")
-        case .lastYear: L10n.format("home.compare.year.current")
-        case .month(let month): L10n.format("home.compare.month.past", RussianWords.month(month, .prepositional))
-        case .year(let year): L10n.format("home.compare.year.past", String(year))
-        case .range(let interval): L10n.format("range.compare", dates.range(interval))
-        }
-    }
-
-    /// «С 2 по 4 окт трат не было»: месяц у начала — только если он другой; один день — «6 окт трат не было».
-    private func rangePast(_ period: StatsPeriod) -> String {
-        let first = period.interval.start
-        let last = StatisticsModel.lastDay(of: period, calendar: calendar)
-        guard !calendar.isDate(first, inSameDayAs: last) else {
-            return L10n.format("home.empty.period.day.past", dates.short(first))
-        }
-        let sameMonth = calendar.isDate(first, equalTo: last, toGranularity: .month)
-        let from = sameMonth ? String(calendar.component(.day, from: first)) : dates.short(first)
-        return L10n.format("home.empty.period.range.past", from, dates.short(last))
-    }
 
     /// «Сегодня» / «Вчера» (`header.title.day.*`) или `nil`.
     private func relativeDay(_ day: Date) -> String? {
