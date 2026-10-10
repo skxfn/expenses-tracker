@@ -6,6 +6,7 @@ import ExpenseCore
 /// - `-statsPeriod day|yesterday|week|year|range|past|pastYear` — период (`range` — 3 дня до вчера, как `05-stats-range`);
 /// - `-statsExpand YES|<имя>` — раскрыть самую крупную раскрываемую категорию или категорию по имени;
 /// - `-statsScroll categories|days|pace|habits|year|top` — прокрутить к блоку;
+/// - `-statsFocus <имя>` — как тап по плитке на главной: `AppRouter.openStatistics` с прошлым месяцем и категорией;
 /// - вид категорий — ключ настроек напрямую: `-statsCategoryView tiles|strips|sun|ring`.
 enum StatsDebugOptions {
     static func applyPeriod(to selection: PeriodSelection, defaults: UserDefaults = .standard) {
@@ -37,6 +38,12 @@ enum StatsDebugOptions {
         let expandable = data.groups.filter(\.isExpandable)
         let named = expandable.first { $0.name == value }
         return (named ?? (defaults.bool(forKey: "statsExpand") ? expandable.first : nil))?.id
+    }
+
+    /// Категория верхнего уровня по имени для `-statsFocus`; `nil` — аргумента нет или такой категории нет.
+    static func focusGroup(in catalog: CategoryCatalogSnapshot, defaults: UserDefaults = .standard) -> UUID? {
+        guard let name = defaults.string(forKey: "statsFocus") else { return nil }
+        return catalog.entries.values.first { $0.parentID == nil && $0.name == name }?.id
     }
 
     static func scroll(_ proxy: ScrollViewProxy, defaults: UserDefaults = .standard) async {

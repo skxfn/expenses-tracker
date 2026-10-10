@@ -76,6 +76,12 @@ struct StatisticsView: View {
                 expandedID = id
             }
         }
+        .task {
+            try? await Task.sleep(for: .seconds(1))
+            if let id = StatsDebugOptions.focusGroup(in: model.input.catalog) {
+                router.openStatistics(period: selection.period.previous(in: selection.calendar), groupID: id)
+            }
+        }
         #endif
     }
 

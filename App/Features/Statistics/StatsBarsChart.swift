@@ -92,7 +92,8 @@ struct StatsBarsChart: View {
         }
         .frame(height: StatsLayout.barsHeight)
         .padding(.top, StatsLayout.tooltipSpace)
-        .animation(Motion.animation(Motion.chartTooltip, reduceMotion: reduceMotion), value: shownIndex)
+        // При Reduce Motion подсказка переставляется без движения (§3.6).
+        .animation(reduceMotion ? nil : Motion.chartTooltip, value: shownIndex)
         .sensoryFeedback(Haptic.selection, trigger: selectedIndex)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: texts.seriesAccessibility(period, step: series.step)))
