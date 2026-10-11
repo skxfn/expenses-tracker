@@ -5,7 +5,8 @@ import ExpenseCore
 /// DEBUG-витрина визуализаций категорий: `-debugShowcase viz` (страница `ShowcasePage.viz`).
 /// Аргументы для скриншотов без касаний (панель выбора тогда скрыта):
 /// - `-vizView home|homeRing|tiles|strips|sun|ring` — что показать;
-/// - `-vizData demo|many|uncategorized|few|one|empty` — набор данных (по умолчанию `demo`, как на макетах);
+/// - `-vizData demo|many|uncategorized|few|one|empty|dominant|dominantPair` — набор данных (по умолчанию `demo`,
+///   как на макетах);
 /// - `-vizExpand YES` — раскрыть первую раскрываемую категорию; `-vizLevel categories` — уровень плиток;
 /// - `-vizToggle YES` — раскрывать и сворачивать каждые 2,5 с (проверка анимаций).
 struct CategoryVizShowcase: View {
@@ -183,6 +184,10 @@ enum VizDemoDataset: String, CaseIterable {
     case one
     /// Пусто.
     case empty
+    /// «Без категории» — 99,9 %, остальные свёрнуты в «Ещё N» (плитка «Ещё N» не уже `tileMinSide`).
+    case dominant
+    /// Одна категория — 99,8 %, вторая — 0,2 % (одна мелкая в «Ещё N» не сворачивается).
+    case dominantPair
 
     var title: String {
         switch self {
@@ -192,6 +197,8 @@ enum VizDemoDataset: String, CaseIterable {
         case .few: "Две категории"
         case .one: "Одна категория"
         case .empty: "Пусто"
+        case .dominant: "Одна на 99,9 %, «Ещё N»"
+        case .dominantPair: "Одна на 99,8 % и мелкая"
         }
     }
 }
@@ -285,6 +292,12 @@ enum VizDemo {
             groups = [mockup[0]]
         case .empty:
             groups = []
+        case .dominant:
+            groups = mockup
+            uncategorized = [44_455_500]
+        case .dominantPair:
+            groups = [mockup[0], mockup[6]]
+            groups[0].direct = [1_000_000]
         }
         return make(groups, uncategorized: uncategorized)
     }

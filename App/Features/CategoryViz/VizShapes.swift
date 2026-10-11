@@ -146,10 +146,12 @@ nonisolated struct TileCorners: Sendable, Hashable {
 }
 
 /// Раскладка плиток с зазором: соседние плитки разведены на `gap`, внешние края совпадают с полем.
+/// `minSide` — наименьшая сторона плитки (0 — строго по площади).
 nonisolated enum TileLayout {
-    static func rects(_ values: [Double], in field: CGRect, gap: CGFloat) -> [CGRect] {
+    static func rects(_ values: [Double], in field: CGRect, gap: CGFloat, minSide: CGFloat = 0) -> [CGRect] {
         let half = gap / 2
-        return Treemap.squarify(values, in: field.insetBy(dx: -half, dy: -half)).map { rect in
+        let outer = field.insetBy(dx: -half, dy: -half)
+        return Treemap.squarify(values, in: outer, minSide: minSide > 0 ? minSide + gap : 0).map { rect in
             guard rect.width > gap, rect.height > gap else { return CGRect(origin: rect.origin, size: .zero) }
             return rect.insetBy(dx: half, dy: half)
         }

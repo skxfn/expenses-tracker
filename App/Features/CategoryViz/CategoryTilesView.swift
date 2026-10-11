@@ -90,7 +90,8 @@ struct CategoryTilesView: View {
     var body: some View {
         let field = CGRect(x: 0, y: 0, width: width, height: height)
         let items = data.itemsBySum
-        let rects = TileLayout.rects(items.map { Double($0.totalMinor) }, in: field, gap: Theme.Spacing.categoryGap)
+        let rects = TileLayout.rects(items.map { Double($0.totalMinor) }, in: field, gap: Theme.Spacing.categoryGap,
+                                     minSide: VizMetrics.tileMinSide)
         ZStack(alignment: .topLeading) {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 itemTile(item, overview: rects[index], field: field)
@@ -349,6 +350,8 @@ private struct TileLabels: View {
         }
         .frame(width: content.width, height: content.height, alignment: .topLeading)
         .padding(VizMetrics.tilePadding)
+        // Подписи не раздвигают плитку: у плитки уже двух отступов они обрезаются, а не выносят заливку за поле.
+        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
         .foregroundStyle(color)
         .accessibilityHidden(true)
     }

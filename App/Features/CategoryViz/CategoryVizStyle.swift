@@ -25,6 +25,10 @@ nonisolated enum VizMetrics {
     /// Мини-образец цвета внутри «Ещё N».
     static let miniSwatch: CGFloat = 8
     static let miniSwatchGap: CGFloat = 3
+    /// Самая узкая плитка категории: видна, касаема, и в «Ещё N» помещается мини-образец. Без порога при одной
+    /// категории на 97 % и больше остальные сжимались в полоску уже зазора. Узкие плитки макета `01-home` (≈ 30)
+    /// порог не трогает.
+    static let tileMinSide: CGFloat = 2 * tilePadding + miniSwatch
 
     // MARK: Полосы (design.json → components «Полосы (статистика)»)
 

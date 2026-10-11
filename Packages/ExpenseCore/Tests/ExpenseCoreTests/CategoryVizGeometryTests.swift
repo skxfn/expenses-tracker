@@ -44,6 +44,41 @@ import Testing
         #expect(Treemap.squarify([0], in: field) == [CGRect(origin: .zero, size: .zero)])
     }
 
+    @Test func minSideLeavesOrdinaryLayoutUnchanged() {
+        // Как на макете 01-home: самая узкая плитка ≈ 30 — при пороге 28 раскладка та же.
+        let values: [Double] = [142.6, 86.4, 44, 38, 31.99, 25.61, 25, 18.7]
+        #expect(Treemap.squarify(values, in: field, minSide: 28) == Treemap.squarify(values, in: field))
+    }
+
+    @Test(arguments: [[997.0, 3], [9_990, 6, 4], [455_000, 1_200, 900, 500]])
+    func minSideKeepsSmallValuesVisible(values: [Double]) {
+        // Одна категория на 99 %: без порога остальные — полоски уже пункта.
+        let minSide: CGFloat = 31
+        let rects = Treemap.squarify(values, in: field, minSide: minSide)
+        for rect in rects {
+            #expect(min(rect.width, rect.height) >= minSide)
+            #expect(field.insetBy(dx: -0.001, dy: -0.001).contains(rect))
+        }
+        #expect(abs(rects.map(area).reduce(0, +) - area(field)) < 0.5)
+        for i in rects.indices {
+            for j in rects.indices where j > i {
+                let overlap = rects[i].intersection(rects[j])
+                #expect(overlap.isNull || area(overlap) < 0.01)
+            }
+        }
+        // Крупная остаётся крупной.
+        #expect(area(rects[0]) > area(field) * 0.7)
+    }
+
+    @Test func minSideGivesUpWhenFieldIsTooSmall() {
+        // 40 значений по 31 pt на поле 358 × 208 не помещаются: раскладка всё равно покрывает поле.
+        let values = Array(repeating: 1.0, count: 40) + [1_000]
+        let rects = Treemap.squarify(values, in: field, minSide: 31)
+        #expect(abs(rects.map(area).reduce(0, +) - area(field)) < 0.5)
+        // Порог больше поля — обычная раскладка.
+        #expect(Treemap.squarify([5, 1], in: field, minSide: 300) == Treemap.squarify([5, 1], in: field))
+    }
+
     @Test func ringArcsKeepGapsAndOrderFromTop() {
         let gap = 0.02
         let arcs = RingLayout.arcs([3, 1], gap: gap)

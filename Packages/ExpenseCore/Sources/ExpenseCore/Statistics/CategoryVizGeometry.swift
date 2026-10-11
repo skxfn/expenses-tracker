@@ -34,6 +34,35 @@ public enum Treemap {
         return result
     }
 
+    /// Как `squarify(_:in:)`, но короткая сторона прямоугольника каждого положительного значения — не меньше
+    /// `minSide`: мелким значениям площадь прибавляется за счёт остальных, за несколько проходов. Иначе при одной
+    /// категории на 99 % остальные сжимаются в невидимую полоску. Если места на всех не хватает,
+    /// после `minSideIterations` проходов возвращается последняя раскладка.
+    public static func squarify(_ values: [Double], in rect: CGRect, minSide: CGFloat) -> [CGRect] {
+        var weights = values
+        var rects = squarify(weights, in: rect)
+        guard minSide > 0, minSide <= min(rect.width, rect.height) else { return rects }
+        for _ in 0..<minSideIterations {
+            var isChanged = false
+            for index in values.indices where values[index] > 0 && values[index].isFinite {
+                let side = min(rects[index].width, rects[index].height)
+                guard side < minSide else { continue }
+                // В полосе вдоль стороны поля площадь растёт вместе с короткой стороной. Цель — с запасом:
+                // остальные сжимаются, и подгонка подходит к цели снизу.
+                weights[index] *= Double((minSide + minSideMargin) / max(side, minSideMargin))
+                isChanged = true
+            }
+            guard isChanged else { break }
+            rects = squarify(weights, in: rect)
+        }
+        return rects
+    }
+
+    /// Запас цели подгонки: без него сторона подходит к `minSide` снизу и не достигает его.
+    static let minSideMargin: CGFloat = 0.5
+    /// Проходов на подгонку мелких прямоугольников: при одной крупной категории хватает двух-трёх.
+    static let minSideIterations = 8
+
     /// Худшее соотношение сторон в ряду вдоль стороны `side`.
     private static func worstRatio(_ row: [Double], side: Double) -> Double {
         let sum = row.reduce(0, +)
