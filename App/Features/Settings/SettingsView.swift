@@ -130,9 +130,9 @@ struct SettingsView: View {
             SettingsGroup(header: "settings.backup.heading") {
                 // Сохранение и восстановление висят на разных кнопках: два файловых окна на одном view конфликтуют.
                 Button {
-                    backup.prepareExport(context: modelContext, currencyCode: currencyCode)
+                    Task { await backup.prepareExport(context: modelContext, currencyCode: currencyCode) }
                 } label: {
-                    actionRow("settings.backup.export", systemImage: "square.and.arrow.up")
+                    actionRow("settings.backup.export", systemImage: "square.and.arrow.up", isBusy: backup.isPreparingExport)
                 }
                 .fileExporter(
                     isPresented: $backup.isExporterPresented,
@@ -150,16 +150,18 @@ struct SettingsView: View {
                 Button {
                     backup.isImporterPresented = true
                 } label: {
-                    actionRow("settings.backup.import", systemImage: "square.and.arrow.down")
+                    actionRow("settings.backup.import", systemImage: "square.and.arrow.down", isBusy: backup.isReadingImport)
                 }
                 .fileImporter(
                     isPresented: $backup.isImporterPresented,
                     allowedContentTypes: BackupDocument.readableContentTypes
                 ) { result in
-                    backup.openImportedFile(result)
+                    Task { await backup.openImportedFile(result) }
                 }
             }
             .buttonStyle(.pressable(Motion.PressScale.row))
+            // Пока копия готовится или читается, повторное нажатие ничего не запускает.
+            .disabled(backup.isBusy)
         }
     }
 
@@ -176,13 +178,19 @@ struct SettingsView: View {
         }
     }
 
-    /// Строка-действие: подпись слева, иконка справа (макет: «Сохранить копию ⇪»).
-    private func actionRow(_ title: LocalizedStringKey, systemImage: String) -> some View {
+    /// Строка-действие: подпись слева, иконка справа (макет: «Сохранить копию ⇪»); пока действие идёт —
+    /// индикатор вместо иконки.
+    private func actionRow(_ title: LocalizedStringKey, systemImage: String, isBusy: Bool) -> some View {
         SettingsRow(title: title) {
-            Image(systemName: systemImage)
-                .typeStyle(.headline)
-                .foregroundStyle(Theme.secondary)
-                .accessibilityHidden(true)
+            if isBusy {
+                // TODO(copy): подписи «идёт сохранение/восстановление» в copy.json нет — VoiceOver назовёт системное «Выполняется».
+                ProgressView()
+            } else {
+                Image(systemName: systemImage)
+                    .typeStyle(.headline)
+                    .foregroundStyle(Theme.secondary)
+                    .accessibilityHidden(true)
+            }
         }
     }
 
