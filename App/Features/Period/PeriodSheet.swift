@@ -13,6 +13,7 @@ struct PeriodSheet: View {
     @Environment(PendingDeletion.self) private var pendingDeletion
     @Environment(\.moneyFormatter) private var money
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var draft: PeriodRangeDraft
 
@@ -97,11 +98,17 @@ struct PeriodSheet: View {
 
     private var rangeLine: some View {
         let total = rangeTotalMinor
-        return ViewThatFits(in: .horizontal) {
-            rangeLine(meta: fullMeta(total: total))
-                .fixedSize(horizontal: true, vertical: false)
-            rangeLine(meta: shortMeta)
-                .minimumScaleFactor(0.7)
+        return Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                accessibleRangeLine(meta: fullMeta(total: total))
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    rangeLine(meta: fullMeta(total: total))
+                        .fixedSize(horizontal: true, vertical: false)
+                    rangeLine(meta: shortMeta)
+                        .minimumScaleFactor(0.7)
+                }
+            }
         }
         .lineLimit(1)
         .accessibilityElement(children: .ignore)
@@ -110,19 +117,67 @@ struct PeriodSheet: View {
 
     private func rangeLine(meta: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm) {
-            Text(verbatim: L10n.format("period.range.from", formatter.short(draft.start ?? selection.today)))
-                .typeStyle(.headline)
-                .foregroundStyle(Theme.ink)
-            Image(systemName: "arrow.right")
-                .font(.system(size: TypeStyle.amountInline.size, weight: .semibold))
-                .foregroundStyle(Theme.secondary)
-            Text(verbatim: L10n.format("period.range.to", draft.end.map(formatter.short) ?? "…"))
-                .typeStyle(.headline)
-                .foregroundStyle(draft.isAwaitingEnd ? Theme.secondary : Theme.ink)
-            Text(verbatim: meta)
-                .typeStyle(.subheadline)
-                .foregroundStyle(Theme.secondary)
+            rangeStart
+            rangeArrow
+            rangeEnd
+            rangeMeta(meta)
         }
+    }
+
+    /// Крупный текст: строка, пока влезает (с суммой или без); дальше даты над длиной и суммой,
+    /// а если и даты не влезают — «По …» своей строкой. Сумма в переносе остаётся: место по высоте есть.
+    private func accessibleRangeLine(meta: String) -> some View {
+        let metaLine = rangeMeta(Self.withoutSeparator(meta))
+        return ViewThatFits(in: .horizontal) {
+            rangeLine(meta: meta)
+                .fixedSize(horizontal: true, vertical: false)
+            rangeLine(meta: shortMeta)
+                .fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm) {
+                    rangeStart
+                    rangeArrow
+                    rangeEnd
+                }
+                metaLine
+            }
+            .fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm) {
+                    rangeStart
+                    rangeArrow
+                }
+                rangeEnd
+                metaLine
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var rangeStart: some View {
+        Text(verbatim: L10n.format("period.range.from", formatter.short(draft.start ?? selection.today)))
+            .typeStyle(.headline)
+            .foregroundStyle(Theme.ink)
+    }
+
+    private var rangeArrow: some View {
+        Image(systemName: "arrow.right")
+            .font(.system(size: TypeStyle.amountInline.size, weight: .semibold))
+            .foregroundStyle(Theme.secondary)
+    }
+
+    private var rangeEnd: some View {
+        Text(verbatim: L10n.format("period.range.to", draft.end.map(formatter.short) ?? "…"))
+            .typeStyle(.headline)
+            .foregroundStyle(draft.isAwaitingEnd ? Theme.secondary : Theme.ink)
+    }
+
+    private func rangeMeta(_ meta: String) -> some View {
+        Text(verbatim: meta)
+            .typeStyle(.subheadline)
+            .foregroundStyle(Theme.secondary)
     }
 
     /// Сумма диапазона, округлённая до целых; `nil` — конец ещё не выбран (`period.range.single`).
@@ -142,15 +197,15 @@ struct PeriodSheet: View {
     private func rangeAccessibility(total: Int64?) -> String {
         let start = L10n.format("period.range.from", formatter.dayMonth(draft.start ?? selection.today))
         guard let total, let end = draft.end else {
-            return start + ", " + Self.spokenMeta(String(localized: "period.range.single"))
+            return start + ", " + Self.withoutSeparator(String(localized: "period.range.single"))
         }
         let range = start + " " + String(localized: "period.range.arrow.a11y") + " " + formatter.dayMonth(end)
         let spokenTotal = SummaryTexts(money: money, dates: formatter).spoken(total)
-        return range + ", " + Self.spokenMeta(L10n.format("period.range.meta", dayCount, spokenTotal))
+        return range + ", " + Self.withoutSeparator(L10n.format("period.range.meta", dayCount, spokenTotal))
     }
 
-    /// «· 15 дней ≈ …» → «15 дней ≈ …»: «·» VoiceOver не читают (INTEGRATION §5.3).
-    private static func spokenMeta(_ meta: String) -> String {
+    /// «· 15 дней ≈ …» → «15 дней ≈ …»: своей строкой «·» не нужна, а VoiceOver её не читают (INTEGRATION §5.3).
+    private static func withoutSeparator(_ meta: String) -> String {
         meta.replacingOccurrences(of: "·", with: "").trimmingCharacters(in: .whitespaces)
     }
 
@@ -196,13 +251,30 @@ struct PeriodSheet: View {
         return calendar.dateInterval(of: .month, for: earliest)?.start ?? earliest
     }
 
+    /// Сумма трат в `[start, end)` без ждущих удаления. Траты отсортированы по дате (`@Query`): границы —
+    /// двоичным поиском, суммируются только траты диапазона. Перевод всех трат в `ExpenseRecord` на каждом
+    /// касании календаря стоил ≈ 6 мкс на трату.
     private func totalMinor(in interval: DateInterval) -> Int64 {
         let hidden = pendingDeletion.hiddenIDs
-        let records = expenses.lazy
-            .filter { !hidden.contains($0.id) }
-            .map { ExpenseRecord($0) }
-        let engine = StatisticsEngine(calendar: selection.calendar)
-        return engine.summary(for: .custom(interval), records: Array(records), now: selection.now).totalMinor
+        let range = firstIndex(notBefore: interval.start)..<firstIndex(notBefore: interval.end)
+        return expenses[range].reduce(0) { total, expense in
+            hidden.isEmpty || !hidden.contains(expense.id) ? total + expense.amountMinor : total
+        }
+    }
+
+    /// Индекс первой траты с датой не раньше `date` (`expenses.count`, если таких нет).
+    private func firstIndex(notBefore date: Date) -> Int {
+        var low = expenses.startIndex
+        var high = expenses.endIndex
+        while low < high {
+            let middle = low + (high - low) / 2
+            if expenses[middle].date < date {
+                low = middle + 1
+            } else {
+                high = middle
+            }
+        }
+        return low
     }
 }
 
