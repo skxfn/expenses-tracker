@@ -19,6 +19,10 @@ struct PeriodRangeCalendar: View {
     /// Последний показанный день — конец текущего месяца.
     private let lastDay: Date
     @State private var position: ScrollPosition
+    /// Номер верхней видимой недели — по смещению прокрутки (`nil` до первого замера).
+    @State private var topWeekIndex: Int?
+    /// Начальная позиция больше не поправляется (`settleInitialPosition`): поправлена или ленту уже листали.
+    @State private var isPositionSettled = false
 
     /// Полоса между концами: графит 10 % (DESIGN.md → Period Picker).
     static let bandOpacity: Double = 0.1
@@ -65,6 +69,15 @@ struct PeriodRangeCalendar: View {
                 .accessibilityLabel("period.days.a11y")
             }
             .scrollPosition($position, anchor: .top)
+            .onScrollGeometryChange(for: CalendarScroll.self) { geometry in
+                CalendarScroll(geometry, rowHeight: Self.rowHeight)
+            } action: { _, scroll in
+                topWeekIndex = scroll.topIndex
+                settleInitialPosition(scroll)
+            }
+            .onScrollPhaseChange { _, phase in
+                if phase == .tracking || phase == .interacting { isPositionSettled = true }
+            }
         }
         // Сетка 7 × 48 жёсткая (INTEGRATION §6): крупнее — Large Content Viewer у дней, как в календаре.
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
@@ -118,8 +131,26 @@ struct PeriodRangeCalendar: View {
 
     // MARK: - Недели
 
+    /// Неделя под шапкой — по смещению прокрутки (строки одной высоты), а не `position.viewID`: у конца ленты
+    /// (выбор в текущем месяце) прокрутка упирается в край и показывает недели раньше запрошенной,
+    /// а `viewID` остаётся запрошенным — заголовок «Сентябрь» над августовскими строками.
     private var visibleWeek: Date {
-        position.viewID(type: Date.self) ?? initialWeek
+        guard let topWeekIndex, !weeks.isEmpty else { return initialWeek }
+        return weeks[min(max(topWeekIndex, 0), weeks.count - 1)]
+    }
+
+    /// Неделя выбора у конца ленты (выбор в текущем месяце) наверх встать не может: прокрутка упирается
+    /// в край без учёта кнопки «Показать», и последние недели — с концом выбора — оказываются под ней.
+    /// Тогда лента прокручивается до конца по-честному: последняя неделя над кнопкой.
+    /// Проверяется на каждом замере, пока ленту не листали: первые замеры при появлении шита бывают промежуточными.
+    private func settleInitialPosition(_ scroll: CalendarScroll) {
+        guard !isPositionSettled, scroll.visibleHeight > 0 else { return }
+        let initialIndex = weeks.firstIndex(of: initialWeek) ?? 0
+        let maxTopOffset = CGFloat(weeks.count) * Self.rowHeight - scroll.visibleHeight
+        if CGFloat(initialIndex) * Self.rowHeight > maxTopOffset {
+            isPositionSettled = true
+            position.scrollTo(edge: .bottom)
+        }
     }
 
     private static func lastDay(today: Date, calendar: Calendar) -> Date {
@@ -144,6 +175,17 @@ struct PeriodRangeCalendar: View {
         let week = calendar.dateInterval(of: .weekOfYear, for: anchor)?.start ?? anchor
         let shifted = calendar.date(byAdding: .weekOfYear, value: -2, to: week) ?? week
         return max(shifted, weeks.first ?? shifted)
+    }
+}
+
+/// Замер прокрутки ленты: верхняя видимая неделя и высота видимой части (без шапки и кнопки).
+private struct CalendarScroll: Equatable {
+    let topIndex: Int
+    let visibleHeight: CGFloat
+
+    init(_ geometry: ScrollGeometry, rowHeight: CGFloat) {
+        topIndex = Int(((geometry.contentOffset.y + geometry.contentInsets.top) / rowHeight).rounded())
+        visibleHeight = geometry.containerSize.height - geometry.contentInsets.top - geometry.contentInsets.bottom
     }
 }
 
