@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Стеклянный сегмент-переключатель (DESIGN.md → «Сегмент периода», §6): капсула 44, активная пилюля 36
 /// (белая 92 % / ночью rgba(255,250,244,.16)) едет через `matchedGeometryEffect`; при Reduce Motion — только opacity.
-/// Цель касания пункта — вся высота капсулы 44. Текст ограничен AX1: длинная подпись ужимается,
-/// крупнее — Large Content Viewer (долгое нажатие).
+/// Цель касания пункта — вся высота капсулы 44. Текст ограничен AX1; если ряд не помещается, кегль уменьшается
+/// у всех подписей сразу (`labelSizes`), а не у каждой своей мерой; крупнее — Large Content Viewer (долгое нажатие).
 /// VoiceOver: контейнер с подписью (`title`), пункты — кнопки с трейтом `.isSelected`.
 struct GlassSegmentedControl<Value: Hashable>: View {
     struct Item {
@@ -24,11 +24,13 @@ struct GlassSegmentedControl<Value: Hashable>: View {
 
     @Namespace private var pillNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(items, id: \.value) { item in
-                segment(item)
+        // Ряд с первым кеглем, при котором помещаются все подписи: один размер на все пункты.
+        ViewThatFits(in: .horizontal) {
+            ForEach(labelSizes, id: \.self) { size in
+                segments(labelSize: size)
             }
         }
         .padding(.horizontal, Theme.Spacing.xs)
@@ -40,7 +42,25 @@ struct GlassSegmentedControl<Value: Hashable>: View {
         .accessibilityLabel(title)
     }
 
-    private func segment(_ item: Item) -> some View {
+    /// Кегли подписей от текущего (не крупнее AX1) вниз до размера по умолчанию: на нём ряд — как был,
+    /// мельче не уменьшаем (дальше каждая подпись ужимается `minimumLabelScale`).
+    private var labelSizes: [DynamicTypeSize] {
+        let current = min(dynamicTypeSize, .accessibility1)
+        return DynamicTypeSize.allCases
+            .filter { $0 <= current && ($0 >= .large || $0 == current) }
+            .reversed()
+    }
+
+    private func segments(labelSize: DynamicTypeSize) -> some View {
+        SegmentRow {
+            ForEach(items, id: \.value) { item in
+                segment(item, labelSize: labelSize)
+            }
+        }
+    }
+
+    /// Кегль меняется только у подписи: у кнопки остаётся размер окружения, и Large Content Viewer работает.
+    private func segment(_ item: Item, labelSize: DynamicTypeSize) -> some View {
         let isSelected = item.value == selection
         return Button {
             withAnimation(Motion.animation(Motion.segmentPill, reduceMotion: reduceMotion)) {
@@ -49,6 +69,7 @@ struct GlassSegmentedControl<Value: Hashable>: View {
         } label: {
             label(item)
                 .typeStyle(.callout)
+                .dynamicTypeSize(labelSize)
                 .foregroundStyle(isSelected ? Theme.ink : Theme.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(Self.minimumLabelScale)
@@ -98,6 +119,56 @@ struct GlassSegmentedControl<Value: Hashable>: View {
             Text(item.title)
                 .typeStyle(.callout)
         }
+    }
+}
+
+/// Ряд пунктов: поровну, пока подписи помещаются в равные доли (как `HStack` из растягивающихся пунктов);
+/// иначе пункт с длинной подписью получает свою ширину, остальные делят остаток. Идеальная ширина — сумма
+/// идеальных ширин пунктов: по ней `ViewThatFits` выбирает общий кегль. Не помещается и она — поровну.
+private struct SegmentRow: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let ideals = subviews.map { $0.sizeThatFits(.unspecified).width }
+        let width = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? ideals.reduce(0, +)
+        let height = zip(subviews, Self.widths(ideals, total: width))
+            .map { $0.sizeThatFits(ProposedViewSize(width: $1, height: proposal.height)).height }
+            .max() ?? 0
+        return CGSize(width: width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let ideals = subviews.map { $0.sizeThatFits(.unspecified).width }
+        var x = bounds.minX
+        for (subview, width) in zip(subviews, Self.widths(ideals, total: bounds.width)) {
+            subview.place(
+                at: CGPoint(x: x + width / 2, y: bounds.midY),
+                anchor: .center,
+                proposal: ProposedViewSize(width: width, height: bounds.height)
+            )
+            x += width
+        }
+    }
+
+    /// Доли ряда: пункты, чья подпись шире равной доли остатка, получают свою ширину, остальные — поровну.
+    static func widths(_ ideals: [CGFloat], total: CGFloat) -> [CGFloat] {
+        guard !ideals.isEmpty else { return [] }
+        let equal = total / CGFloat(ideals.count)
+        guard ideals.reduce(0, +) <= total else { return ideals.map { _ in equal } }
+        var isFixed = ideals.map { _ in false }
+        var remaining = total
+        var freeCount = ideals.count
+        var isChanged = true
+        while isChanged, freeCount > 0 {
+            isChanged = false
+            let share = remaining / CGFloat(freeCount)
+            for index in ideals.indices where !isFixed[index] && ideals[index] > share {
+                isFixed[index] = true
+                remaining -= ideals[index]
+                freeCount -= 1
+                isChanged = true
+            }
+        }
+        let share = freeCount > 0 ? remaining / CGFloat(freeCount) : 0
+        return ideals.indices.map { isFixed[$0] ? ideals[$0] : share }
     }
 }
 
