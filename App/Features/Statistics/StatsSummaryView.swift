@@ -24,7 +24,7 @@ struct StatsSummaryView: View {
                 Text(verbatim: lead)
                     .typeStyle(.subheadline)
                     .foregroundStyle(Theme.secondary)
-                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: Theme.Spacing.sm)
                 if let filterMark {
                     StatsFilterMark(text: filterMark)

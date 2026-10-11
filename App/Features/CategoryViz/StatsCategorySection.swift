@@ -17,6 +17,7 @@ struct StatsCategorySection: View {
 
     @State private var level: CategoryTilesLevel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     /// - Parameter tilesLevel: уровень раскрытых «Плиток» при появлении (по макету — «Подкатегории»).
     init(
@@ -57,8 +58,13 @@ struct StatsCategorySection: View {
 
     // MARK: Шапка
 
+    /// На AX-размерах переключатель уходит под заголовок: рядом с ним «Категории» переносится с дефисом.
     private var header: some View {
-        HStack(spacing: Theme.Spacing.md) {
+        let isStacked = dynamicTypeSize.isAccessibilitySize
+        let layout = isStacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Spacing.md))
+            : AnyLayout(HStackLayout(spacing: Theme.Spacing.md))
+        return layout {
             ZStack(alignment: .leading) {
                 if let expanded {
                     backChip(expanded)
@@ -71,7 +77,9 @@ struct StatsCategorySection: View {
                         .transition(.opacity)
                 }
             }
-            Spacer(minLength: Theme.Spacing.sm)
+            if !isStacked {
+                Spacer(minLength: Theme.Spacing.sm)
+            }
             GlassSegmentedControl(title: "stats.viewSwitch.a11y", selection: $view, items: [
                 .init(value: .tiles, title: "viz.map.name", systemImage: VizSwitcherIcon.tiles),
                 .init(value: .strips, title: "viz.strips.name", systemImage: VizSwitcherIcon.strips),
@@ -112,7 +120,7 @@ struct StatsCategorySection: View {
         return Text(text)
             .typeStyle(.subheadline)
             .foregroundStyle(Theme.secondary)
-            .lineLimit(1)
+            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
             .minimumScaleFactor(0.8)
             .contentTransition(.opacity)
     }

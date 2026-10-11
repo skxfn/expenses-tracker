@@ -30,6 +30,8 @@ struct HomeTilesSummary: View {
 }
 
 /// «Кольцо» на ауре над листом (`02-home-ring`): итог и фраза SF 13 в центре.
+/// С размера текста `phraseBelowFrom` фраза в центр не помещается (строки шире хорды круга, на AX — и выше кольца) —
+/// уходит под кольцо, как сумма под текст в `ExpenseRow`.
 struct HomeRingSummary: View {
     let content: HomeContent
     /// `nil` — сравнивать не с чем (`StatsTrend.incomparable`): фразы нет.
@@ -37,10 +39,25 @@ struct HomeRingSummary: View {
     let periodName: String
     let onSelect: (CategoryVizItemID) -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private static let phraseBelowFrom = DynamicTypeSize.xxLarge
+
     var body: some View {
-        HomeCategoryRing(data: content.overview, periodName: periodName, onSelect: onSelect) {
-            if let comparison {
+        let isPhraseBelow = dynamicTypeSize >= Self.phraseBelowFrom
+        VStack(spacing: Theme.Spacing.md) {
+            HomeCategoryRing(data: content.overview, periodName: periodName, onSelect: onSelect) {
+                if let comparison, !isPhraseBelow {
+                    HomeComparisonText(comparison: comparison, emphasis: TypeStyle.footnoteStrong)
+                        .contentTransition(.opacity)
+                }
+            }
+            if let comparison, isPhraseBelow {
                 HomeComparisonText(comparison: comparison, emphasis: TypeStyle.footnoteStrong)
+                    .typeStyle(.footnote)
+                    .foregroundStyle(Theme.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.opacity)
             }
         }
