@@ -49,6 +49,24 @@ struct ProportionalHStack: Layout {
     }
 }
 
+/// Содержимое прокрутки не ниже `minHeight`: пока помещается — получает ровно эту высоту (Spacer'ы раздвигаются,
+/// как без прокрутки), не помещается — свою и прокручивается. `frame(minHeight:)` так не умеет: в `ScrollView`
+/// высота не предлагается, и рамка только центрирует содержимое.
+struct FillHeightLayout: Layout {
+    let minHeight: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let subview = subviews.first else { return .zero }
+        let natural = subview.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+        guard natural.height < minHeight else { return natural }
+        return subview.sizeThatFits(ProposedViewSize(width: proposal.width, height: minHeight))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
+    }
+}
+
 /// Перенос по строкам: имя категории и чипы подкатегорий во «Всех категориях» (макет `07-picker`).
 /// Длинный элемент сужается до ширины строки (текст в нём обрезается многоточием).
 struct FlowLayout: Layout {

@@ -44,16 +44,21 @@ struct EntrySwatch: View {
     }
 }
 
-/// Ряд «6 частых + Все». Не помещается (крупный текст) — прокручивается вбок.
+/// Ряд «6 частых + Все». Не помещается (крупный текст) — в две строки, чтобы «Все» оставалась на виду;
+/// не помещаются и они — прокручивается вбок.
 struct EntrySwatchRow: View {
     let swatches: [CategoryChoice]
     let selectedID: UUID?
     let onSelect: (CategoryChoice) -> Void
     let onShowAll: () -> Void
 
+    /// Колонок в двух строках: 6 частых + «Все» → 4 + 3.
+    private static let wrappedColumns = 4
+
     var body: some View {
         ViewThatFits(in: .horizontal) {
             row
+            grid
             ScrollView(.horizontal) { row }
                 .scrollIndicators(.hidden)
                 .scrollClipDisabled()
@@ -68,27 +73,55 @@ struct EntrySwatchRow: View {
     private var row: some View {
         HStack(spacing: Theme.Spacing.xs) {
             ForEach(swatches) { choice in
-                let isSelected = choice.id == selectedID
-                Button { onSelect(choice) } label: {
-                    EntrySwatch(choice: choice, isSelected: isSelected)
-                }
-                .buttonStyle(.pressable())
-                .frame(maxWidth: .infinity)
-                .accessibilityLabel(Text(verbatim: choice.accessibilityName))
-                .accessibilityAddTraits(isSelected ? .isSelected : [])
-                .accessibilityShowsLargeContentViewer {
-                    Text(verbatim: choice.line)
-                }
+                swatchButton(choice)
             }
-            Button(action: onShowAll) {
-                AllCategoriesSwatch(title: "add.swatch.all")
-            }
-            .buttonStyle(.pressable())
-            .frame(maxWidth: .infinity)
-            .accessibilityLabel("add.swatch.all.a11y")
-            .accessibilityShowsLargeContentViewer()
+            allButton
         }
         .padding(.top, Theme.Size.swatchLift)
+    }
+
+    /// Две строки (крупный текст); зазор между ними — с запасом на подъём выбранного образца.
+    private var grid: some View {
+        let count = swatches.count + 1
+        let columns = Self.wrappedColumns
+        return Grid(horizontalSpacing: Theme.Spacing.xs, verticalSpacing: Theme.Size.swatchLift + Theme.Spacing.xs) {
+            ForEach(Array(stride(from: 0, to: count, by: columns)), id: \.self) { start in
+                GridRow {
+                    ForEach(start..<min(start + columns, count), id: \.self) { index in
+                        if swatches.indices.contains(index) {
+                            swatchButton(swatches[index])
+                        } else {
+                            allButton
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.top, Theme.Size.swatchLift)
+    }
+
+    private func swatchButton(_ choice: CategoryChoice) -> some View {
+        let isSelected = choice.id == selectedID
+        return Button { onSelect(choice) } label: {
+            EntrySwatch(choice: choice, isSelected: isSelected)
+        }
+        .buttonStyle(.pressable())
+        .frame(maxWidth: .infinity)
+        .accessibilityLabel(Text(verbatim: choice.accessibilityName))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityShowsLargeContentViewer {
+            Text(verbatim: choice.line)
+        }
+    }
+
+    private var allButton: some View {
+        Button(action: onShowAll) {
+            AllCategoriesSwatch(title: "add.swatch.all")
+        }
+        .buttonStyle(.pressable())
+        .frame(maxWidth: .infinity)
+        .accessibilityLabel("add.swatch.all.a11y")
+        .accessibilityShowsLargeContentViewer()
     }
 }
 
@@ -157,10 +190,13 @@ struct EntryDateSegment: View {
                         Capsule()
                             .fill(Theme.segmentPill)
                             .paperShadow(Tokens.Shadow.segmentActive)
-                            .matchedGeometryEffect(id: "pill", in: pillNamespace)
+                            // При «Уменьшении движения» у каждого пункта своя пилюля: не едет, а проявляется.
+                            .matchedGeometryEffect(id: reduceMotion ? AnyHashable(item) : AnyHashable("pill"), in: pillNamespace)
                     }
                 }
-                .contentShape(Capsule())
+                // Цель касания — вся высота капсулы 44, а не пилюля 36.
+                .frame(minHeight: Theme.Size.chip)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel(item))
@@ -204,6 +240,7 @@ struct EntryDateSheet: View {
         }
         .environment(\.locale, .app)
         .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         .presentationBackground(Theme.canvasElevated)
     }
 }
