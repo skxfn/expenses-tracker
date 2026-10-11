@@ -86,6 +86,7 @@ struct CategoryPickerSheet: View {
             .safeAreaInset(edge: .bottom, spacing: 0) { newCategoryButton }
         }
         .presentationDetents([Self.detent, .large])
+        .presentationDragIndicator(.visible)
         .presentationBackground {
             AuraBackground(tones: auraTones, base: Theme.canvasElevated)
         }
@@ -104,6 +105,8 @@ struct CategoryPickerSheet: View {
             .tint(Theme.ink)
             .autocorrectionDisabled()
             .submitLabel(.search)
+            // Скрытый label поля VoiceOver не читает — только плейсхолдер.
+            .accessibilityLabel(Text("picker.search.a11y"))
         }
         .padding(.horizontal, Theme.Spacing.lg)
         .frame(minHeight: Theme.Size.chip)

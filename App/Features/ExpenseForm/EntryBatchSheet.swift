@@ -40,6 +40,7 @@ struct EntryBatchSheet: View {
             )
         }
         .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         .presentationBackground(Theme.canvasElevated)
     }
 

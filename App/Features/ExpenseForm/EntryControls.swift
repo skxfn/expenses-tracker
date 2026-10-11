@@ -237,6 +237,7 @@ struct EntryDateSheet: View {
         }
         .environment(\.locale, .app)
         .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         .presentationBackground(Theme.canvasElevated)
     }
 }

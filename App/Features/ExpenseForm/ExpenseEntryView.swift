@@ -76,6 +76,7 @@ struct ExpenseEntryView: View {
             AuraBackground(tones: auraTones, edge: .bottom, base: Theme.canvasElevated, layout: Self.auraLayout)
                 .animation(Motion.select, value: auraTones)
         }
+        .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(model.hasUnsavedChanges)
         .confirmationDialog(discardTitle, isPresented: $isConfirmingDiscard, titleVisibility: .visible) {
             Button(modeKey(add: "add.discard.discard", edit: "edit.discard.discard"), role: .destructive) {
@@ -219,6 +220,8 @@ struct ExpenseEntryView: View {
             .multilineTextAlignment(.center)
             .fixedSize()
             .focused($focus, equals: .amount)
+            // Скрытый label поля VoiceOver не читает — только плейсхолдер «0».
+            .accessibilityLabel(Text("add.amount.a11y"))
             Text(verbatim: money.currencySymbol)
                 .typeStyle(.currencyDisplay)
                 .foregroundStyle(Theme.secondary)
