@@ -61,7 +61,7 @@ struct StoreFailure {
 /// `-demoData YES` — заполнить демо-тратами, если расходов ещё нет;
 /// `-debugTab expenses|calendar|statistics` — открыть вкладку;
 /// `-debugRoute settings` — сразу открыть пуш на вкладке «Траты» (настройки);
-/// `-debugPeriod YES|day|week|year|range|past|sheet` — вместо содержимого «Трат» и «Статистики» экран проверки
+/// `-debugPeriod YES|day|week|year|range|past|pastYear|sheet` — вместо содержимого «Трат» и «Статистики» экран проверки
 /// шапки периода (`PeriodDebugScreen`, сценарии — `PeriodDebugScenario`);
 /// `-debugToast YES` — тост удаления на паузе (ничего не удаляет);
 /// `-debugAdd YES` — открыть шит новой траты, как по «+» (зум из круга).
