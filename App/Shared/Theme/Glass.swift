@@ -40,10 +40,10 @@ extension View {
     }
 
     /// `pro`: одно главное действие на экран («Сохранить», «+», «Готово», «Показать …»).
-    /// Графит в светлой, night-ink в тёмной; подпись — onInk.
+    /// Графит 88 % в светлой, night-ink 92 % в тёмной; подпись — onInk.
     func prominentGlassButtonStyle() -> some View {
         buttonStyle(.glassProminent)
-            .tint(Theme.ink)
+            .tint(Theme.prominent)
             .foregroundStyle(Theme.onInk)
     }
 

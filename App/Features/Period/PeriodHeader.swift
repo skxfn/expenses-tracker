@@ -7,7 +7,8 @@ import ExpenseCore
 ///
 /// Заголовок: месяц, год и «Сегодня / Вчера» — словом (на главной Unbounded 28/600, год 20/500 серым; в статистике
 /// 22 + 17), даты — «5–7» Unbounded 22/600 + «окт» 17/500 серым. Год — только если не текущий (§8 п. 18).
-/// Не переносится: при нехватке места уменьшается (`minimumScaleFactor`).
+/// Не переносится: при нехватке места уменьшается (`minimumScaleFactor`), а если и так не помещается —
+/// управление уходит строкой ниже (`PeriodHeaderRow`).
 ///
 /// Поля экрана (16 по бокам) задаёт экран. Под шапкой — `PeriodSegment` с отступом 12:
 ///
@@ -46,9 +47,12 @@ struct PeriodHeader: View {
                     .minimumScaleFactor(0.7)
                     .accessibilityAddTraits(.isHeader)
             }
-            HStack(spacing: Theme.Spacing.sm) {
+            PeriodHeaderRow(
+                spacing: Theme.Spacing.sm,
+                titleMinimumScale: Self.titleMinimumScale,
+                titleFixedWidth: chevronSize + Theme.Spacing.sm
+            ) {
                 titleButton
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 controls
             }
         }
@@ -58,6 +62,7 @@ struct PeriodHeader: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { selection.refresh() }
         }
+        .onCalendarDayChange { selection.refresh() }
         .sheet(isPresented: $selection.isPickerPresented) {
             PeriodSheet(selection: selection, auraTones: auraTones)
         }
@@ -76,7 +81,7 @@ struct PeriodHeader: View {
             HStack(spacing: Theme.Spacing.sm) {
                 Text(attributedTitle)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.5)
+                    .minimumScaleFactor(Self.titleMinimumScale)
                 Image(systemName: "chevron.down")
                     .font(.system(size: chevronSize, weight: .semibold))
                     .foregroundStyle(Theme.ink)
@@ -116,6 +121,9 @@ struct PeriodHeader: View {
             part.isSecondary ? .rangeMonth : .rangeDays
         }
     }
+
+    /// Насколько заголовок уменьшается, прежде чем управление уйдёт строкой ниже (`PeriodHeaderRow`).
+    private static let titleMinimumScale: CGFloat = 0.5
 
     /// ▾ по макету: около половины кегля основной части.
     private var chevronSize: CGFloat {
@@ -168,6 +176,51 @@ struct PeriodHeader: View {
         .buttonStyle(.plain)
         .glass(.key)
         .fixedSize()
+    }
+}
+
+/// Строка шапки: заголовок слева, управление справа. Если заголовку не хватает места даже уменьшенным
+/// до `titleMinimumScale` (месяц прошлого года рядом с чипом «Сегодня» и ⚙, крупный текст), управление
+/// уходит строкой ниже к правому краю, а заголовок получает всю ширину — вместо «Октябрь 20…».
+private struct PeriodHeaderRow: Layout {
+    let spacing: CGFloat
+    /// `minimumScaleFactor` текста заголовка.
+    let titleMinimumScale: CGFloat
+    /// Часть заголовка, которая не уменьшается: ▾ и отступ до него.
+    let titleFixedWidth: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard subviews.count == 2 else { return .zero }
+        let title = subviews[0].sizeThatFits(.unspecified)
+        let controls = subviews[1].sizeThatFits(.unspecified)
+        let width = proposal.width ?? title.width + spacing + controls.width
+        if fitsInRow(width: width, title: title, controls: controls) {
+            let titleHeight = subviews[0].sizeThatFits(.init(width: width - controls.width - spacing, height: nil)).height
+            return CGSize(width: width, height: max(titleHeight, controls.height))
+        }
+        let titleHeight = subviews[0].sizeThatFits(.init(width: width, height: nil)).height
+        return CGSize(width: width, height: titleHeight + spacing + controls.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 2 else { return }
+        let title = subviews[0].sizeThatFits(.unspecified)
+        let controls = subviews[1].sizeThatFits(.unspecified)
+        if fitsInRow(width: bounds.width, title: title, controls: controls) {
+            let titleWidth = bounds.width - controls.width - spacing
+            subviews[0].place(at: CGPoint(x: bounds.minX, y: bounds.midY), anchor: .leading,
+                              proposal: .init(width: titleWidth, height: nil))
+            subviews[1].place(at: CGPoint(x: bounds.maxX, y: bounds.midY), anchor: .trailing, proposal: .unspecified)
+        } else {
+            subviews[0].place(at: CGPoint(x: bounds.minX, y: bounds.minY), anchor: .topLeading,
+                              proposal: .init(width: bounds.width, height: nil))
+            subviews[1].place(at: CGPoint(x: bounds.maxX, y: bounds.maxY), anchor: .bottomTrailing, proposal: .unspecified)
+        }
+    }
+
+    private func fitsInRow(width: CGFloat, title: CGSize, controls: CGSize) -> Bool {
+        let minimumTitle = (title.width - titleFixedWidth) * titleMinimumScale + titleFixedWidth
+        return minimumTitle + spacing + controls.width <= width
     }
 }
 

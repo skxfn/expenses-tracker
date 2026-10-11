@@ -2,7 +2,9 @@ import SwiftUI
 
 /// Стеклянный тост (DESIGN.md → Motion & Haptics, `toast.*`): капсула 50 над таб-баром, текст SF 15/600,
 /// необязательная кнопка («Отменить»). Только вид: таймер 4 с, фиксацию удаления и объявление VoiceOver
-/// делает экран; пауза таймера — по `onPressingChanged` (палец на тосте).
+/// делает экран; пауза таймера — по `onPressingChanged` (палец на тосте или фокус VoiceOver на нём).
+/// Тост с кнопкой при появлении забирает фокус VoiceOver (иначе до действия не добраться, пока тост виден),
+/// «волшебное касание» (двойное касание двумя пальцами) выполняет действие.
 struct GlassToast: View {
     struct Action {
         let title: LocalizedStringKey
@@ -11,12 +13,31 @@ struct GlassToast: View {
 
     let message: LocalizedStringKey
     var action: Action?
+    /// `true` — тост держат (палец или фокус VoiceOver), `false` — отпустили.
     var onPressingChanged: (Bool) -> Void = { _ in }
 
     @State private var isPressing = false
     @State private var actionCount = 0
+    @AccessibilityFocusState(for: .voiceOver) private var isFocused: Bool
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
 
     var body: some View {
+        if let action {
+            capsule
+                .accessibilityAction(.magicTap) { perform(action) }
+                .accessibilityFocused($isFocused)
+                .onAppear {
+                    if voiceOverEnabled { isFocused = true }
+                }
+                .onChange(of: isFocused) { wasFocused, _ in
+                    holdChanged(wasHeld: isPressing || wasFocused)
+                }
+        } else {
+            capsule
+        }
+    }
+
+    private var capsule: some View {
         HStack(spacing: Theme.Spacing.md) {
             Text(message)
                 .foregroundStyle(Theme.ink)
@@ -24,8 +45,7 @@ struct GlassToast: View {
             if let action {
                 Spacer(minLength: Theme.Spacing.sm)
                 Button {
-                    actionCount += 1
-                    action.handler()
+                    perform(action)
                 } label: {
                     Text(action.title)
                         .foregroundStyle(Theme.ink)
@@ -48,10 +68,23 @@ struct GlassToast: View {
         .accessibilityElement(children: .combine)
     }
 
+    private var isHeld: Bool { isPressing || isFocused }
+
+    private func perform(_ action: Action) {
+        actionCount += 1
+        action.handler()
+    }
+
     private func setPressing(_ pressing: Bool) {
         guard pressing != isPressing else { return }
+        let wasHeld = isHeld
         isPressing = pressing
-        onPressingChanged(pressing)
+        holdChanged(wasHeld: wasHeld)
+    }
+
+    private func holdChanged(wasHeld: Bool) {
+        guard isHeld != wasHeld else { return }
+        onPressingChanged(isHeld)
     }
 }
 

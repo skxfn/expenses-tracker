@@ -9,7 +9,7 @@ struct GlassCapsuleButtonStyle: ButtonStyle {
         case glass
         /// Стекло, текст и иконка destructive.
         case destructive
-        /// `pro`: одно главное действие на экран — графит (night-ink в тёмной), текст onInk.
+        /// `pro`: одно главное действие на экран — графит 88 % (night-ink 92 % в тёмной), текст onInk.
         case prominent
     }
 
@@ -37,7 +37,7 @@ struct GlassCapsuleButtonStyle: ButtonStyle {
     private var glass: Glass {
         switch kind {
         case .glass, .destructive: .regular.interactive()
-        case .prominent: .regular.tint(Theme.ink).interactive()
+        case .prominent: .regular.tint(Theme.prominent).interactive()
         }
     }
 
@@ -65,7 +65,7 @@ struct GlassCircleButtonStyle: ButtonStyle {
             .opacity(isEnabled ? 1 : Theme.disabledArrowOpacity)
             .frame(width: diameter, height: diameter)
             .contentShape(Circle())
-            .glassEffect(prominent ? .regular.tint(Theme.ink).interactive() : .regular.interactive(), in: .circle)
+            .glassEffect(prominent ? .regular.tint(Theme.prominent).interactive() : .regular.interactive(), in: .circle)
     }
 }
 

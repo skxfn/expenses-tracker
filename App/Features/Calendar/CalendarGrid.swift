@@ -3,6 +3,8 @@ import ExpenseCore
 
 /// Сетка месяца: дни недели с `calendar.firstWeekday` и 4–6 недель по 7 клеток с зазором 4.
 /// Свайп влево / вправо листает месяц; смена месяца — растворение (без полёта: и при Reduce Motion то же).
+/// Линза «сегодня» рисуется слоем поверх сетки по рамке клетки (`TodayCellAnchorKey`): выступ линзы должен
+/// лежать поверх соседей, а `zIndex` у клетки уводил её в конец порядка VoiceOver (после 31-го).
 struct CalendarGrid: View {
     let model: CalendarModel
     let strings: CalendarStrings
@@ -15,6 +17,9 @@ struct CalendarGrid: View {
             weekdays
             ZStack {
                 weeks
+                    .overlayPreferenceValue(TodayCellAnchorKey.self) { anchor in
+                        todayLens(anchor)
+                    }
                     .id(model.month.start)
                     .transition(.opacity)
             }
@@ -33,6 +38,8 @@ struct CalendarGrid: View {
                     .typeStyle(.footnoteStrong)
                     .foregroundStyle(Theme.secondary)
                     .lineLimit(1)
+                    // «Mon», «Wed» на крупном тексте шире колонки 49: уменьшаются, а не «M…».
+                    .minimumScaleFactor(Self.weekdayMinimumScale)
                     .padding(.leading, CalendarMetrics.cellPadding.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -76,7 +83,7 @@ struct CalendarGrid: View {
             .simultaneousGesture(
                 LongPressGesture(minimumDuration: Self.longPressDuration).onEnded { _ in onAdd(date) }
             )
-            .zIndex(day.isToday ? 1 : 0)
+            .anchorPreference(key: TodayCellAnchorKey.self, value: .bounds) { day.isToday ? $0 : nil }
             .accessibilityLabel(label)
             .accessibilityAddTraits(marksSelection ? .isSelected : [])
             .accessibilityAction(named: Text("cal.longPress.a11y")) { onAdd(date) }
@@ -90,6 +97,22 @@ struct CalendarGrid: View {
         }
     }
 
+    /// Линза поверх клетки «сегодня» с выступом за её края. Только рисунок: касания и VoiceOver — у клетки.
+    @ViewBuilder
+    private func todayLens(_ anchor: Anchor<CGRect>?) -> some View {
+        if let anchor {
+            let today = model.day(model.calendar.startOfDay(for: model.now))
+            GeometryReader { proxy in
+                let rect = proxy[anchor].insetBy(dx: -CalendarMetrics.lensOutset, dy: -CalendarMetrics.lensOutset)
+                TodayLens(number: strings.dayNumber(today.date), amount: strings.cellAmount(today.totalMinor), level: today.level)
+                    .frame(width: rect.width, height: rect.height)
+                    .position(x: rect.midX, y: rect.midY)
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+    }
+
     /// Горизонтальный свайп: влево — следующий месяц, вправо — предыдущий.
     private var swipe: some Gesture {
         DragGesture(minimumDistance: Theme.Spacing.xl).onEnded { value in
@@ -100,10 +123,20 @@ struct CalendarGrid: View {
     }
 
     private static let longPressDuration = 0.5
+    private static let weekdayMinimumScale: CGFloat = 0.7
 
     /// Ключ `cal.weekdays.*` по номеру дня недели `Calendar` (1 — воскресенье).
     private static func weekdayKey(_ weekday: Int) -> String {
         let names = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
         return "cal.weekdays." + names[(weekday - 1) % names.count]
+    }
+}
+
+/// Рамка клетки «сегодня» для линзы поверх сетки; `nil` — сегодня не в показанном месяце.
+private nonisolated struct TodayCellAnchorKey: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>? { nil }
+
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = value ?? nextValue()
     }
 }

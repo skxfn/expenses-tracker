@@ -5,12 +5,9 @@ import ExpenseCore
 /// Вкладка «Календарь» (макет 09): шапка месяца с ‹ ›, строка-итог, сетка heat с линзой «сегодня»,
 /// шкала и бумажный лист выбранного дня со строками трат и «Записать на …».
 /// Всё под шапкой — один `List`: свайпы строк работают только в нём (ловушка AGENTS.md).
+/// Траты выбирает `CalendarModel` (год месяца и выбранный день), а не `@Query` всех трат: перевод
+/// в `ExpenseRecord` в `body` на каждом касании стоил ≈ 6 мкс на трату.
 struct CalendarView: View {
-    @Query(sort: [
-        SortDescriptor(\Expense.date, order: .reverse),
-        SortDescriptor(\Expense.createdAt, order: .reverse)
-    ])
-    private var expenses: [Expense]
     @Query private var categories: [ExpenseCategory]
 
     @Environment(AppRouter.self) private var router
@@ -30,14 +27,12 @@ struct CalendarView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        let visible = expenses.filter { !pendingDeletion.hiddenIDs.contains($0.id) }
-        let records = visible.map { ExpenseRecord($0) }
         let strings = CalendarStrings(money: money, calendar: model.calendar, now: model.now)
 
         VStack(spacing: Theme.Spacing.md) {
             header(strings)
                 .padding(.horizontal, Theme.Spacing.screen)
-            list(strings, dayExpenses: visible.filter { model.isInSelectedDay($0.date) })
+            list(strings, dayRows: model.dayRows)
         }
         .padding(.top, Theme.Spacing.sm)
         .background { AuraBackground(tones: auraTones).ignoresSafeArea() }
@@ -45,12 +40,19 @@ struct CalendarView: View {
         .sensoryFeedback(Haptic.selection, trigger: selectionTick)
         .sensoryFeedback(Haptic.success, trigger: repeatTick)
         .sensoryFeedback(Haptic.medium, trigger: longPressTick)
-        .onChange(of: records, initial: true) { _, records in
-            model.update(records: records, now: .now)
+        .onAppear {
+            model.connect(ExpenseStore(context: modelContext), hiddenIDs: pendingDeletion.hiddenIDs)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave).receive(on: DispatchQueue.main)) { _ in
+            model.reload()
+        }
+        .onChange(of: pendingDeletion.hiddenIDs) { _, ids in
+            model.setHiddenIDs(ids)
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { model.update(records: records, now: .now) }
+            if phase == .active { model.refresh() }
         }
+        .onCalendarDayChange { model.refresh() }
         .errorAlert($errorMessage)
     }
 
@@ -73,10 +75,11 @@ struct CalendarView: View {
 
     // MARK: Сетка и лист дня
 
-    private func list(_ strings: CalendarStrings, dayExpenses: [Expense]) -> some View {
+    private func list(_ strings: CalendarStrings, dayRows: [ExpenseRowData]) -> some View {
         List {
             CalendarSummaryLine(
-                summary: strings.summary(model.summary, month: model.month, isCurrent: model.isCurrentMonth)
+                summary: strings.summary(model.summary, month: model.month, isCurrent: model.isCurrentMonth),
+                accessibilityText: strings.summaryAccessibility(model.summary, month: model.month, isCurrent: model.isCurrentMonth)
             )
             .padding(.bottom, Theme.Spacing.lg)
             .calendarRow()
@@ -115,15 +118,15 @@ struct CalendarView: View {
                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { sheetTop = $0 }
                 .calendarRow(background: PaperSheetBackground.shape.fill(Theme.surface))
 
-            if dayExpenses.isEmpty {
+            if dayRows.isEmpty {
                 Text("cal.emptyDay")
                     .typeStyle(.subheadline)
                     .foregroundStyle(Theme.secondary)
                     .frame(maxWidth: .infinity, minHeight: Theme.Size.chip, alignment: .leading)
                     .calendarRow(background: Theme.surface)
             }
-            ForEach(dayExpenses) { expense in
-                expenseRow(expense)
+            ForEach(dayRows) { row in
+                expenseRow(row)
                     .calendarRow(background: Theme.surface)
             }
 
@@ -140,7 +143,7 @@ struct CalendarView: View {
     }
 
     /// «Четверг, 8 октября» (Title) + сумма дня (Unbounded 22). При переполнении — «Чт, 8 октября»,
-    /// на крупном тексте — сумма под датой.
+    /// на крупном тексте — сумма под датой (дата в строку, иначе «Чт, 8 октября», и лишь затем перенос).
     private func dayTitle(_ strings: CalendarStrings) -> some View {
         let day = model.selected
         let full = Text(verbatim: strings.dayTitle(day.date))
@@ -149,13 +152,9 @@ struct CalendarView: View {
         return ViewThatFits(in: .horizontal) {
             dayTitleRow(full, total: day.totalMinor)
             dayTitleRow(short, total: day.totalMinor)
-            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                full.lineLimit(nil)
-                dayAmount(day.totalMinor)
-            }
-            .typeStyle(.title)
-            .foregroundStyle(Theme.ink)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            dayTitleStack(full.lineLimit(1), total: day.totalMinor)
+            dayTitleStack(short.lineLimit(1), total: day.totalMinor)
+            dayTitleStack(short.lineLimit(nil), total: day.totalMinor)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: strings.sheetAccessibility(day.date) + spoken))
@@ -175,6 +174,17 @@ struct CalendarView: View {
         }
     }
 
+    /// Дата строкой, сумма под ней.
+    private func dayTitleStack(_ title: some View, total: Int64) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            title
+            dayAmount(total)
+        }
+        .typeStyle(.title)
+        .foregroundStyle(Theme.ink)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     @ViewBuilder
     private func dayAmount(_ total: Int64) -> some View {
         if total > 0 {
@@ -188,9 +198,8 @@ struct CalendarView: View {
     }
 
     /// Строка траты: тап — правка; свайп вправо — «Повторить» (копия на сейчас), влево — «Удалить» с тостом.
-    private func expenseRow(_ expense: Expense) -> some View {
-        let data = ExpenseRowData(expense)
-        return Button {
+    private func expenseRow(_ data: ExpenseRowData) -> some View {
+        Button {
             router.presentEdit(expenseID: data.id)
         } label: {
             ExpenseRow(data: data)
@@ -198,7 +207,7 @@ struct CalendarView: View {
         .buttonStyle(.pressable(Motion.PressScale.row))
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button {
-                repeatExpense(expense)
+                repeatExpense(data.id)
             } label: {
                 Label("feed.swipe.repeat", systemImage: "arrow.clockwise")
             }
@@ -212,7 +221,7 @@ struct CalendarView: View {
             }
         }
         .accessibilityAction(named: Text("feed.row.a11y.delete")) { delete(data.id) }
-        .accessibilityAction(named: Text("feed.row.a11y.repeat")) { repeatExpense(expense) }
+        .accessibilityAction(named: Text("feed.row.a11y.repeat")) { repeatExpense(data.id) }
     }
 
     /// Стеклянная «+ Записать на 8 окт» (`glass-in`). Выбранный день всегда не будущий —
@@ -288,9 +297,11 @@ struct CalendarView: View {
         pendingDeletion.schedule(item, store: ExpenseStore(context: modelContext))
     }
 
-    private func repeatExpense(_ expense: Expense) {
+    private func repeatExpense(_ id: UUID) {
+        let store = ExpenseStore(context: modelContext)
         do {
-            try ExpenseStore(context: modelContext).addExpense(
+            guard let expense = try store.expense(id: id) else { return }
+            try store.addExpense(
                 amountMinor: expense.amountMinor,
                 date: .now,
                 note: expense.note,
