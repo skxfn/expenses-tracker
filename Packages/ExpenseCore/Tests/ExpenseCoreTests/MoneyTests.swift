@@ -133,6 +133,15 @@ struct MoneyFormatterStyleTests {
         #expect(!format(.min, .difference).isEmpty)
     }
 
+    @Test func differenceMagnitudeIsWhatDifferenceShows() {
+        // Озвучка фразы-сравнения читает это число: на экране «1 039 ⃅» — и голосом «1 039 рублей».
+        #expect(MoneyFormatter.differenceMagnitude(-3_800) == 3_800)
+        #expect(MoneyFormatter.differenceMagnitude(99_999) == 99_999)
+        #expect(MoneyFormatter.differenceMagnitude(100_049) == 100_000)
+        #expect(MoneyFormatter.differenceMagnitude(-103_850) == 103_900)
+        #expect(MoneyFormatter.differenceMagnitude(.min) > 0)
+    }
+
     @Test(arguments: [
         (Int64(6_410), "64,10"),
         (9_999, "99,99"),

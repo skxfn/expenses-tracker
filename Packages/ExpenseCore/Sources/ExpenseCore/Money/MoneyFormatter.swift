@@ -42,7 +42,7 @@ public struct MoneyFormatter: Sendable {
         case .approximate:
             "≈" + TextSpacing.nonBreaking + currency(Money.roundedToWholeUnits(minor), fractionLength: 0)
         case .difference:
-            difference(minor == .min ? .max : abs(minor))
+            difference(Self.differenceMagnitude(minor))
         case .calendarCell:
             calendarCell(minor)
         case .wholeUnits:
@@ -60,6 +60,13 @@ public struct MoneyFormatter: Sendable {
                 .grouping(.never)
                 .precision(.fractionLength(fractionLength(for: minor)))
         )
+    }
+
+    /// Разница по модулю так, как её показывает `.difference`: до 1 000 — точно, от 1 000 — целыми.
+    /// Для озвучки фразы-сравнения: VoiceOver читает то же число, что на экране (`103_850` → `103_900`).
+    public static func differenceMagnitude(_ minor: Int64) -> Int64 {
+        let magnitude = minor == .min ? .max : abs(minor)
+        return magnitude >= differenceWholeUnitsFromMinor ? Money.roundedToWholeUnits(magnitude) : magnitude
     }
 
     // MARK: - Пороги
@@ -124,11 +131,9 @@ public struct MoneyFormatter: Sendable {
         )
     }
 
-    private func difference(_ magnitude: Int64) -> String {
-        guard magnitude >= Self.differenceWholeUnitsFromMinor else {
-            return currency(magnitude, fractionLength: fractionLength(for: magnitude))
-        }
-        return currency(Money.roundedToWholeUnits(magnitude), fractionLength: 0)
+    /// `shown` — уже из `differenceMagnitude`: от 1 000 — целое число единиц, нулевые копейки отбрасываются.
+    private func difference(_ shown: Int64) -> String {
+        currency(shown, fractionLength: fractionLength(for: shown))
     }
 
     private func calendarCell(_ minor: Int64) -> String {
