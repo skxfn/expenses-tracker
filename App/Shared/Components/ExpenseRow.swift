@@ -70,6 +70,8 @@ struct ExpenseRow: View {
                 amount
             }
         }
+        // Столбик выше строки 60: без полей сумма одной траты вплотную к названию следующей.
+        .padding(.vertical, isStacked ? Theme.Spacing.sm : 0)
         .frame(maxWidth: .infinity, minHeight: Theme.Size.feedRow, alignment: .leading)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
