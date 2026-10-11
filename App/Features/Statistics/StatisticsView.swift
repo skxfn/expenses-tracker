@@ -66,10 +66,7 @@ struct StatisticsView: View {
         }
         .onAppear { model.appear(in: modelContext) }
         .onDisappear { model.disappear() }
-        // Следующим проходом главного цикла: сохранение уже закончено.
-        .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave).receive(on: DispatchQueue.main)) { _ in
-            model.dataDidChange(in: modelContext)
-        }
+        .onDataSaved { model.dataDidChange(in: modelContext) }
         .task(id: pendingExpansion) {
             guard let id = pendingExpansion else { return }
             try? await Task.sleep(for: StatsLayout.focusExpansionDelay)
@@ -196,7 +193,7 @@ struct StatisticsView: View {
             .id(StatsAnchor.year)
         }
 
-        let top = topRows(texts)
+        let top = model.topRows
         if !top.isEmpty {
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 StatsSectionHeader(title: Text("stats.top.heading"), filterMark: mark)
@@ -217,16 +214,6 @@ struct StatisticsView: View {
 
     private func filterMark(_ texts: StatsTexts) -> String? {
         model.filterGroup.map(texts.filterMark)
-    }
-
-    /// Строки «Крупнейших трат»: модели — одной выборкой по `topIDs` (их не больше `StatisticsModel.topLimit`).
-    private func topRows(_ texts: StatsTexts) -> [ExpenseRowData] {
-        let ids = model.topIDs
-        guard !ids.isEmpty else { return [] }
-        let expenses = (try? modelContext.fetch(FetchDescriptor<Expense>(predicate: #Predicate { ids.contains($0.id) }))) ?? []
-        return ids.compactMap { id in
-            expenses.first { $0.id == id }.map { ExpenseRowData(top: $0, dates: texts.dates) }
-        }
     }
 
     // MARK: - Пустые состояния

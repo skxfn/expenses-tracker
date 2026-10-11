@@ -5,7 +5,8 @@ import ExpenseCore
 /// Состояние вкладки «Календарь» (макет 09): месяц, выбранный день и всё, что из них считается
 /// по тратам. Траты модель выбирает из хранилища сама и только нужные: год показанного месяца
 /// (шкала heat — по году) снимками `ExpenseRecord` и строки выбранного дня; заново — когда данные
-/// сохранены (`reload`), сменился год или день. Строки, скрытые `PendingDeletion`, не учитываются.
+/// сохранены (`dataDidChange`; пока вкладку не видно — при следующем появлении), сменился год или день.
+/// Строки, скрытые `PendingDeletion`, не учитываются.
 /// Изменений данных здесь нет: только чтение.
 @Observable
 final class CalendarModel {
@@ -52,6 +53,9 @@ final class CalendarModel {
     private var latestExpenseDate: Date?
     /// Строки выбранного дня (вместе со скрытыми), новые сверху.
     private var selectedDayRows: [ExpenseRowData] = []
+    /// База менялась после последнего чтения (или ещё не читалась).
+    @ObservationIgnored private var isStale = true
+    @ObservationIgnored private var isVisible = false
 
     init(calendar: Calendar = .autoupdatingCurrent, now: Date = .now) {
         self.calendar = calendar
@@ -62,15 +66,31 @@ final class CalendarModel {
 
     // MARK: Данные
 
-    /// Подключить хранилище и выбрать траты (появление экрана).
-    func connect(_ store: ExpenseStore, hiddenIDs: Set<UUID>, now: Date = .now) {
+    /// Экран появился: подключить хранилище; траты выбрать заново, только если база менялась, пока его не было видно.
+    func appear(_ store: ExpenseStore, hiddenIDs: Set<UUID>, now: Date = .now) {
         self.store = store
-        self.hiddenIDs = hiddenIDs
-        reload(now: now)
+        isVisible = true
+        if isStale {
+            self.hiddenIDs = hiddenIDs
+            reload(now: now)
+        } else {
+            setHiddenIDs(hiddenIDs)
+            refresh(now: now)
+        }
     }
 
-    /// Данные сохранены (`ModelContext.didSave`): выбрать траты заново.
-    func reload(now: Date = .now) {
+    func disappear() {
+        isVisible = false
+    }
+
+    /// Данные сохранены (`ModelContext.didSave`): на виду — выбрать траты заново сразу, иначе — при появлении.
+    func dataDidChange(now: Date = .now) {
+        isStale = true
+        if isVisible { reload(now: now) }
+    }
+
+    private func reload(now: Date) {
+        isStale = false
         advance(to: now)
         loadYear(force: true)
         loadLatestExpense()

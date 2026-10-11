@@ -58,7 +58,8 @@ final class StatisticsModel {
     private(set) var pace: StatsPaceState?
     private(set) var habits: StatsHabitsState?
     private(set) var year: StatsYearState?
-    private(set) var topIDs: [UUID] = []
+    /// «Крупнейшие траты» строками: снимки при пересчёте, а не выборка в `body`.
+    private(set) var topRows: [ExpenseRowData] = []
     /// Дата последней траты — для «К последней трате»; `nil` — трат нет совсем.
     private(set) var lastExpenseDate: Date?
 
@@ -70,6 +71,8 @@ final class StatisticsModel {
     /// База менялась после последнего чтения.
     @ObservationIgnored private var isStale = true
     @ObservationIgnored private var isVisible = false
+    /// Контекст экрана — для строк «Крупнейших трат»; задаётся при появлении.
+    @ObservationIgnored private var context: ModelContext?
 
     init(calendar: Calendar = .autoupdatingCurrent, now: Date = .now) {
         engine = StatisticsEngine(calendar: calendar)
@@ -97,6 +100,7 @@ final class StatisticsModel {
 
     /// Экран появился: перечитать траты, если база менялась, пока его не было видно.
     func appear(in context: ModelContext) {
+        self.context = context
         isVisible = true
         reloadIfStale(from: context)
     }
@@ -107,6 +111,7 @@ final class StatisticsModel {
 
     /// База сохранена (`ModelContext.didSave`): на виду — перечитать сразу, иначе — при следующем появлении.
     func dataDidChange(in context: ModelContext) {
+        self.context = context
         isStale = true
         if isVisible { reloadIfStale(from: context) }
     }
@@ -155,10 +160,20 @@ final class StatisticsModel {
             )
             : nil
         year = yearState(period: period, records: records, filter: filter, scale: scale)
-        topIDs = engine.topExpenses(for: period, records: records, limit: Self.topLimit, filter: filter).map(\.id)
+        topRows = makeTopRows(engine.topExpenses(for: period, records: records, limit: Self.topLimit, filter: filter).map(\.id))
     }
 
     // MARK: - Внутреннее
+
+    /// Строки топа: модели — одной выборкой по id (их не больше `topLimit`), подпись — дата языка интерфейса.
+    private func makeTopRows(_ ids: [UUID]) -> [ExpenseRowData] {
+        guard !ids.isEmpty, let context else { return [] }
+        let expenses = (try? context.fetch(FetchDescriptor<Expense>(predicate: #Predicate { ids.contains($0.id) }))) ?? []
+        let dates = AppLanguage.current.dateFormatter(calendar: calendar, now: input.now)
+        return ids.compactMap { id in
+            expenses.first { $0.id == id }.map { ExpenseRowData(top: $0, dates: dates) }
+        }
+    }
 
     /// Шаг столбиков: день — по часам (только сегодня, §8 п. 15), неделя и месяц — по дням, год — по месяцам,
     /// свой период — по дням, если он не длиннее `customDailyLimit`.

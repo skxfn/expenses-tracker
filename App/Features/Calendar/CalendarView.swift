@@ -41,11 +41,10 @@ struct CalendarView: View {
         .sensoryFeedback(Haptic.success, trigger: repeatTick)
         .sensoryFeedback(Haptic.medium, trigger: longPressTick)
         .onAppear {
-            model.connect(ExpenseStore(context: modelContext), hiddenIDs: pendingDeletion.hiddenIDs)
+            model.appear(ExpenseStore(context: modelContext), hiddenIDs: pendingDeletion.hiddenIDs)
         }
-        .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave).receive(on: DispatchQueue.main)) { _ in
-            model.reload()
-        }
+        .onDisappear { model.disappear() }
+        .onDataSaved { model.dataDidChange() }
         .onChange(of: pendingDeletion.hiddenIDs) { _, ids in
             model.setHiddenIDs(ids)
         }
