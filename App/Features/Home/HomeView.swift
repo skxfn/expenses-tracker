@@ -100,7 +100,8 @@ struct HomeView: View {
             .scrollContentBackground(.hidden)
             .listSectionSpacing(0)
             .environment(\.defaultMinListRowHeight, 0)
-            .motion(Motion.enter, value: content.rowIDs)
+            // Анимированная вставка в `List` сдвигает соседние строки — при Reduce Motion (§3.6) лента без анимации.
+            .animation(reduceMotion ? nil : Motion.enter, value: content.rowIDs)
             // Другой период — новый список с начала, без анимации всех строк сразу. Ключ — период данных:
             // список меняется вместе с ними, а не кадром раньше.
             .id(content.period)
