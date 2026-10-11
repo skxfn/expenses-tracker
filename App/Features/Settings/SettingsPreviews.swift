@@ -63,17 +63,30 @@ struct CategoryFan: View {
 
 /// Два превью «Плитки / Кольцо» с радиокнопками (`settings.overview.*`). Рисунки статичные — это иллюстрация
 /// вида, а не данные. Выбранный вариант озвучивает система (трейт `.isSelected`).
+/// На AX-размерах варианты идут друг под другом: в половине строки подпись обрезалась до «Пли…».
 struct OverviewStylePicker: View {
     @Binding var selection: HomeOverviewStyle
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(alignment: .top, spacing: Theme.Spacing.xl * 2) {
-            option(.tiles, title: "settings.overview.map") { MiniTilesPreview() }
-            option(.ring, title: "settings.overview.ring") { MiniRingPreview() }
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: Theme.Spacing.xl) { options }
+                    .frame(maxWidth: .infinity)
+            } else {
+                HStack(alignment: .top, spacing: Theme.Spacing.xl * 2) { options }
+            }
         }
         .padding(.horizontal, Theme.Spacing.xl + Theme.Spacing.xs)
         .padding(.vertical, Theme.Spacing.lg)
         .sensoryFeedback(Haptic.selection, trigger: selection)
+    }
+
+    @ViewBuilder
+    private var options: some View {
+        option(.tiles, title: "settings.overview.map") { MiniTilesPreview() }
+        option(.ring, title: "settings.overview.ring") { MiniRingPreview() }
     }
 
     private func option(_ style: HomeOverviewStyle, title: LocalizedStringKey, @ViewBuilder preview: () -> some View) -> some View {
@@ -88,9 +101,11 @@ struct OverviewStylePicker: View {
                     .aspectRatio(Self.previewAspect, contentMode: .fit)
                     .background(Theme.canvas, in: shape)
                     .overlay { shape.strokeBorder(Theme.separator, lineWidth: Theme.Size.hairline) }
+                    .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? Self.accessiblePreviewWidth : nil)
                 Text(title)
                     .typeStyle(.body)
                     .foregroundStyle(Theme.ink)
+                    .multilineTextAlignment(dynamicTypeSize.isAccessibilitySize ? .center : .leading)
                 RadioMark(isSelected: isSelected)
             }
             .contentShape(Rectangle())
@@ -103,6 +118,8 @@ struct OverviewStylePicker: View {
 
     /// Карточка превью 132×93 (макет `12-settings`).
     private static let previewAspect: CGFloat = 132 / 93
+    /// На AX-размерах вариант во всю ширину группы: превью — в полтора раза больше макета, а не во всю ширину.
+    private static let accessiblePreviewWidth: CGFloat = 132 * 1.5
 }
 
 /// Радиокнопка: выбранная — графитовый круг с галочкой, невыбранная — контур graphic.

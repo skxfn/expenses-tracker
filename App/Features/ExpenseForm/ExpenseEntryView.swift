@@ -138,6 +138,9 @@ struct ExpenseEntryView: View {
             }
         }
         .scrollBounceBehavior(.basedOnSize)
+        // Крупный текст: прокрученное содержимое уходит под прозрачную шапку — край плотный, иначе ✕ и заголовок
+        // ложатся прямо на образцы. На размере по умолчанию прокрутки нет — и края не видно.
+        .scrollEdgeEffectStyle(.hard, for: .top)
         // Размер без безопасных областей: между шапкой и рядом кнопок.
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { visibleHeight = $0 }
         .safeAreaBar(edge: .bottom, spacing: 0) {

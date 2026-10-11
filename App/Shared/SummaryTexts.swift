@@ -13,6 +13,7 @@ struct SummaryTexts {
     // MARK: - Сравнение (§4.7, D5)
 
     /// Фраза-сравнение: на экране — с выделением и знаком валюты, для VoiceOver — сумма словами (`a11y.money`).
+    /// Озвучивается то же число, что на экране: от 1 000 — целыми (`MoneyFormatter.differenceMagnitude`).
     struct Comparison {
         /// «на **38 ⃅ меньше**, чем в прошлом месяце»: выделенная часть — `stronglyEmphasized`.
         let text: AttributedString
@@ -25,8 +26,9 @@ struct SummaryTexts {
     /// `nil` — сравнивать не с чем (`StatsTrend.incomparable`): фразы нет ни на экране, ни в озвучке.
     func comparison(_ summary: StatsSummary, period: StatsPeriod) -> Comparison? {
         let difference = money.string(fromMinor: summary.differenceMinor, style: .difference)
+        let shownMinor = MoneyFormatter.differenceMagnitude(summary.differenceMinor)
         guard let text = phrase(summary, period: period, difference: difference),
-              let spokenText = phrase(summary, period: period, difference: spoken(abs(summary.differenceMinor))) else { return nil }
+              let spokenText = phrase(summary, period: period, difference: spoken(shownMinor)) else { return nil }
         return Comparison(text: text, spoken: String(spokenText.characters))
     }
 

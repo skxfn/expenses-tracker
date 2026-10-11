@@ -90,7 +90,8 @@ struct CategoryTilesView: View {
     var body: some View {
         let field = CGRect(x: 0, y: 0, width: width, height: height)
         let items = data.itemsBySum
-        let rects = TileLayout.rects(items.map { Double($0.totalMinor) }, in: field, gap: Theme.Spacing.categoryGap)
+        let rects = TileLayout.rects(items.map { Double($0.totalMinor) }, in: field, gap: Theme.Spacing.categoryGap,
+                                     minSide: VizMetrics.tileMinSide)
         ZStack(alignment: .topLeading) {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 itemTile(item, overview: rects[index], field: field)
@@ -307,7 +308,8 @@ private struct PartTile: View {
 
 /// Подписи плитки: из вариантов выбирается первый, что помещается целиком (`ViewThatFits`).
 /// Статистика: иконка + доля сверху, имя + сумма снизу → без имени → доля снизу → только иконка.
-/// Главная: иконка + сумма → иконка.
+/// Главная: иконка + сумма → иконка. Поле плиток с текстом не растёт, поэтому на крупном тексте, прежде чем
+/// убрать сумму, пробуются те же подписи в кегле по умолчанию: иначе сумма пропадала даже у самой крупной плитки.
 private struct TileLabels: View {
     enum Icon {
         case image(String)
@@ -324,6 +326,11 @@ private struct TileLabels: View {
     let allowsLargeAmount: Bool
     let size: CGSize
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// Текст крупнее размера по умолчанию: есть смысл пробовать подписи в кегле по умолчанию.
+    private var isEnlarged: Bool { dynamicTypeSize > .large }
+
     private var content: CGSize {
         CGSize(
             width: max(size.width - 2 * VizMetrics.tilePadding, 0),
@@ -339,16 +346,28 @@ private struct TileLabels: View {
                 }
                 option(top: .iconAndPercent, bottom: .nameAndAmount(large: false))
                 option(top: .iconAndPercent, bottom: .amount)
+                if isEnlarged {
+                    option(top: .iconAndPercent, bottom: .nameAndAmount(large: false))
+                        .dynamicTypeSize(.large)
+                    option(top: .iconAndPercent, bottom: .amount)
+                        .dynamicTypeSize(.large)
+                }
                 option(top: .icon, bottom: .percent)
                 option(top: .iconAndPercent, bottom: .none)
             } else {
                 option(top: .icon, bottom: .amount)
+                if isEnlarged {
+                    option(top: .icon, bottom: .amount)
+                        .dynamicTypeSize(.large)
+                }
             }
             option(top: .icon, bottom: .none)
             Color.clear.frame(width: 0, height: 0)
         }
         .frame(width: content.width, height: content.height, alignment: .topLeading)
         .padding(VizMetrics.tilePadding)
+        // Подписи не раздвигают плитку: у плитки уже двух отступов они обрезаются, а не выносят заливку за поле.
+        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
         .foregroundStyle(color)
         .accessibilityHidden(true)
     }

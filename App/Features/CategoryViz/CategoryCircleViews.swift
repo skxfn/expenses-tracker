@@ -29,14 +29,11 @@ struct HomeCategoryRing<Phrase: View>: View {
             onSelect: onSelect
         ) {
             VStack(spacing: Theme.Spacing.xs) {
-                AmountText(
-                    text: money.string(fromMinor: data.totalMinor, style: .plain),
-                    value: Double(data.totalMinor),
-                    size: .ringTotal,
+                RingCenterAmount(
+                    minor: data.totalMinor,
                     currency: money.currencySymbol,
                     accessibilityText: VizText(money: money).spoken(data.totalMinor)
                 )
-                .minimumScaleFactor(VizMetrics.centerAmountMinScale)
                 .frame(maxWidth: RingMetrics.home.centerWidth)
                 phrase()
                     .typeStyle(.footnote)
@@ -426,12 +423,7 @@ private struct StatsCircleCenter: View {
 
     private var totalCenter: some View {
         VStack(spacing: 2) {
-            AmountText(
-                text: money.string(fromMinor: data.totalMinor, style: .plain),
-                value: Double(data.totalMinor),
-                size: .ringTotal
-            )
-            .minimumScaleFactor(VizMetrics.centerAmountMinScale)
+            RingCenterAmount(minor: data.totalMinor)
             Text(verbatim: L10n.format("stats.center.meta", money.currencySymbol, data.count))
                 .typeStyle(.footnote)
                 .foregroundStyle(Theme.secondary)
@@ -446,17 +438,50 @@ private struct StatsCircleCenter: View {
             CategoryIconImage(name: VizText.iconName(group))
                 .frame(width: VizMetrics.centerIcon, height: VizMetrics.centerIcon)
                 .foregroundStyle(CategoryPaint.onArea(group.tone))
-            AmountText(
-                text: money.string(fromMinor: group.totalMinor, style: .plain),
-                value: Double(group.totalMinor),
-                size: .ringTotal
-            )
-            .minimumScaleFactor(VizMetrics.centerAmountMinScale)
+            RingCenterAmount(minor: group.totalMinor)
             Text(verbatim: VizText.name(group))
                 .typeStyle(.callout)
                 .foregroundStyle(CategoryPaint.onArea(group.tone))
                 .lineLimit(1)
         }
         .contentShape(Circle())
+    }
+}
+
+// MARK: - Итог в центре
+
+/// Сумма Unbounded 28 в центре круга, ужимается до 0,8. На AX-размерах (кольцо держит текст до AX1) ужатой
+/// суммы с копейками не хватало («1 745,…»): там она в полный кегль, пока помещается, иначе — целыми
+/// (`.wholeUnits`, как разница от 1 000 во фразе), а длинные целые ужимаются сильнее. Озвучка — точная сумма.
+private struct RingCenterAmount: View {
+    let minor: Int64
+    var currency: String?
+    var accessibilityText: String?
+
+    @Environment(\.moneyFormatter) private var money
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            ViewThatFits(in: .horizontal) {
+                amount(.plain)
+                amount(.wholeUnits)
+                amount(.wholeUnits)
+                    .minimumScaleFactor(VizMetrics.centerAmountAccessibleMinScale)
+            }
+        } else {
+            amount(.plain)
+                .minimumScaleFactor(VizMetrics.centerAmountMinScale)
+        }
+    }
+
+    private func amount(_ style: MoneyFormatter.Style) -> some View {
+        AmountText(
+            text: money.string(fromMinor: minor, style: style),
+            value: Double(minor),
+            size: .ringTotal,
+            currency: currency,
+            accessibilityText: accessibilityText
+        )
     }
 }

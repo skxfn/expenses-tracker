@@ -25,6 +25,10 @@ nonisolated enum VizMetrics {
     /// Мини-образец цвета внутри «Ещё N».
     static let miniSwatch: CGFloat = 8
     static let miniSwatchGap: CGFloat = 3
+    /// Самая узкая плитка категории: видна, касаема, и в «Ещё N» помещается мини-образец. Без порога при одной
+    /// категории на 97 % и больше остальные сжимались в полоску уже зазора. Узкие плитки макета `01-home` (≈ 30)
+    /// порог не трогает.
+    static let tileMinSide: CGFloat = 2 * tilePadding + miniSwatch
 
     // MARK: Полосы (design.json → components «Полосы (статистика)»)
 
@@ -68,6 +72,9 @@ nonisolated enum VizMetrics {
     /// Итог в центре кольца ужимается до 0,8, если не помещается (длинная сумма, обозначение «BYN»;
     /// INTEGRATION §3.3.1).
     static let centerAmountMinScale: CGFloat = 0.8
+    /// На AX-размерах — последний вариант итога (целыми, длинная сумма): ужимается сильнее
+    /// (Unbounded 28 на AX1 ≈ 38 pt, × 0,6 ≈ 23).
+    static let centerAmountAccessibleMinScale: CGFloat = 0.6
     /// Переключатель видов в статистике (copy.json `stats.cats.heading`: 184 px).
     static let viewSwitcherWidth: CGFloat = 184
 }
