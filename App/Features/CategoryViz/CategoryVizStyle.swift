@@ -68,6 +68,9 @@ nonisolated enum VizMetrics {
     /// Итог в центре кольца ужимается до 0,8, если не помещается (длинная сумма, обозначение «BYN»;
     /// INTEGRATION §3.3.1).
     static let centerAmountMinScale: CGFloat = 0.8
+    /// На AX-размерах — последний вариант итога (целыми, длинная сумма): ужимается сильнее
+    /// (Unbounded 28 на AX1 ≈ 38 pt, × 0,6 ≈ 23).
+    static let centerAmountAccessibleMinScale: CGFloat = 0.6
     /// Переключатель видов в статистике (copy.json `stats.cats.heading`: 184 px).
     static let viewSwitcherWidth: CGFloat = 184
 }
