@@ -12,6 +12,7 @@ extension View {
 
 private struct DeletionToastModifier: ViewModifier {
     let pendingDeletion: PendingDeletion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
 
     func body(content: Content) -> some View {
         content
@@ -19,8 +20,8 @@ private struct DeletionToastModifier: ViewModifier {
                 GlassToast(
                     message: "toast.deleted.title",
                     action: .init(title: "toast.deleted.undo", handler: undo),
-                    onPressingChanged: { isPressing in
-                        if isPressing { pendingDeletion.pause() } else { pendingDeletion.resume() }
+                    onPressingChanged: { [id = pendingDeletion.item?.id] isPressing in
+                        if isPressing { pendingDeletion.pause(for: id) } else { pendingDeletion.resume(for: id) }
                     }
                 )
                 .accessibilityLabel("toast.deleted.a11y")
@@ -32,6 +33,10 @@ private struct DeletionToastModifier: ViewModifier {
             .onChange(of: pendingDeletion.item?.id) { _, id in
                 guard id != nil else { return }
                 announce("toast.deleted.a11y")
+            }
+            // VoiceOver включили при тосте на экране — 4 с не хватит: отсчёт заново на 10 с (и обратно).
+            .onChange(of: voiceOverEnabled) { _, isRunning in
+                pendingDeletion.voiceOverChanged(isRunning: isRunning)
             }
     }
 

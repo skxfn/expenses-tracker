@@ -3,6 +3,7 @@ import SwiftUI
 /// Стеклянный тост (DESIGN.md → Motion & Haptics, `toast.*`): капсула 50 над таб-баром, текст SF 15/600,
 /// необязательная кнопка («Отменить»). Только вид: таймер 4 с, фиксацию удаления и объявление VoiceOver
 /// делает экран; пауза таймера — по `onPressingChanged` (палец на тосте или фокус VoiceOver на нём).
+/// На каждое `true` приходит ровно одно `false`: и когда VoiceOver выключили с фокусом на тосте, и когда тост исчез.
 /// Тост с кнопкой при появлении забирает фокус VoiceOver (иначе до действия не добраться, пока тост виден),
 /// «волшебное касание» (двойное касание двумя пальцами) выполняет действие.
 struct GlassToast: View {
@@ -17,6 +18,8 @@ struct GlassToast: View {
     var onPressingChanged: (Bool) -> Void = { _ in }
 
     @State private var isPressing = false
+    /// Удержание, о котором уже сообщено в `onPressingChanged`.
+    @State private var isHolding = false
     @State private var actionCount = 0
     @AccessibilityFocusState(for: .voiceOver) private var isFocused: Bool
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
@@ -29,9 +32,9 @@ struct GlassToast: View {
                 .onAppear {
                     if voiceOverEnabled { isFocused = true }
                 }
-                .onChange(of: isFocused) { wasFocused, _ in
-                    holdChanged(wasHeld: isPressing || wasFocused)
-                }
+                .onChange(of: isFocused) { syncHold() }
+                // VoiceOver выключили, пока фокус был на тосте: фокуса больше нет — удержание снимается.
+                .onChange(of: voiceOverEnabled) { syncHold() }
         } else {
             capsule
         }
@@ -66,9 +69,15 @@ struct GlassToast: View {
                 .onEnded { _ in setPressing(false) }
         )
         .accessibilityElement(children: .combine)
+        // Тост убрали, пока его держали («Отменить», новое удаление): жест и фокус уже не закончатся сами.
+        .onDisappear {
+            guard isHolding else { return }
+            isHolding = false
+            onPressingChanged(false)
+        }
     }
 
-    private var isHeld: Bool { isPressing || isFocused }
+    private var isHeld: Bool { isPressing || (voiceOverEnabled && isFocused) }
 
     private func perform(_ action: Action) {
         actionCount += 1
@@ -77,14 +86,14 @@ struct GlassToast: View {
 
     private func setPressing(_ pressing: Bool) {
         guard pressing != isPressing else { return }
-        let wasHeld = isHeld
         isPressing = pressing
-        holdChanged(wasHeld: wasHeld)
+        syncHold()
     }
 
-    private func holdChanged(wasHeld: Bool) {
-        guard isHeld != wasHeld else { return }
-        onPressingChanged(isHeld)
+    private func syncHold() {
+        guard isHeld != isHolding else { return }
+        isHolding = isHeld
+        onPressingChanged(isHolding)
     }
 }
 

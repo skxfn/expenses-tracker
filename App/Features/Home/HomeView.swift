@@ -52,12 +52,12 @@ struct HomeView: View {
         .sensoryFeedback(Haptic.success, trigger: repeatCount)
         .errorAlert($errorMessage)
         .onChange(of: inputs, initial: true) { _, inputs in
-            model.reload(inputs, context: modelContext)
+            model.update(inputs, context: modelContext)
         }
         // Любое сохранение (запись, правка, удаление, категории, копия) — новая выборка. Сразу, а не в следующем
         // кадре: строка новой траты должна быть в ленте, когда `savedExpenseID` прокручивает к ней.
-        .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave)) { _ in
-            model.reload(inputs, context: modelContext)
+        .onDataSaved {
+            model.dataDidChange(inputs, context: modelContext)
         }
     }
 

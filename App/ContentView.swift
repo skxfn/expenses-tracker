@@ -172,15 +172,16 @@ struct ContentView: View {
     #if DEBUG
     private static let periodScenario = DebugLaunchOptions.periodScenario()
 
-    /// `-debugToast YES`: тост на паузе с несуществующим id — хранилище не меняется.
+    /// `-debugToast YES`: тост на паузе (до `PendingDeletion.maxHold`) с несуществующим id — хранилище не меняется.
     /// `-debugAdd YES`: шит новой траты после появления таб-бара (зум из «+»).
     private func applyDebugRequests() async {
         if let mode = ExpenseSheetDebug.requestedMode(context: modelContext) {
             router.sheet = .expense(mode)
         }
         if DebugLaunchOptions.showsDeletionToast() {
-            pendingDeletion.schedule(.init(id: UUID(), title: ""), store: ExpenseStore(context: modelContext))
-            pendingDeletion.pause()
+            let item = PendingDeletion.Item(id: UUID(), title: "")
+            pendingDeletion.schedule(item, store: ExpenseStore(context: modelContext))
+            pendingDeletion.pause(for: item.id)
         }
         if DebugLaunchOptions.presentsAddSheet() {
             try? await Task.sleep(for: .seconds(1))

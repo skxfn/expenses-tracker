@@ -33,19 +33,26 @@ struct HomeContent {
     let state: State
 
     /// - Parameters:
-    ///   - expenses: периода и отрезка сравнения (`StatisticsEngine.comparisonInterval`), от новых к старым, без скрытых.
+    ///   - records: траты периода и отрезка сравнения (`StatisticsEngine.comparisonInterval`), без скрытых.
+    ///   - rows: строки трат периода от новых к старым, без скрытых.
     ///   - latest: дата последней траты всей базы (без скрытых); `nil` — трат нет совсем.
-    init(expenses: [Expense], latest: Date?, categories: [ExpenseCategory], period: StatsPeriod, now: Date, calendar: Calendar) {
+    init(
+        records: [ExpenseRecord],
+        rows: [ExpenseRowData],
+        latest: Date?,
+        catalog: CategoryCatalogSnapshot,
+        period: StatsPeriod,
+        now: Date,
+        calendar: Calendar
+    ) {
         self.period = period
-        let records = expenses.map(ExpenseRecord.init)
         let engine = StatisticsEngine(calendar: calendar)
-        let catalog = CategoryCatalogSnapshot(categories: categories)
         let breakdown = engine.groupBreakdown(for: period, records: records, stepRank: catalog.stepRank)
 
         summary = engine.summary(for: period, records: records, now: now)
         overview = CategoryVizData(breakdown: breakdown, catalog: catalog)
         auraTones = Array(overview.groups.compactMap(\.tone).prefix(AuraBackground.defaultLayout.count))
-        days = Self.days(expenses.filter { period.contains($0.date) }, calendar: calendar)
+        days = Self.days(rows.filter { period.contains($0.date) }, calendar: calendar)
 
         if let latest {
             state = days.isEmpty ? .emptyPeriod(latest: latest) : .filled
@@ -58,7 +65,7 @@ struct HomeContent {
     var rowIDs: [UUID] { days.flatMap { $0.rows.map(\.id) } }
 
     /// Траты подряд по дням; порядок внутри дня — как пришёл (новые выше).
-    private static func days(_ expenses: [Expense], calendar: Calendar) -> [HomeFeedDay] {
+    private static func days(_ expenses: [ExpenseRowData], calendar: Calendar) -> [HomeFeedDay] {
         var days: [HomeFeedDay] = []
         var day: Date?
         var rows: [ExpenseRowData] = []
@@ -77,7 +84,7 @@ struct HomeContent {
                 rows = []
                 total = 0
             }
-            rows.append(ExpenseRowData(expense))
+            rows.append(expense)
             total += expense.amountMinor
         }
         flush()

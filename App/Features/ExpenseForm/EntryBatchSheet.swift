@@ -33,7 +33,9 @@ struct EntryBatchSheet: View {
             GlassToast(
                 message: "toast.deleted.title",
                 action: .init(title: "toast.deleted.undo", handler: undo),
-                onPressingChanged: { $0 ? pendingDeletion.pause() : pendingDeletion.resume() }
+                onPressingChanged: { [id = pendingDeletion.item?.id] in
+                    $0 ? pendingDeletion.pause(for: id) : pendingDeletion.resume(for: id)
+                }
             )
             // Как `deletionToast`: «Трата удалена», действие «Отменить»; новое удаление — новый тост с фокусом.
             .accessibilityLabel("toast.deleted.a11y")
