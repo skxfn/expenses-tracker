@@ -80,7 +80,7 @@
 - `ScrollPosition.scrollTo` в `onAppear` у `LazyVStack` промахивается — начальную позицию задавать в `State(initialValue: ScrollPosition(id:anchor:))`.
 - Системная «Назад» в iOS 26 — только стрелка в круге; капсулу «‹ Траты» из макета ею не получить.
 - `period.range.meta` уже содержит «≈» — сумму давать `.phrase` от `Money.roundedToWholeUnits`, не `.approximate`.
-- iOS 26.5: панель `ToolbarItem(.keyboard)` со скрытым общим фоном не входит в safe area клавиатуры — под неё свой отступ (`ExpenseEntryView`); проверить на iOS 27. Клавиатура шита записи остаётся поверх дочернего шита, пока не снять фокус.
+- iOS 26.5: панель `ToolbarItem(.keyboard)` со скрытым общим фоном входит в safe area клавиатуры не сразу (при появлении шита — нет, после перерисовки — да) — отступ под неё меряется (`quickBarInset` в `ExpenseEntryView`); проверить на iOS 27. Шит записи: содержимое в `ScrollView` + `FillHeightLayout` (`frame(minHeight:)` в `ScrollView` промежутки не раздвигает), ряд кнопок — `safeAreaBar`, сумма и кнопки ограничены AX1. Клавиатура шита записи остаётся поверх дочернего шита, пока не снять фокус.
 - Симулятор под нагрузкой (load average сотни): `simctl launch` зависает — `shutdown`, `boot`, `bootstatus`. Ввод через MCP-симулятор (`text`) переключает его на аппаратную клавиатуру.
 - `ViewThatFits` проверяет идеальную ширину — многострочный `Text` её не уменьшает; перенос имени по словам держится на скрытом «пробнике» с самым длинным словом (`CategoryViz`).
 - scratchpad общий у параллельных агентов — скрипты и снимки только в своей подпапке.
@@ -100,6 +100,7 @@
 - `@Query` + `onChange(of:)` не видит правку полей: массив состоит из тех же объектов.
 - Swift Charts при многих столбиках собирает их для VoiceOver в безымянные диапазоны — свои подписи через `accessibilityChildren`. Шрифт фрагмента `AttributedString` брать из окружения самого `Text`: ограничение `dynamicTypeSize` ниже по дереву в контекст, прочитанный выше, не попадает.
 - Синхронную работу на главном потоке (резервная копия) предварять паузой ≈ 50 мс, иначе индикатор не успеет отрисоваться.
+- Под нагрузкой `simctl ui content_size` виснет — размер текста аргументом `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`, тема в UI-тесте — `XCUIDevice.shared.appearance`. `test-without-building` может запустить старый UI-тест — `simctl uninstall <bundle>.xctrunner`.
 - DEBUG: `-debugSheet filled` при каждом запуске дописывает траты в базу; с `-debugSheet` панель быстрых сумм часто не появляется — её проверять через «+».
 - Проверка доступности на симуляторе: дерево XCUITest показывает детей у скрытых и `.combine`/`.ignore` элементов — «лишние» элементы им не проверить, подсказки и действия не видны. Reduce Motion/Transparency: `simctl spawn <udid> defaults write com.apple.Accessibility ReduceMotionEnabled|EnhancedBackgroundContrastEnabled -bool YES` + перезапуск; Increase Contrast — `simctl ui <udid> increase_contrast enabled`.
 - Перевод SwiftData-моделей в `ExpenseRecord` ≈ 6 мкс на трату, повторная выборка 20k ≈ 350 мс — в `body` не делать. Проверка миграции на настоящей базе 1.0: `git archive main Packages/ExpenseCore` → пакет-генератор V1. Exit-тесты Swift Testing (`#expect(processExitsWith:)`) работают в пакете — ими проверять краши.
