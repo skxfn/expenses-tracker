@@ -37,6 +37,7 @@ private struct CategoryEditorForm: View {
     let onSaved: (UUID) -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var isConfirmingDelete = false
     @State private var isPickingReassignTarget = false
     @State private var saveFailures = 0
@@ -165,25 +166,19 @@ private struct CategoryEditorForm: View {
         }
     }
 
+    /// «Категория ›». На AX-размерах, если не помещается в ряд, — столбиком, как `SettingsRow`: родитель под
+    /// подписью, иначе подпись рвётся по слогам («Ка-те-…»).
     private var parentRow: some View {
         NavigationLink(value: ParentPickerRoute()) {
-            HStack(spacing: Theme.Spacing.sm) {
-                Text("cat.group.label")
-                    .typeStyle(.body)
-                    .foregroundStyle(Theme.ink)
-                Spacer(minLength: Theme.Spacing.sm)
-                if let parent = model.parent {
-                    let tone = model.parentTone
-                    MiniPlaque(iconName: parent.iconName, fill: tone.main, iconColor: Theme.paper)
-                    Text(verbatim: parent.name)
-                        .typeStyle(.body)
-                        .foregroundStyle(Theme.secondary)
-                        .lineLimit(1)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    ViewThatFits(in: .horizontal) {
+                        parentRowInline
+                        parentRowStacked
+                    }
+                } else {
+                    parentRowInline
                 }
-                Image(systemName: "chevron.right")
-                    .typeStyle(.footnoteStrong)
-                    .foregroundStyle(Theme.graphic)
-                    .accessibilityHidden(true)
             }
             .paperField()
             .contentShape(Rectangle())
@@ -193,6 +188,54 @@ private struct CategoryEditorForm: View {
         .accessibilityLabel(Text(verbatim: L10n.format("cat.group.a11y", model.parent?.name ?? "")))
         .accessibilityHint(Text("cat.group.a11y.hint"))
         .accessibilityAddTraits(.isButton)
+    }
+
+    private var parentRowInline: some View {
+        HStack(spacing: Theme.Spacing.sm) {
+            parentLabel
+            Spacer(minLength: Theme.Spacing.sm)
+            parentValue
+                .lineLimit(1)
+            parentChevron
+        }
+    }
+
+    private var parentRowStacked: some View {
+        HStack(spacing: Theme.Spacing.sm) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                parentLabel
+                HStack(spacing: Theme.Spacing.sm) {
+                    parentValue
+                }
+            }
+            .padding(.vertical, Theme.Spacing.sm)
+            Spacer(minLength: 0)
+            parentChevron
+        }
+    }
+
+    private var parentLabel: some View {
+        Text("cat.group.label")
+            .typeStyle(.body)
+            .foregroundStyle(Theme.ink)
+    }
+
+    @ViewBuilder
+    private var parentValue: some View {
+        if let parent = model.parent {
+            let tone = model.parentTone
+            MiniPlaque(iconName: parent.iconName, fill: tone.main, iconColor: Theme.paper)
+            Text(verbatim: parent.name)
+                .typeStyle(.body)
+                .foregroundStyle(Theme.secondary)
+        }
+    }
+
+    private var parentChevron: some View {
+        Image(systemName: "chevron.right")
+            .typeStyle(.footnoteStrong)
+            .foregroundStyle(Theme.graphic)
+            .accessibilityHidden(true)
     }
 
     @ViewBuilder
