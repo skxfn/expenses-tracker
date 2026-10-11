@@ -61,12 +61,9 @@ struct SettingsView: View {
     /// «Обозначение»: знак рубля (по умолчанию) | BYN — только для BYN (INTEGRATION §3.3.1, макет `12-settings`).
     /// Для VoiceOver строка — один регулируемый элемент «Обозначение, Знак рубля»: подсказку на контейнере
     /// сегмента VoiceOver не читает, а у регулируемого элемента — читает.
+    /// Строка — `SettingsRow` с сегментом-аксессуаром: на AX-размерах сегмент уходит под подпись, а не рвёт её.
     private var symbolRow: some View {
-        HStack(spacing: Theme.Spacing.md) {
-            Text("settings.currency.symbol")
-                .typeStyle(.body)
-                .foregroundStyle(Theme.ink)
-            Spacer(minLength: Theme.Spacing.sm)
+        SettingsRow(title: "settings.currency.symbol") {
             GlassSegmentedControl(
                 title: "settings.currency.symbol",
                 selection: $symbolStyle,
@@ -81,8 +78,6 @@ struct SettingsView: View {
             )
             .frame(width: Theme.Size.symbolStylePicker)
         }
-        .padding(.horizontal, Theme.Spacing.lg)
-        .frame(minHeight: Theme.Size.field)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("settings.currency.symbol"))
         .accessibilityValue(Text(LocalizedStringKey(
