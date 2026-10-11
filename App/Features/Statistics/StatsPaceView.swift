@@ -2,7 +2,7 @@ import Charts
 import SwiftUI
 import ExpenseCore
 
-/// «Темп» (`04-stats`): «≈ 1 600 ⃅» Unbounded 40, «к 31 октября при текущем темпе», легенда
+/// «Темп» (`04-stats`): «≈ 1 600 ⃅» Unbounded 28, «к 31 октября при текущем темпе», легенда
 /// «октябрь — сентябрь — прогноз» и накопительные кривые: текущая ink, прошлая graphic, прогноз — точками
 /// до конца периода. У прошедшего периода вместо прогноза — итог («итог за сентябрь»).
 /// Мало данных (`StatsThresholds`) — строка `stats.fewData.pace` вместо графика.
@@ -12,6 +12,7 @@ struct StatsPaceView: View {
     let texts: StatsTexts
 
     @Environment(\.moneyFormatter) private var money
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         if pace.hasEnoughData {
@@ -32,13 +33,14 @@ struct StatsPaceView: View {
 
     // MARK: Итог или прогноз
 
+    /// Unbounded 28 + знак 14 (макет `04-stats`): мельче итога периода над листом (40), чтобы с ним не спорить.
     @ViewBuilder
     private var headline: some View {
         if let forecast = pace.forecast {
             AmountText(
                 text: texts.approximate(forecast.roundedMinor),
                 value: Double(forecast.roundedMinor),
-                size: .total,
+                size: .ringTotal,
                 currency: money.currencySymbol,
                 accessibilityText: texts.shared.spoken(forecast.roundedMinor)
             )
@@ -46,7 +48,7 @@ struct StatsPaceView: View {
             AmountText(
                 text: money.string(fromMinor: pace.totalMinor, style: .plain),
                 value: Double(pace.totalMinor),
-                size: .total,
+                size: .ringTotal,
                 currency: money.currencySymbol,
                 accessibilityText: texts.shared.spoken(pace.totalMinor)
             )
@@ -78,6 +80,8 @@ struct StatsPaceView: View {
         }
         .lineLimit(1)
         .minimumScaleFactor(0.8)
+        // Легенда графика — не крупнее AX1, как его подписи: иначе «окт…, сент…».
+        .vizDynamicTypeLimit()
         .accessibilityHidden(true)
     }
 
@@ -153,13 +157,18 @@ struct StatsPaceView: View {
                     .accessibilityHidden(true)
             }
         }
-        .chartXScale(domain: 1...Double(dayCount) + Self.domainSlack, range: .plotDimension(endPadding: StatsLayout.paceTrailingSpace))
+        .chartXScale(
+            domain: 1...Double(dayCount) + Self.domainSlack,
+            range: .plotDimension(endPadding: dynamicTypeSize.chartScaled(StatsLayout.paceTrailingSpace, relativeTo: .subheadline))
+        )
         .chartYScale(domain: 0...yMax)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
         .chartLegend(.hidden)
+        // Подписи — не крупнее AX1, место под ними растёт вместе с ними: иначе подписи у концов кривых режутся краем.
+        .vizDynamicTypeLimit()
         .frame(height: StatsLayout.paceHeight)
-        .padding(.bottom, StatsLayout.paceAxisSpace)
+        .padding(.bottom, dynamicTypeSize.chartScaled(StatsLayout.paceAxisSpace, relativeTo: .footnote))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: texts.paceAccessibility(pace, period: period)))
     }

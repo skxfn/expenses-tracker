@@ -29,8 +29,10 @@ struct CategoryStripsView: View {
             }
         }
         .animation(motion.shape, value: expandedID)
-        .animation(Motion.animation(Motion.vizExpand, reduceMotion: reduceMotion), value: showsFolded)
+        // Reduce Motion: строки «Ещё N» не выезжают — список сменяется кроссфейдом.
+        .animation(reduceMotion ? nil : Motion.vizExpand, value: showsFolded)
         .vizCrossfade(on: expanded?.id)
+        .vizCrossfade(on: showsFolded)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: L10n.format("stats.strips.a11y", periodName)))
     }
@@ -197,24 +199,33 @@ private struct StripRowLayout<Leading: View>: View {
     let amountValue: Int64
     let card: StripCard
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
+        // На AX-размерах имя, доля и сумма — друг под другом (как в списке под диаграммой), иначе имя режется.
+        let isStacked = dynamicTypeSize.isAccessibilitySize
+        let labels = isStacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 6))
         HStack(alignment: .top, spacing: VizMetrics.stripLabelInset - Theme.Size.plaque) {
             leading()
                 .padding(.top, VizMetrics.stripPlaqueTop)
             VStack(alignment: .leading, spacing: VizMetrics.stripCardSpacing) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                labels {
                     Text(verbatim: title)
                         .typeStyle(.callout)
                         .fontWeight(titleWeight)
                         .foregroundStyle(Theme.ink)
-                        .lineLimit(1)
+                        .lineLimit(isStacked ? 3 : 1)
                     Text(verbatim: percent)
                         .typeStyle(.footnote)
                         .fontWeight(.medium)
                         .foregroundStyle(Theme.secondary)
                         .lineLimit(1)
                         .fixedSize()
-                    Spacer(minLength: Theme.Spacing.sm)
+                    if !isStacked {
+                        Spacer(minLength: Theme.Spacing.sm)
+                    }
                     AmountText(text: amount, value: Double(amountValue), size: .inline)
                         .fixedSize()
                 }

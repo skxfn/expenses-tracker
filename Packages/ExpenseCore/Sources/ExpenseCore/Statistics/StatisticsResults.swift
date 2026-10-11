@@ -11,6 +11,8 @@ public struct StatsSummary: Sendable, Hashable {
     public let averagedDayCount: Int
     /// Итог отрезка прошлого периода `comparisonInterval` («к той же дате»).
     public let previousTotalMinor: Int64
+    /// Были ли траты во всём прошлом периоде, а не только «к той же дате»: отличает «несравнимо» от «трат не было».
+    public let hasPreviousExpenses: Bool
     /// Относительное изменение к `previousTotalMinor`: `0.25` — рост на 25 %.
     /// `nil`, если в сравниваемом отрезке трат не было.
     public let change: Double?
@@ -24,7 +26,7 @@ public struct StatsSummary: Sendable, Hashable {
 
     /// Какую фразу-сравнение показать. «примерно как» — |изменение| < `StatsThresholds.sameChange`.
     public var trend: StatsTrend {
-        guard let change else { return .noPrevious }
+        guard let change else { return hasPreviousExpenses ? .incomparable : .noPrevious }
         if abs(change) < StatsThresholds.sameChange { return .same }
         return change > 0 ? .more : .less
     }
@@ -38,8 +40,11 @@ public enum StatsTrend: Sendable, Hashable {
     case less
     /// «примерно как …»
     case same
-    /// «… трат не было»
+    /// «… трат не было»: в прошлом периоде трат не было совсем.
     case noPrevious
+    /// В прошлом периоде траты были, но не к этой дате («к той же дате» — 0): сравнивать не с чем,
+    /// фразу не показывать — «трат не было» было бы неправдой.
+    case incomparable
 }
 
 /// С чем сравнивается итог (D5). Текст — `RussianDateFormatter.comparisonReference(_:)`.

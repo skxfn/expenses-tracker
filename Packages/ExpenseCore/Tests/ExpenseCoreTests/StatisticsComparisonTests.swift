@@ -99,7 +99,35 @@ import Testing
     @Test func noPreviousWhenComparedPartIsEmpty() {
         let summary = engine.summary(for: F.october, records: [F.record(100, F.date(2026, 10, 2))], now: F.now)
         #expect(summary.trend == .noPrevious)
+        #expect(!summary.hasPreviousExpenses)
         #expect(engine.summary(for: F.october, records: [], now: F.now).trend == .noPrevious)
+    }
+
+    @Test func incomparableWhenPreviousHadExpensesOnlyAfterSameDate() {
+        // Понедельник 12 октября: на прошлой неделе траты во вторник и пятницу, в понедельник — нет.
+        let monday = F.date(2026, 10, 12, 12)
+        let week = StatsPeriod.current(.week, now: monday, calendar: F.minsk)
+        let weekRecords = [F.record(50_000, F.date(2026, 10, 6, 13)), F.record(70_000, F.date(2026, 10, 9, 19))]
+        let weekSummary = engine.summary(for: week, records: weekRecords + [F.record(1_000, monday)], now: monday)
+        #expect(weekSummary.previousTotalMinor == 0)
+        #expect(weekSummary.hasPreviousExpenses)
+        #expect(weekSummary.trend == .incomparable)
+
+        // 1-е число: в прошлом месяце первая трата была 2-го.
+        let first = F.date(2026, 10, 1, 9)
+        let month = StatsPeriod.current(.month, now: first, calendar: F.minsk)
+        let monthSummary = engine.summary(for: month, records: [F.record(10_000, F.date(2026, 9, 2, 12))], now: first)
+        #expect(monthSummary.previousTotalMinor == 0)
+        #expect(monthSummary.trend == .incomparable)
+    }
+
+    @Test func incomparableRespectsCategoryFilter() {
+        // Траты прошлой недели — только в другой категории: для отфильтрованной сводки их не было.
+        let monday = F.date(2026, 10, 12, 12)
+        let week = StatsPeriod.current(.week, now: monday, calendar: F.minsk)
+        let records = [F.record(50_000, F.date(2026, 10, 6, 13), F.transport), F.record(1_000, monday, F.food)]
+        #expect(engine.summary(for: week, records: records, now: monday, filter: .group(F.food)).trend == .noPrevious)
+        #expect(engine.summary(for: week, records: records, now: monday).trend == .incomparable)
     }
 
     @Test func referencesByKindAndTense() {

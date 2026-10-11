@@ -41,30 +41,50 @@ nonisolated enum StatsLayout {
     static let yearTodayLine: CGFloat = 1.5
 }
 
+extension DynamicTypeSize {
+    /// Размер места под подписью графика (`value` — при размере текста по умолчанию), растущий как текст
+    /// стиля `style`, но не дальше AX1 — предела подписей графиков (`vizDynamicTypeLimit`).
+    func chartScaled(_ value: CGFloat, relativeTo style: UIFont.TextStyle) -> CGFloat {
+        let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(min(self, .accessibility1)))
+        return UIFontMetrics(forTextStyle: style).scaledValue(for: value, compatibleWith: traits)
+    }
+}
+
 /// Заголовок блока на листе: SF 22/600 слева, справа — пометка «только Продукты» и подпись единиц
-/// («в среднем за день, ⃅») SF 15 secondary.
+/// («в среднем за день, ⃅») SF 15 secondary. На AX-размерах пометка и подпись уходят под заголовок.
 struct StatsSectionHeader: View {
     let title: Text
     var filterMark: String?
     var note: String?
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm) {
+        let isStacked = dynamicTypeSize.isAccessibilitySize
+        let layout = isStacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Spacing.xs))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm))
+        layout {
             title
                 .typeStyle(.title)
                 .foregroundStyle(Theme.ink)
-                .lineLimit(1)
+                .lineLimit(isStacked ? nil : 1)
                 .minimumScaleFactor(0.8)
+                .fixedSize(horizontal: false, vertical: isStacked)
                 .accessibilityAddTraits(.isHeader)
-            Spacer(minLength: Theme.Spacing.sm)
+            if !isStacked {
+                Spacer(minLength: Theme.Spacing.sm)
+            }
             if filterMark != nil || note != nil {
-                VStack(alignment: .trailing, spacing: 2) {
+                VStack(alignment: isStacked ? .leading : .trailing, spacing: 2) {
                     if let filterMark {
                         StatsFilterMark(text: filterMark)
                     }
                     if let note {
                         Text(verbatim: note)
-                            .lineLimit(1)
+                            .lineLimit(isStacked ? nil : 1)
+                            // Единицы — только для глаз: озвучка блока уже называет суммы с «рублями».
+                            .accessibilityHidden(true)
                     }
                 }
                 .typeStyle(.subheadline)
