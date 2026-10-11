@@ -2,7 +2,7 @@ import Charts
 import SwiftUI
 import ExpenseCore
 
-/// «Темп» (`04-stats`): «≈ 1 600 ⃅» Unbounded 40, «к 31 октября при текущем темпе», легенда
+/// «Темп» (`04-stats`): «≈ 1 600 ⃅» Unbounded 28, «к 31 октября при текущем темпе», легенда
 /// «октябрь — сентябрь — прогноз» и накопительные кривые: текущая ink, прошлая graphic, прогноз — точками
 /// до конца периода. У прошедшего периода вместо прогноза — итог («итог за сентябрь»).
 /// Мало данных (`StatsThresholds`) — строка `stats.fewData.pace` вместо графика.
@@ -32,13 +32,14 @@ struct StatsPaceView: View {
 
     // MARK: Итог или прогноз
 
+    /// Unbounded 28 + знак 14 (макет `04-stats`): мельче итога периода над листом (40), чтобы с ним не спорить.
     @ViewBuilder
     private var headline: some View {
         if let forecast = pace.forecast {
             AmountText(
                 text: texts.approximate(forecast.roundedMinor),
                 value: Double(forecast.roundedMinor),
-                size: .total,
+                size: .ringTotal,
                 currency: money.currencySymbol,
                 accessibilityText: texts.shared.spoken(forecast.roundedMinor)
             )
@@ -46,7 +47,7 @@ struct StatsPaceView: View {
             AmountText(
                 text: money.string(fromMinor: pace.totalMinor, style: .plain),
                 value: Double(pace.totalMinor),
-                size: .total,
+                size: .ringTotal,
                 currency: money.currencySymbol,
                 accessibilityText: texts.shared.spoken(pace.totalMinor)
             )
