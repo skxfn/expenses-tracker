@@ -38,6 +38,8 @@ struct CalendarGrid: View {
                     .typeStyle(.footnoteStrong)
                     .foregroundStyle(Theme.secondary)
                     .lineLimit(1)
+                    // «Mon», «Wed» на крупном тексте шире колонки 49: уменьшаются, а не «M…».
+                    .minimumScaleFactor(Self.weekdayMinimumScale)
                     .padding(.leading, CalendarMetrics.cellPadding.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -121,6 +123,7 @@ struct CalendarGrid: View {
     }
 
     private static let longPressDuration = 0.5
+    private static let weekdayMinimumScale: CGFloat = 0.7
 
     /// Ключ `cal.weekdays.*` по номеру дня недели `Calendar` (1 — воскресенье).
     private static func weekdayKey(_ weekday: Int) -> String {
