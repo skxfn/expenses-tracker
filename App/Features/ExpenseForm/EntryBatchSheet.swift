@@ -32,12 +32,14 @@ struct EntryBatchSheet: View {
         .glassToast(isPresented: isToastShown, bottomPadding: Theme.Spacing.sm) {
             GlassToast(
                 message: "toast.deleted.title",
-                action: .init(title: "toast.deleted.undo") {
-                    pendingDeletion.undo()
-                    EntrySpeech.announce(String(localized: "toast.undone.a11y"))
-                },
+                action: .init(title: "toast.deleted.undo", handler: undo),
                 onPressingChanged: { $0 ? pendingDeletion.pause() : pendingDeletion.resume() }
             )
+            // Как `deletionToast`: «Трата удалена», действие «Отменить»; новое удаление — новый тост с фокусом.
+            .accessibilityLabel("toast.deleted.a11y")
+            .accessibilityRemoveTraits(.isButton)
+            .accessibilityAction(named: "toast.deleted.a11y.undo", undo)
+            .id(pendingDeletion.item?.id)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -56,6 +58,11 @@ struct EntryBatchSheet: View {
 
     private var isToastShown: Bool {
         pendingDeletion.item.map { ids.contains($0.id) } ?? false
+    }
+
+    private func undo() {
+        pendingDeletion.undo()
+        EntrySpeech.announce(String(localized: "toast.undone.a11y"))
     }
 
     private func delete(_ row: ExpenseRowData) {
