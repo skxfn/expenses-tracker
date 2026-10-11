@@ -253,13 +253,14 @@ private struct CircleVizBody<Center: View>: View {
                     .vizShade(index: index, visible: isVisible)
                     .accessibilityHidden(true)
             }
-            ForEach(Array(group.parts.enumerated()), id: \.element.id) { index, part in
-                VizDisc(content: partDiscContent(part, of: group), radius: ring.discRadius)
-                    .offset(discOffset(discAngles[index]))
-                    .vizShade(index: index, visible: isVisible)
+            // Диски — по сумме: VoiceOver идёт по порядку элементов; место на круге — по оттенку (`index`).
+            ForEach(Array(partsBySum(group).enumerated()), id: \.element.part.id) { rank, entry in
+                VizDisc(content: partDiscContent(entry.part, of: group), radius: ring.discRadius)
+                    .offset(discOffset(discAngles[entry.index]))
+                    .vizShade(index: entry.index, visible: isVisible)
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(verbatim: text.label(part)))
-                    .accessibilitySortPriority(VizText.sortPriority(rank(of: part, in: group), count: group.parts.count))
+                    .accessibilityLabel(Text(verbatim: text.label(entry.part)))
+                    .accessibilitySortPriority(VizText.sortPriority(rank, count: group.parts.count))
                     .accessibilityHidden(!isVisible)
             }
         }
@@ -271,18 +272,24 @@ private struct CircleVizBody<Center: View>: View {
         return .icon(part.iconName ?? VizText.iconName(group), group.tone)
     }
 
-    private func rank(of part: CategoryVizPart, in group: CategoryVizGroup) -> Int {
-        group.parts.sorted { $0.totalMinor > $1.totalMinor }.firstIndex { $0.id == part.id } ?? 0
+    /// Части по убыванию суммы с их местом в порядке оттенков.
+    private func partsBySum(_ group: CategoryVizGroup) -> [(index: Int, part: CategoryVizPart)] {
+        group.parts.enumerated()
+            .map { (index: $0.offset, part: $0.element) }
+            .sorted { $0.part.totalMinor > $1.part.totalMinor }
     }
 
     // MARK: Диски-подписи
 
     private func discs(_ arcs: [RingArc]) -> some View {
         let angles = RadialLabelLayout.spread(arcs.map(\.mid), minSeparation: ring.discSeparation)
-        let bySum = data.itemsBySum.map(\.id)
+        let hueIndex = Dictionary(uniqueKeysWithValues: items.enumerated().map { ($0.element.id, $0.offset) })
         let text = VizText(money: money)
         return ZStack {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+            // Диски — по сумме, как во фразе `stats.ring.a11y`: VoiceOver идёт по порядку элементов;
+            // место на круге — по оттенку.
+            ForEach(Array(data.itemsBySum.enumerated()), id: \.element.id) { rank, item in
+                let index = hueIndex[item.id] ?? rank
                 VizRowButton(
                     action: isTappable(item) ? { tap(item) } : nil,
                     label: label(item, text: text),
@@ -292,7 +299,7 @@ private struct CircleVizBody<Center: View>: View {
                     VizDisc(content: discContent(item), radius: ring.discRadius)
                 }
                 .offset(discOffset(angles[index]))
-                .accessibilitySortPriority(VizText.sortPriority(bySum.firstIndex(of: item.id) ?? index, count: items.count))
+                .accessibilitySortPriority(VizText.sortPriority(rank, count: items.count))
             }
         }
         .opacity(expanded == nil ? 1 : 0)

@@ -43,7 +43,6 @@ struct StatsBarsChart: View {
                     )
                     .foregroundStyle(index == shownIndex ? Theme.ink : Theme.graphic)
                     .cornerRadius(StatsLayout.barCorner)
-                    .accessibilityLabel(Text(verbatim: texts.bucketAccessibility(bucket, step: series.step)))
                 }
             }
             if let averageMinor, averageMinor > 0 {
@@ -90,6 +89,8 @@ struct StatsBarsChart: View {
                 }
             }
         }
+        // Подписи оси и подсказка — не крупнее AX1: иначе подсказка закрывает столбики, а крайняя подпись режется.
+        .vizDynamicTypeLimit()
         .frame(height: StatsLayout.barsHeight)
         .padding(.top, StatsLayout.tooltipSpace)
         // При Reduce Motion подсказка переставляется без движения (§3.6).
@@ -97,6 +98,21 @@ struct StatsBarsChart: View {
         .sensoryFeedback(Haptic.selection, trigger: selectedIndex)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: texts.seriesAccessibility(period, step: series.step)))
+        // Swift Charts объединяет много столбиков в диапазоны без сумм — свои элементы: отрезок и сумма
+        // (`stats.days.bar.a11y`), будущие дни пропускаются.
+        .accessibilityChildren {
+            HStack(spacing: 0) {
+                ForEach(buckets) { bucket in
+                    if isFuture(bucket) {
+                        Color.clear
+                            .accessibilityHidden(true)
+                    } else {
+                        Rectangle()
+                            .accessibilityLabel(Text(verbatim: texts.bucketAccessibility(bucket, step: series.step)))
+                    }
+                }
+            }
+        }
     }
 
     // MARK: Подсказка
@@ -129,6 +145,8 @@ struct StatsBarsChart: View {
                     Text(verbatim: label.text)
                         .typeStyle(label.isCurrent ? .footnoteStrong : .footnote)
                         .foregroundStyle(label.isCurrent ? Theme.ink : Theme.secondary)
+                        // Крупным текстом ось ужимает крайнюю подпись до «…».
+                        .fixedSize()
                 }
             }
         }

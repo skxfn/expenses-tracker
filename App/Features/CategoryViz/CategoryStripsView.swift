@@ -29,8 +29,10 @@ struct CategoryStripsView: View {
             }
         }
         .animation(motion.shape, value: expandedID)
-        .animation(Motion.animation(Motion.vizExpand, reduceMotion: reduceMotion), value: showsFolded)
+        // Reduce Motion: строки «Ещё N» не выезжают — список сменяется кроссфейдом.
+        .animation(reduceMotion ? nil : Motion.vizExpand, value: showsFolded)
         .vizCrossfade(on: expanded?.id)
+        .vizCrossfade(on: showsFolded)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: L10n.format("stats.strips.a11y", periodName)))
     }

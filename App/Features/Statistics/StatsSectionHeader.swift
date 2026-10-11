@@ -41,6 +41,15 @@ nonisolated enum StatsLayout {
     static let yearTodayLine: CGFloat = 1.5
 }
 
+extension DynamicTypeSize {
+    /// Размер места под подписью графика (`value` — при размере текста по умолчанию), растущий как текст
+    /// стиля `style`, но не дальше AX1 — предела подписей графиков (`vizDynamicTypeLimit`).
+    func chartScaled(_ value: CGFloat, relativeTo style: UIFont.TextStyle) -> CGFloat {
+        let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(min(self, .accessibility1)))
+        return UIFontMetrics(forTextStyle: style).scaledValue(for: value, compatibleWith: traits)
+    }
+}
+
 /// Заголовок блока на листе: SF 22/600 слева, справа — пометка «только Продукты» и подпись единиц
 /// («в среднем за день, ⃅») SF 15 secondary. На AX-размерах пометка и подпись уходят под заголовок.
 struct StatsSectionHeader: View {
