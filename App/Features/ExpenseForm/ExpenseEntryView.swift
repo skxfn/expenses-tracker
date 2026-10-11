@@ -34,8 +34,13 @@ struct ExpenseEntryView: View {
     @State private var isFlyingAway = false
     @State private var amountWidth: CGFloat = 0
     @State private var availableWidth: CGFloat = 0
+    /// Видимая высота прокрутки над рядом кнопок: пока всё помещается, раскладка занимает её целиком.
+    @State private var visibleHeight: CGFloat = 0
     /// Высота раскладки над клавиатурой — держится, пока открыт шит поверх.
     @State private var keyboardLayoutHeight: CGFloat = 0
+    /// Низ раскладки и верх панели быстрых сумм (в координатах окна) — для отступа под панель.
+    @State private var keyboardLayoutBottom: CGFloat?
+    @State private var quickBarTop: CGFloat?
     /// Шит поверх закрылся, клавиатура ещё не вернулась — раскладка держится.
     @State private var isWaitingForKeyboard = false
     // Триггеры тактильного отклика и тряски.
@@ -55,6 +60,7 @@ struct ExpenseEntryView: View {
     @Environment(PendingDeletion.self) private var pendingDeletion
     @Environment(AppRouter.self) private var router: AppRouter?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(model: ExpenseFormModel) {
         _model = State(initialValue: model)
@@ -62,7 +68,7 @@ struct ExpenseEntryView: View {
 
     var body: some View {
         NavigationStack {
-            content
+            layout
                 .sheetHeader(modeKey(add: "add.title", edit: "edit.title"), onClose: close)
                 .toolbar { keyboardToolbar }
         }
@@ -121,6 +127,37 @@ struct ExpenseEntryView: View {
 
     // MARK: - Раскладка
 
+    /// Содержимое прокручивается над рядом кнопок: на размере по умолчанию всё помещается и не двигается,
+    /// на крупном тексте «Сохранить» остаётся над клавиатурой (у `.decimalPad` нет клавиши «скрыть»).
+    private var layout: some View {
+        ScrollView {
+            // Пока всё помещается — во всю видимую высоту, промежутки раздвигаются, как без прокрутки.
+            FillHeightLayout(minHeight: visibleHeight) {
+                content
+            }
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        // Размер без безопасных областей: между шапкой и рядом кнопок.
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { visibleHeight = $0 }
+        .safeAreaBar(edge: .bottom, spacing: 0) {
+            actions
+                .padding(.top, Theme.Spacing.md)
+                .padding(.horizontal, Theme.Spacing.screen)
+                .padding(.bottom, Theme.Spacing.md)
+                .padding(.bottom, focus == .amount || isLayoutFrozen ? quickBarInset : 0)
+        }
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
+            if focus == .amount, !isLayoutFrozen {
+                keyboardLayoutHeight = frame.height
+                keyboardLayoutBottom = frame.maxY
+            }
+        }
+        // Под шитом поверх клавиатура прячется; раскладка остаётся как с клавиатурой (сумма видна над шитом, `07-picker`).
+        .frame(height: isLayoutFrozen ? keyboardLayoutHeight : nil, alignment: .top)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .ignoresSafeArea(.keyboard, edges: isLayoutFrozen ? .bottom : [])
+    }
+
     private var content: some View {
         VStack(spacing: 0) {
             Spacer(minLength: Theme.Spacing.md)
@@ -129,7 +166,9 @@ struct ExpenseEntryView: View {
                 Text(verbatim: model.category?.line ?? String(localized: "add.categoryLine.none"))
                     .typeStyle(.callout)
                     .foregroundStyle(Theme.secondary)
-                    .lineLimit(1)
+                    // На крупном тексте «Продукты · Супермаркет» переносится, а не обрезается.
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                    .multilineTextAlignment(.center)
             }
             .errorShake(trigger: shakeCount)
             if !visibleBatch.isEmpty {
@@ -149,28 +188,25 @@ struct ExpenseEntryView: View {
             )
             dateAndNote
                 .padding(.top, Theme.Spacing.md)
-            actions
-                .padding(.top, Theme.Spacing.md)
         }
         .padding(.horizontal, Theme.Spacing.screen)
-        .padding(.bottom, Theme.Spacing.md)
-        // Панель быстрых сумм без общего фона не входит в безопасную область клавиатуры (iOS 26.5) — место под неё.
-        .padding(.bottom, focus == .amount || isLayoutFrozen ? Theme.Size.chip - Theme.Spacing.md : 0)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
-            if focus == .amount, !isLayoutFrozen { keyboardLayoutHeight = height }
-        }
-        // Под шитом поверх клавиатура прячется; раскладка остаётся как с клавиатурой (сумма видна над шитом, `07-picker`).
-        .frame(height: isLayoutFrozen ? keyboardLayoutHeight : nil, alignment: .top)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .ignoresSafeArea(.keyboard, edges: isLayoutFrozen ? .bottom : [])
+        .frame(maxWidth: .infinity)
     }
 
     private var isLayoutFrozen: Bool {
         keyboardLayoutHeight > 0 && (subSheet != nil || isWaitingForKeyboard)
     }
 
+    /// Место под панель быстрых сумм. Панель без общего фона то входит в безопасную область клавиатуры, то нет
+    /// (iOS 26.5: при появлении шита — нет, после первой перерисовки — да), поэтому отступ — по факту:
+    /// насколько раскладка заходит под панель. До замера — высота панели без зазора.
+    private var quickBarInset: CGFloat {
+        guard let keyboardLayoutBottom, let quickBarTop else { return Theme.Size.chip - Theme.Spacing.md }
+        return max(keyboardLayoutBottom - quickBarTop, 0)
+    }
+
     /// Сумма Unbounded 60 + символ валюты 26 в системном поле `.decimalPad`; не помещается — сжимается целиком.
+    /// Растёт с текстом только до AX1: крупнее она занимает весь шит.
     private var amountField: some View {
         HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.md) {
             TextField(text: amountBinding, prompt: Text(verbatim: "0").foregroundStyle(Theme.placeholder)) {
@@ -188,6 +224,7 @@ struct ExpenseEntryView: View {
                 .foregroundStyle(Theme.secondary)
                 .accessibilityHidden(true)
         }
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .fixedSize()
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { amountWidth = $0 }
         .scaleEffect(amountScale)
@@ -316,6 +353,7 @@ struct ExpenseEntryView: View {
     }
 
     /// [Ещё одна | Удалить] [Сохранить] в пропорции 1 : 1,35; на крупном тексте — друг под другом.
+    /// Ряд закреплён над клавиатурой, как панель: растёт только до AX1, крупнее — Large Content Viewer.
     private var actions: some View {
         GlassEffectContainer(spacing: Theme.Spacing.md) {
             ViewThatFits(in: .horizontal) {
@@ -323,6 +361,7 @@ struct ExpenseEntryView: View {
                 VStack(spacing: Theme.Spacing.md) { actionButtons }
             }
         }
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
 
     @ViewBuilder
@@ -331,15 +370,18 @@ struct ExpenseEntryView: View {
             Button("add.another", action: anotherOne)
                 .buttonStyle(.glassCapsule())
                 .accessibilityLabel("add.another.a11y")
+                .accessibilityShowsLargeContentViewer()
         } else {
             Button(action: deleteExpense) {
                 Label("edit.delete", systemImage: "trash")
             }
             .buttonStyle(.glassCapsule(.destructive))
             .accessibilityLabel("edit.delete.a11y")
+            .accessibilityShowsLargeContentViewer()
         }
         Button(modeKey(add: "add.save", edit: "edit.save"), action: save)
             .buttonStyle(.glassCapsule(.prominent))
+            .accessibilityShowsLargeContentViewer()
     }
 
     @ToolbarContentBuilder
@@ -350,6 +392,7 @@ struct ExpenseEntryView: View {
                 QuickAmountBar { units in
                     if model.addQuickAmount(units) { quickCount += 1 }
                 }
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { quickBarTop = $0 }
             }
             .sharedBackgroundVisibility(.hidden)
         }
