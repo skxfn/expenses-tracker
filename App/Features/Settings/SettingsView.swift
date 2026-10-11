@@ -59,6 +59,8 @@ struct SettingsView: View {
     // MARK: - Группы
 
     /// «Обозначение»: знак рубля (по умолчанию) | BYN — только для BYN (INTEGRATION §3.3.1, макет `12-settings`).
+    /// Для VoiceOver строка — один регулируемый элемент «Обозначение, Знак рубля»: подсказку на контейнере
+    /// сегмента VoiceOver не читает, а у регулируемого элемента — читает.
     private var symbolRow: some View {
         HStack(spacing: Theme.Spacing.md) {
             Text("settings.currency.symbol")
@@ -78,21 +80,36 @@ struct SettingsView: View {
                 ]
             )
             .frame(width: Theme.Size.symbolStylePicker)
-            .accessibilityHint(Text("settings.currency.symbol.a11y.hint"))
         }
         .padding(.horizontal, Theme.Spacing.lg)
         .frame(minHeight: Theme.Size.field)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("settings.currency.symbol"))
+        .accessibilityValue(Text(LocalizedStringKey(
+            symbolStyle == .sign ? "settings.currency.symbol.sign.a11y" : "settings.currency.symbol.code"
+        )))
+        .accessibilityHint(Text("settings.currency.symbol.a11y.hint"))
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: symbolStyle = .code
+            case .decrement: symbolStyle = .sign
+            @unknown default: break
+            }
+        }
     }
 
     private var generalGroup: some View {
         let topLevel = categories.filter { $0.parent == nil && !$0.isArchived }
         let subcategoryCount = categories.filter { !$0.isArchived && $0.parent.map { !$0.isArchived } == true }.count
+        let currency = CurrencyOption(code: currencyCode)
         return SettingsGroup {
             NavigationLink {
                 CurrencyPickerView()
             } label: {
-                SettingsRow("settings.currency", value: CurrencyOption(code: currencyCode).nameWithSymbol(style: symbolStyle), showsChevron: true)
+                SettingsRow("settings.currency", value: currency.nameWithSymbol(style: symbolStyle), showsChevron: true)
             }
+            .accessibilityLabel(Text("settings.currency"))
+            .accessibilityValue(Text(verbatim: currency.spokenNameWithSymbol(style: symbolStyle)))
             if currencyCode == MoneyFormatter.belarusianRubleCode {
                 symbolRow
             }
