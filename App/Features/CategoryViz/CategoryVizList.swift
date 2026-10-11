@@ -5,7 +5,8 @@ import ExpenseCore
 /// плашка 36, имя SF 17, доля SF 13 («6%, подкатегорий нет»), сумма, шеврон у раскрываемых.
 /// Свёрнутые в «Ещё N» тоже здесь — всё остаётся касаемым. В раскрытом виде — строка категории
 /// с шевроном вниз и строки подкатегорий: плашка 28 оттенком, «69% категории».
-/// На AX-размерах сумма уходит под текст (как в `ExpenseRow`), иначе имя обрезается до «Ка…».
+/// На AX-размерах сумма уходит под текст (как в `ExpenseRow`), иначе имя обрезается до «Ка…»; плашки растут
+/// только до `plaqueSizeLimit` — иначе имени не хватает места и оно рвётся по слогам («Про-дукты»).
 struct CategoryVizList: View {
     let data: CategoryVizData
     @Binding var expandedID: UUID?
@@ -13,6 +14,9 @@ struct CategoryVizList: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.moneyFormatter) private var money
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// Самый крупный размер до AX: дальше плашка не растёт, растёт только текст.
+    private static let plaqueSizeLimit = DynamicTypeSize.xxxLarge
 
     private var expanded: CategoryVizGroup? { data.expandedGroup(expandedID) }
     private var isStacked: Bool { dynamicTypeSize.isAccessibilitySize }
@@ -56,6 +60,7 @@ struct CategoryVizList: View {
         ) {
             HStack(alignment: isStacked ? .top : .center, spacing: Theme.Spacing.md) {
                 CategoryPlaque(iconName: VizText.iconName(group), tone: group.tone)
+                    .dynamicTypeSize(...Self.plaqueSizeLimit)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: VizText.name(group))
                         .typeStyle(.body)
@@ -90,6 +95,7 @@ struct CategoryVizList: View {
     private func partRow(_ part: CategoryVizPart, tone: GouacheTone?, text: VizText) -> some View {
         HStack(alignment: isStacked ? .top : .center, spacing: Theme.Spacing.md + (Theme.Size.plaque - VizMetrics.listSubPlaque) / 2) {
             SubcategoryPlaque(part: part, tone: tone)
+                .dynamicTypeSize(...Self.plaqueSizeLimit)
                 .padding(.leading, (Theme.Size.plaque - VizMetrics.listSubPlaque) / 2)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: VizText.name(part))
