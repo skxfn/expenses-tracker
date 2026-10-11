@@ -1,7 +1,9 @@
 import SwiftUI
 
 /// Стеклянный сегмент-переключатель (DESIGN.md → «Сегмент периода», §6): капсула 44, активная пилюля 36
-/// (бумага 92 % / ночью rgba(255,250,244,.16)) едет через `matchedGeometryEffect`.
+/// (белая 92 % / ночью rgba(255,250,244,.16)) едет через `matchedGeometryEffect`; при Reduce Motion — только opacity.
+/// Цель касания пункта — вся высота капсулы 44. Текст ограничен AX1: длинная подпись ужимается,
+/// крупнее — Large Content Viewer (долгое нажатие).
 /// VoiceOver: контейнер с подписью (`title`), пункты — кнопки с трейтом `.isSelected`.
 struct GlassSegmentedControl<Value: Hashable>: View {
     struct Item {
@@ -16,6 +18,9 @@ struct GlassSegmentedControl<Value: Hashable>: View {
     let title: LocalizedStringKey
     @Binding var selection: Value
     let items: [Item]
+
+    /// Пять пунктов на AX1 шире капсулы («Неделя» ≈ 90 pt при 56 доступных): подпись ужимается до 60 %, а не обрезается.
+    private static var minimumLabelScale: CGFloat { 0.6 }
 
     @Namespace private var pillNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -46,7 +51,7 @@ struct GlassSegmentedControl<Value: Hashable>: View {
                 .typeStyle(.callout)
                 .foregroundStyle(isSelected ? Theme.ink : Theme.secondary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(Self.minimumLabelScale)
                 .padding(.horizontal, Theme.Spacing.sm)
                 .frame(maxWidth: .infinity, minHeight: Theme.Size.segmentPill)
                 .background {
@@ -54,15 +59,25 @@ struct GlassSegmentedControl<Value: Hashable>: View {
                         Capsule()
                             .fill(Theme.segmentPill)
                             .paperShadow(Tokens.Shadow.segmentActive)
-                            .matchedGeometryEffect(id: "pill", in: pillNamespace)
+                            .matchedGeometryEffect(id: pillID(item), in: pillNamespace)
                     }
                 }
-                .contentShape(Capsule())
+                // Пилюля 36, а нажимается вся высота стеклянной капсулы 44.
+                .frame(minHeight: Theme.Size.segment)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(item.accessibilityTitle ?? item.title)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityShowsLargeContentViewer()
+        .accessibilityShowsLargeContentViewer {
+            largeContent(item)
+        }
+    }
+
+    /// Общий id — пилюля едет к выбранному пункту. При Reduce Motion у каждого пункта свой id:
+    /// геометрия не связывается, старая пилюля гаснет, новая проявляется (только opacity).
+    private func pillID(_ item: Item) -> AnyHashable {
+        reduceMotion ? AnyHashable(item.value) : AnyHashable("pill")
     }
 
     @ViewBuilder
@@ -71,6 +86,17 @@ struct GlassSegmentedControl<Value: Hashable>: View {
             Image(systemName: systemImage)
         } else {
             Text(item.title)
+        }
+    }
+
+    /// Large Content Viewer: иконка вместе с подписью, текст — как на сегменте (знак рубля — через `typeStyle`).
+    @ViewBuilder
+    private func largeContent(_ item: Item) -> some View {
+        if let systemImage = item.systemImage {
+            Label(item.title, systemImage: systemImage)
+        } else {
+            Text(item.title)
+                .typeStyle(.callout)
         }
     }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Ключи, которых нет среди INFOPLIST_KEY_* (project.yml). Остальное Xcode генерирует сам (GENERATE_INFOPLIST_FILE). -->
+<plist version="1.0">
+<dict>
+	<!-- Экран запуска — фон экрана: бумага #F3F0EA, в тёмной night-canvas #13110F (цвет-ассет). -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+	</dict>
+</dict>
+</plist>

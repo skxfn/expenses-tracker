@@ -1,10 +1,11 @@
 import Foundation
 import Observation
 import SwiftData
+import UIKit
 import ExpenseCore
 
 /// Удаление траты с отменой (INTEGRATION §4.9): строка сразу скрывается, хранилище
-/// не трогается 4 с. Удаление выполняется по таймеру, при уходе в фон
+/// не трогается 4 с (с VoiceOver — 10 с). Удаление выполняется по таймеру, при уходе в фон
 /// (`commitNow()`) или при следующем удалении. «Отменить» просто снимает пометку.
 @Observable
 final class PendingDeletion {
@@ -16,6 +17,8 @@ final class PendingDeletion {
     }
 
     static let delay: Duration = .seconds(4)
+    /// С VoiceOver за 4 с от объявления до «Отменить» не добраться, а удаление необратимо.
+    static let voiceOverDelay: Duration = .seconds(10)
 
     private(set) var item: Item?
     /// Последняя ошибка удаления — экран показывает её алертом.
@@ -43,13 +46,13 @@ final class PendingDeletion {
         store = nil
     }
 
-    /// Палец на тосте — таймер стоит.
+    /// Палец или фокус VoiceOver на тосте — таймер стоит.
     func pause() {
         timer?.cancel()
         timer = nil
     }
 
-    /// Палец убран — отсчёт заново.
+    /// Палец убран (фокус ушёл) — отсчёт заново.
     func resume() {
         guard item != nil, timer == nil else { return }
         startTimer()
@@ -72,8 +75,9 @@ final class PendingDeletion {
     }
 
     private func startTimer() {
+        let delay = UIAccessibility.isVoiceOverRunning ? Self.voiceOverDelay : Self.delay
         timer = Task { [weak self] in
-            try? await Task.sleep(for: Self.delay)
+            try? await Task.sleep(for: delay)
             guard !Task.isCancelled else { return }
             self?.commitNow()
         }

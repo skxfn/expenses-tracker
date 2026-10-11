@@ -88,35 +88,83 @@ struct SettingsGroup<Content: View>: View {
 }
 
 /// Строка группы настроек: подпись слева, значение secondary и шеврон graphic справа, высота от 52.
+/// На AX-размерах строка, которая не помещается в ряд, идёт столбиком: значение (с аксессуаром) под подписью —
+/// иначе подпись рвётся по слогам, а значение обрезается.
 struct SettingsRow<Accessory: View>: View {
     let title: LocalizedStringKey
     var value: String?
     var showsChevron = false
     @ViewBuilder var accessory: Accessory
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(spacing: Theme.Spacing.md) {
-            Text(title)
-                .typeStyle(.body)
-                .foregroundStyle(Theme.ink)
-            Spacer(minLength: Theme.Spacing.sm)
-            accessory
-            if let value {
-                Text(value)
-                    .typeStyle(.body)
-                    .foregroundStyle(Theme.secondary)
-                    .lineLimit(1)
-            }
-            if showsChevron {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Theme.graphic)
-                    .accessibilityHidden(true)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                ViewThatFits(in: .horizontal) {
+                    inline
+                    stacked
+                }
+            } else {
+                inline
             }
         }
         .padding(.horizontal, Theme.Spacing.lg)
         .frame(minHeight: Theme.Size.field)
         .contentShape(Rectangle())
+    }
+
+    private var inline: some View {
+        HStack(spacing: Theme.Spacing.md) {
+            titleText
+            Spacer(minLength: Theme.Spacing.sm)
+            accessory
+            valueText
+                .lineLimit(1)
+            chevron
+        }
+    }
+
+    private var stacked: some View {
+        HStack(spacing: Theme.Spacing.md) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                titleText
+                if value != nil || Accessory.self != EmptyView.self {
+                    HStack(spacing: Theme.Spacing.md) {
+                        accessory
+                        valueText
+                    }
+                }
+            }
+            .padding(.vertical, Theme.Spacing.sm)
+            Spacer(minLength: 0)
+            chevron
+        }
+    }
+
+    private var titleText: some View {
+        Text(title)
+            .typeStyle(.body)
+            .foregroundStyle(Theme.ink)
+    }
+
+    @ViewBuilder
+    private var valueText: some View {
+        if let value {
+            Text(value)
+                .typeStyle(.body)
+                .foregroundStyle(Theme.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private var chevron: some View {
+        if showsChevron {
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Theme.graphic)
+                .accessibilityHidden(true)
+        }
     }
 }
 

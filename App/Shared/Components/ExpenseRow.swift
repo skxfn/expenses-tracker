@@ -49,6 +49,7 @@ struct ExpenseRowData: Identifiable, Hashable {
 
 /// Строка траты 60: плашка 36 (tint + deep-иконка), заголовок SF 17, подпись SF 13, сумма Unbounded 15 без «Br».
 /// Один элемент VoiceOver; действия «Удалить» / «Повторить сегодня» добавляет экран.
+/// Цель касания — вся строка, включая пустое место между текстом и суммой.
 struct ExpenseRow: View {
     let data: ExpenseRowData
     @Environment(\.moneyFormatter) private var money
@@ -69,7 +70,8 @@ struct ExpenseRow: View {
                 amount
             }
         }
-        .frame(minHeight: Theme.Size.feedRow)
+        .frame(maxWidth: .infinity, minHeight: Theme.Size.feedRow, alignment: .leading)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: accessibilityText))
     }
