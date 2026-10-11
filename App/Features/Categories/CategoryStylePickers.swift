@@ -333,6 +333,8 @@ struct IconGridPicker: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .submitLabel(.search)
+            // Подпись из `TextField(label:)` в дерево доступности не попадает — VoiceOver читал только пример.
+            .accessibilityLabel(Text("cat.icon.search.a11y"))
         }
         .padding(.horizontal, Theme.Spacing.lg)
         .frame(minHeight: Theme.Size.chip)

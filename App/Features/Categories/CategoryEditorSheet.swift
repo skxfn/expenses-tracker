@@ -148,6 +148,8 @@ private struct CategoryEditorForm: View {
                 .typeStyle(.body)
                 .foregroundStyle(Theme.ink)
                 .submitLabel(.done)
+                // Подпись из `TextField(label:)` в дерево доступности не попадает — VoiceOver читал только пример.
+                .accessibilityLabel(Text("cat.name.label"))
                 .paperField()
                 .errorShake(trigger: saveFailures)
                 if model.isDuplicateName {
