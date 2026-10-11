@@ -308,7 +308,8 @@ private struct PartTile: View {
 
 /// Подписи плитки: из вариантов выбирается первый, что помещается целиком (`ViewThatFits`).
 /// Статистика: иконка + доля сверху, имя + сумма снизу → без имени → доля снизу → только иконка.
-/// Главная: иконка + сумма → иконка.
+/// Главная: иконка + сумма → иконка. Поле плиток с текстом не растёт, поэтому на крупном тексте, прежде чем
+/// убрать сумму, пробуются те же подписи в кегле по умолчанию: иначе сумма пропадала даже у самой крупной плитки.
 private struct TileLabels: View {
     enum Icon {
         case image(String)
@@ -325,6 +326,11 @@ private struct TileLabels: View {
     let allowsLargeAmount: Bool
     let size: CGSize
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// Текст крупнее размера по умолчанию: есть смысл пробовать подписи в кегле по умолчанию.
+    private var isEnlarged: Bool { dynamicTypeSize > .large }
+
     private var content: CGSize {
         CGSize(
             width: max(size.width - 2 * VizMetrics.tilePadding, 0),
@@ -340,10 +346,20 @@ private struct TileLabels: View {
                 }
                 option(top: .iconAndPercent, bottom: .nameAndAmount(large: false))
                 option(top: .iconAndPercent, bottom: .amount)
+                if isEnlarged {
+                    option(top: .iconAndPercent, bottom: .nameAndAmount(large: false))
+                        .dynamicTypeSize(.large)
+                    option(top: .iconAndPercent, bottom: .amount)
+                        .dynamicTypeSize(.large)
+                }
                 option(top: .icon, bottom: .percent)
                 option(top: .iconAndPercent, bottom: .none)
             } else {
                 option(top: .icon, bottom: .amount)
+                if isEnlarged {
+                    option(top: .icon, bottom: .amount)
+                        .dynamicTypeSize(.large)
+                }
             }
             option(top: .icon, bottom: .none)
             Color.clear.frame(width: 0, height: 0)
