@@ -190,10 +190,13 @@ struct EntryDateSegment: View {
                         Capsule()
                             .fill(Theme.segmentPill)
                             .paperShadow(Tokens.Shadow.segmentActive)
-                            .matchedGeometryEffect(id: "pill", in: pillNamespace)
+                            // При «Уменьшении движения» у каждого пункта своя пилюля: не едет, а проявляется.
+                            .matchedGeometryEffect(id: reduceMotion ? AnyHashable(item) : AnyHashable("pill"), in: pillNamespace)
                     }
                 }
-                .contentShape(Capsule())
+                // Цель касания — вся высота капсулы 44, а не пилюля 36.
+                .frame(minHeight: Theme.Size.chip)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel(item))
