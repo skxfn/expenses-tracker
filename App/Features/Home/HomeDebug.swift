@@ -4,7 +4,8 @@ import ExpenseCore
 
 /// `-debugHome ring,range,empty,scrolled,saved` (через запятую) — состояния главной для скриншотов без касаний:
 /// `ring` — обзор «Кольцо» (настройка не меняется); `range` — свой период: 3 дня, кончающиеся вчера
-/// (как «5–7 окт» в `03-home-range`); `empty` — прошедший месяц без трат (год назад: демо-данные — 3 месяца);
+/// (как «5–7 окт» в `03-home-range`); `day`, `week`, `year` — текущий период этого вида, `past` — прошлый месяц;
+/// `empty` — прошедший месяц без трат (год назад: демо-данные — 3 месяца);
 /// `scrolled` — лента прокручена к третьему дню (виден закреплённый заголовок); `saved` — через 2 с в базу
 /// пишется копия последней траты и подсвечивается, как после «Сохранить» (база меняется!).
 /// Первый запуск — без `-demoData` на чистой установке.
@@ -34,12 +35,23 @@ enum HomeDebug {
             selection.apply(.current(.month, now: yearAgo, calendar: selection.calendar))
             return selection
         }
+        if options.contains("past") {
+            let selection = PeriodSelection()
+            selection.showPrevious()
+            return selection
+        }
+        if let kind = [StatsPeriodKind.day, .week, .year].first(where: { options.contains($0.rawValue) }) {
+            return PeriodSelection(kind: kind)
+        }
         return nil
     }
 
-    static func scrollIfRequested(_ content: HomeContent, proxy: ScrollViewProxy) async {
-        guard options.contains("scrolled"), content.days.count > 2, let target = content.days[2].rows.first?.id else { return }
+    /// Данные — из модели после паузы: первая выборка делается при появлении экрана.
+    static func scrollIfRequested(_ model: HomeModel, proxy: ScrollViewProxy) async {
+        guard options.contains("scrolled") else { return }
         try? await Task.sleep(for: .milliseconds(600))
+        let days = model.content.days
+        guard days.count > 2, let target = days[2].rows.first?.id else { return }
         proxy.scrollTo(target, anchor: .top)
     }
 

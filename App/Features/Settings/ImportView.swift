@@ -57,10 +57,10 @@ struct ImportView: View {
             }
         }
 
-        modeButton("import.merge", footer: "import.mergeFooter", kind: .glass) {
-            session.apply(.merge, context: modelContext)
+        modeButton("import.merge", footer: "import.mergeFooter", kind: .glass, mode: .merge) {
+            Task { await session.apply(.merge, context: modelContext) }
         }
-        modeButton("import.replace", footer: "import.replaceFooter", kind: .destructive) {
+        modeButton("import.replace", footer: "import.replaceFooter", kind: .destructive, mode: .replace) {
             replaceCounts = ReplaceCounts(
                 expenses: (try? modelContext.fetchCount(FetchDescriptor<Expense>())) ?? 0,
                 categories: (try? modelContext.fetchCount(FetchDescriptor<ExpenseCategory>())) ?? 0
@@ -73,22 +73,33 @@ struct ImportView: View {
             presenting: replaceCounts
         ) { _ in
             Button("import.replaceConfirmButton", role: .destructive) {
-                session.apply(.replace, context: modelContext)
+                Task { await session.apply(.replace, context: modelContext) }
             }
         } message: { counts in
             Text(verbatim: L10n.format("import.replaceConfirmMessage", counts.expenses, counts.categories))
         }
     }
 
+    /// Кнопка режима; пока режим применяется — индикатор рядом с подписью, обе кнопки не нажимаются.
     private func modeButton(
         _ title: LocalizedStringKey,
         footer: LocalizedStringKey,
         kind: GlassCapsuleButtonStyle.Kind,
+        mode: ImportMode,
         action: @escaping () -> Void
     ) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            Button(title, action: action)
-                .buttonStyle(.glassCapsule(kind))
+            Button(action: action) {
+                HStack(spacing: Theme.Spacing.sm) {
+                    Text(title)
+                    if session.applyingMode == mode {
+                        // TODO(copy): подписи «идёт восстановление» в copy.json нет — VoiceOver назовёт системное «Выполняется».
+                        ProgressView()
+                    }
+                }
+            }
+            .buttonStyle(.glassCapsule(kind))
+            .disabled(session.applyingMode != nil)
             Text(footer)
                 .typeStyle(.footnote)
                 .foregroundStyle(Theme.secondary)

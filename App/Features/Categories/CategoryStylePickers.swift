@@ -43,18 +43,31 @@ struct CategoryKindPicker: View {
                 .frame(maxWidth: .infinity, minHeight: Theme.Size.segmentPill)
                 .background {
                     if isSelected {
-                        Capsule()
-                            .fill(Theme.segmentPill)
-                            .paperShadow(Tokens.Shadow.segmentActive)
-                            .matchedGeometryEffect(id: "pill", in: pillNamespace)
+                        pill
                     }
                 }
-                .contentShape(Capsule())
+                // Цель касания — вся высота капсулы 44, а не только пилюля 36.
+                .frame(minHeight: Theme.Size.segment)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled && !isSelected)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityShowsLargeContentViewer()
+    }
+
+    /// Активная пилюля едет к выбранному пункту; при Reduce Motion — не едет, а проявляется на месте
+    /// (только прозрачность, §3.6).
+    @ViewBuilder
+    private var pill: some View {
+        let capsule = Capsule()
+            .fill(Theme.segmentPill)
+            .paperShadow(Tokens.Shadow.segmentActive)
+        if reduceMotion {
+            capsule.transition(.opacity)
+        } else {
+            capsule.matchedGeometryEffect(id: "pill", in: pillNamespace)
+        }
     }
 }
 
@@ -320,6 +333,8 @@ struct IconGridPicker: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .submitLabel(.search)
+            // Подпись из `TextField(label:)` в дерево доступности не попадает — VoiceOver читал только пример.
+            .accessibilityLabel(Text("cat.icon.search.a11y"))
         }
         .padding(.horizontal, Theme.Spacing.lg)
         .frame(minHeight: Theme.Size.chip)

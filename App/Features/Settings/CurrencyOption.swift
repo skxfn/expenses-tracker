@@ -27,6 +27,16 @@ struct CurrencyOption: Identifiable, Hashable {
         L10n.format("settings.currency.value", name, symbol(style: style))
     }
 
+    /// То же значение для VoiceOver: знак рубля словами (`settings.currency.symbol.sign.a11y`), без «·» (§5.3):
+    /// «Белорусский рубль, Знак рубля». Сам знак VoiceOver не называет.
+    func spokenNameWithSymbol(style: CurrencySymbolStyle) -> String {
+        let symbol = symbol(style: style)
+        let spoken = symbol == MoneyFormatter.belarusianRubleSign
+            ? String(localized: "settings.currency.symbol.sign.a11y")
+            : symbol
+        return [name, spoken].joined(separator: ", ")
+    }
+
     /// «Белорусский рубль · BYN» — в восстановлении копии виден код (`settings.currency.value`, `copy.json` → why).
     var nameWithCode: String {
         name == code ? code : L10n.format("settings.currency.value", name, code)
