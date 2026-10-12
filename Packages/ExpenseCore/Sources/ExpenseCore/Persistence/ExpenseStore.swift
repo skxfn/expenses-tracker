@@ -32,6 +32,55 @@ public final class ExpenseStore {
         return expense
     }
 
+    /// Новая трата для `addExpenses`.
+    public struct NewExpense {
+        public let amountMinor: Int64
+        public let date: Date
+        public let note: String
+        public let category: ExpenseCategory?
+
+        public init(amountMinor: Int64, date: Date, note: String = "", category: ExpenseCategory?) {
+            self.amountMinor = amountMinor
+            self.date = date
+            self.note = note
+            self.category = category
+        }
+    }
+
+    /// Добавляет траты одним сохранением (импорт): всё или ничего. Суммы проверяются до изменений;
+    /// при ошибке сохранения вставки откатываются, а загруженные объекты перечитываются.
+    public func addExpenses(_ expenses: [NewExpense]) throws {
+        try addExpenses(expenses, beforeCommit: {})
+    }
+
+    /// `beforeCommit` вызывается после вставок, перед сохранением, — точка для проверки отката в тестах.
+    func addExpenses(_ expenses: [NewExpense], beforeCommit: () throws -> Void) throws {
+        for expense in expenses {
+            try validateAmount(expense.amountMinor)
+        }
+        guard !expenses.isEmpty else { return }
+        // Несохранённое до импорта не должно пропасть при откате.
+        try context.save()
+        do {
+            // transaction сохраняет после блока, но при ошибке НЕ откатывает: изменения остаются в контексте.
+            try context.transaction {
+                for new in expenses {
+                    let expense = Expense(amountMinor: new.amountMinor, date: new.date, note: normalizedNote(new.note), category: nil)
+                    // Связь — после insert, как в импорте копии: новый объект уже принадлежит контексту категории.
+                    context.insert(expense)
+                    expense.category = new.category
+                }
+                try beforeCommit()
+            }
+        } catch {
+            // После rollback() загруженные объекты держат ссылки на откатанные вставки, пока их не перечитать.
+            context.rollback()
+            _ = try? context.fetch(FetchDescriptor<ExpenseCategory>())
+            _ = try? context.fetch(FetchDescriptor<Expense>())
+            throw error
+        }
+    }
+
     public func updateExpense(
         _ expense: Expense,
         amountMinor: Int64,
