@@ -38,9 +38,6 @@ struct ExpenseEntryView: View {
     @State private var visibleHeight: CGFloat = 0
     /// Высота раскладки над клавиатурой — держится, пока открыт шит поверх.
     @State private var keyboardLayoutHeight: CGFloat = 0
-    /// Низ раскладки и верх панели быстрых сумм (в координатах окна) — для отступа под панель.
-    @State private var keyboardLayoutBottom: CGFloat?
-    @State private var quickBarTop: CGFloat?
     /// Шит поверх закрылся, клавиатура ещё не вернулась — раскладка держится.
     @State private var isWaitingForKeyboard = false
     // Триггеры тактильного отклика и тряски.
@@ -70,7 +67,6 @@ struct ExpenseEntryView: View {
         NavigationStack {
             layout
                 .sheetHeader(modeKey(add: "add.title", edit: "edit.title"), onClose: close)
-                .toolbar { keyboardToolbar }
         }
         .presentationBackground {
             AuraBackground(tones: auraTones, edge: .bottom, base: Theme.canvasElevated, layout: Self.auraLayout)
@@ -143,17 +139,24 @@ struct ExpenseEntryView: View {
         .scrollEdgeEffectStyle(.hard, for: .top)
         // Размер без безопасных областей: между шапкой и рядом кнопок.
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { visibleHeight = $0 }
+        // Быстрые суммы — в своём ряду над клавиатурой, а не в `ToolbarItem(.keyboard)`: панель клавиатуры
+        // живёт в другом окне, и её место в iOS 26/27 меняется — отступ под неё уводил всё вверх.
         .safeAreaBar(edge: .bottom, spacing: 0) {
-            actions
-                .padding(.top, Theme.Spacing.md)
-                .padding(.horizontal, Theme.Spacing.screen)
-                .padding(.bottom, Theme.Spacing.md)
-                .padding(.bottom, focus == .amount || isLayoutFrozen ? quickBarInset : 0)
+            VStack(spacing: Theme.Spacing.md) {
+                actions
+                if showsQuickBar {
+                    QuickAmountBar { units in
+                        if model.addQuickAmount(units) { quickCount += 1 }
+                    }
+                }
+            }
+            .padding(.top, Theme.Spacing.md)
+            .padding(.horizontal, Theme.Spacing.screen)
+            .padding(.bottom, showsQuickBar ? Theme.Spacing.sm : Theme.Spacing.md)
         }
-        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
             if focus == .amount, !isLayoutFrozen {
-                keyboardLayoutHeight = frame.height
-                keyboardLayoutBottom = frame.maxY
+                keyboardLayoutHeight = height
             }
         }
         // Под шитом поверх клавиатура прячется; раскладка остаётся как с клавиатурой (сумма видна над шитом, `07-picker`).
@@ -201,12 +204,9 @@ struct ExpenseEntryView: View {
         keyboardLayoutHeight > 0 && (subSheet != nil || isWaitingForKeyboard)
     }
 
-    /// Место под панель быстрых сумм. Панель без общего фона то входит в безопасную область клавиатуры, то нет
-    /// (iOS 26.5: при появлении шита — нет, после первой перерисовки — да), поэтому отступ — по факту:
-    /// насколько раскладка заходит под панель. До замера — высота панели без зазора.
-    private var quickBarInset: CGFloat {
-        guard let keyboardLayoutBottom, let quickBarTop else { return Theme.Size.chip - Theme.Spacing.md }
-        return max(keyboardLayoutBottom - quickBarTop, 0)
+    /// Быстрые суммы видны с цифровой клавиатурой; под шитом поверх раскладка держится вместе с ними.
+    private var showsQuickBar: Bool {
+        focus == .amount || isLayoutFrozen
     }
 
     /// Сумма Unbounded 60 + символ валюты 26 в системном поле `.decimalPad`; не помещается — сжимается целиком.
@@ -388,20 +388,6 @@ struct ExpenseEntryView: View {
         Button(modeKey(add: "add.save", edit: "edit.save"), action: save)
             .buttonStyle(.glassCapsule(.prominent))
             .accessibilityShowsLargeContentViewer()
-    }
-
-    @ToolbarContentBuilder
-    private var keyboardToolbar: some ToolbarContent {
-        if focus == .amount {
-            // Отдельные клавиши — один ToolbarItem со своим рядом без общей капсулы (AGENTS.md).
-            ToolbarItem(placement: .keyboard) {
-                QuickAmountBar { units in
-                    if model.addQuickAmount(units) { quickCount += 1 }
-                }
-                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { quickBarTop = $0 }
-            }
-            .sharedBackgroundVisibility(.hidden)
-        }
     }
 
     /// Новая категория из «Все категории» сразу выбирается, шит выбора закрывается.
