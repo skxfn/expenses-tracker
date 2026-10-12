@@ -106,7 +106,7 @@ struct StatsTexts {
         let start = bucket.interval.start
         switch step {
         case .hour:
-            return String(calendar.component(.hour, from: start))
+            return dates.hourOfDay(start)
         case .month:
             return L10n.format("stats.year.months.\(calendar.component(.month, from: start))")
         case .day, .week:

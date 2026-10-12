@@ -114,6 +114,16 @@ import Testing
         #expect(RussianDateFormatter(calendar: F.minsk, now: F.now).dayOrdinal(8) == "8")
     }
 
+    /// Время — 24-часовое `HH:mm` и в английской версии («14:00», не «2:00 PM»); ось «По часам» — только час.
+    @Test func hoursAre24HourInBothLanguages() {
+        let russian = RussianDateFormatter(calendar: F.minsk, now: F.now)
+        let times = [F.date(2026, 10, 8, 0), F.date(2026, 10, 8, 9), F.date(2026, 10, 8, 14), F.date(2026, 10, 8, 23, 5)]
+        #expect(times.map(dates.hour) == ["00:00", "09:00", "14:00", "23:05"])
+        #expect(times.map(russian.hour) == times.map(dates.hour))
+        #expect(times.map(dates.hourOfDay) == ["0", "9", "14", "23"])
+        #expect(times.map(russian.hourOfDay) == times.map(dates.hourOfDay))
+    }
+
     @Test func words() {
         #expect((1...12).map(dates.monthShort)
             == ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])

@@ -100,12 +100,6 @@ public struct RussianDateFormatter: DateTextFormatter {
         }
     }
 
-    /// Начало часа: «9:00», «14:00» — подписи вида «День» («По часам»).
-    public func hour(_ date: Date) -> String {
-        let parts = calendar.dateComponents([.hour, .minute], from: date)
-        return "\(parts.hour ?? 0):" + String(format: "%02d", parts.minute ?? 0)
-    }
-
     /// «С %1$@ по %2$@ трат не было»: «2» и «4 окт», «28 сен» и «4 окт» — месяц у начала, только если он другой.
     public func rangeBounds(_ interval: DateInterval) -> (start: String, end: String) {
         let first = calendar.startOfDay(for: interval.start)
