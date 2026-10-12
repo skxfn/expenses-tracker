@@ -84,7 +84,7 @@ import Testing
         #expect(visible(dates.paceTarget(for: F.october) ?? "") == "31_октября")
         let year = StatsPeriod.current(.year, now: F.now, calendar: F.minsk)
         #expect(visible(dates.paceTarget(for: year) ?? "") == "31_декабря")
-        #expect(dates.hour(F.date(2026, 10, 8, 9)) == "9:00")
+        #expect(dates.hour(F.date(2026, 10, 8, 9)) == "09:00")
         #expect(dates.hour(F.date(2026, 10, 8, 14, 30)) == "14:30")
         #expect(dates.paceTarget(for: .current(.day, now: F.now, calendar: F.minsk)) == nil)
         #expect(dates.paceTarget(for: .custom(DateInterval(start: F.date(2026, 10, 1), end: F.date(2026, 10, 3)))) == nil)

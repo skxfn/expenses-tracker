@@ -223,13 +223,16 @@ nonisolated struct VizText {
 
     // MARK: Подписи
 
-    /// «Больше всего — Продукты: 35%» / «… — Супермаркет: 69%» (`stats.cats.caption.*`).
+    /// «Больше всего — Продукты: 35%» / «… — Супермаркет: 69%»; крупнейшая доля без подкатегории или без
+    /// категории — «… — без подкатегории: 40%» / «… — без категории: 18%» (`stats.cats.caption.*`).
     static func caption(_ data: CategoryVizData, expanded: CategoryVizGroup?) -> AttributedString? {
         if let expanded {
             guard let part = expanded.largestPart else { return nil }
+            if part.isUnassigned { return L10n.attributed("stats.cats.caption.sub.none", percent(part.share)) }
             return L10n.attributed("stats.cats.caption.sub", name(part), percent(part.share))
         }
         guard let group = data.largestGroup else { return nil }
+        if group.isUncategorized { return L10n.attributed("stats.cats.caption.group.none", percent(group.share)) }
         return L10n.attributed("stats.cats.caption.group", name(group), percent(group.share))
     }
 

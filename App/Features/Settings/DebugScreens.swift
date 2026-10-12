@@ -7,7 +7,7 @@ import ExpenseCore
 /// `-debugScreen <экран>`). Вместе с `-demoData YES` данные те же, что в приложении;
 /// `-debugScroll bottom` открывает прокрутку с конца (нижняя часть длинных экранов).
 enum DebugScreen: String {
-    case settings, categories, currency, licenses
+    case settings, categories, currency
     /// Правка подкатегории «Кофе» (или первой подкатегории) — сверка с макетом `11-category`.
     case category
     /// Новая категория верхнего уровня (режим «Категория»: 15 образцов «Гуаши»).
@@ -83,7 +83,6 @@ private struct DebugScreenRoot: View {
         switch screen {
         case .settings, .importSheet, .launchError: SettingsView()
         case .currency: CurrencyPickerView()
-        case .licenses: LicensesView()
         case .categories, .category, .newCategory, .newSubcategory: CategoriesView()
         }
     }
@@ -106,7 +105,7 @@ private struct DebugScreenRoot: View {
                 let payload = try? BackupImporter.decode(data)
             else { return }
             importSession = ImportSession(payload: payload)
-        case .settings, .categories, .currency, .licenses, .launchError:
+        case .settings, .categories, .currency, .launchError:
             break
         }
     }

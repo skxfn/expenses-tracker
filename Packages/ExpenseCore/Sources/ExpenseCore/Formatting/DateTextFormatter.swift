@@ -38,8 +38,6 @@ public protocol DateTextFormatter: Sendable {
     /// К чему прогноз «Темпа» (`stats.pace.note`): «воскресенью», «31 октября» / «Sunday», «October 31».
     /// `nil` — у «Дня» и своего периода темпа нет.
     func paceTarget(for period: StatsPeriod) -> String?
-    /// Начало часа: «9:00», «14:00».
-    func hour(_ date: Date) -> String
     /// Число месяца в «к 8 числу» / «as of the 8th» (`stats.pace.a11y.*`).
     func dayOrdinal(_ day: Int) -> String
 
@@ -77,6 +75,18 @@ public extension DateTextFormatter {
     /// «5–7 окт» / «Oct 5–7».
     func range(_ interval: DateInterval) -> String {
         range(interval, month: .abbreviated)
+    }
+
+    /// Время — 24-часовое `HH:mm` в обоих языках, не из настроек телефона (решение владельца 2026-10-12):
+    /// «09:00», «14:00» — подсказка и озвучка столбика «По часам».
+    func hour(_ date: Date) -> String {
+        let parts = calendar.dateComponents([.hour, .minute], from: date)
+        return String(format: "%02d:%02d", parts.hour ?? 0, parts.minute ?? 0)
+    }
+
+    /// Подпись оси «По часам» — только час: «0», «6», «12», «18».
+    func hourOfDay(_ date: Date) -> String {
+        String(calendar.component(.hour, from: date))
     }
 
     /// Первая буква заглавная — начало строки: «Октябрь», «Чт, 8 окт».

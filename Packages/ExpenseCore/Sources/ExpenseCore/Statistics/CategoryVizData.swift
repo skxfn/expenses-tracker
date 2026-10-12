@@ -57,8 +57,9 @@ public struct CategoryVizData: Sendable, Hashable {
         return group
     }
 
-    /// Самая крупная категория — для «Больше всего — Продукты: 35%». `nil` — трат нет.
-    public var largestGroup: CategoryVizGroup? { groups.first }
+    /// Самая крупная категория — для «Больше всего — Продукты: 35%»; «Без категории» тоже в счёт
+    /// («Больше всего — без категории: 18%»), при равенстве сумм — названная. `nil` — трат нет.
+    public var largestGroup: CategoryVizGroup? { groups.max { $0.totalMinor < $1.totalMinor } }
 
     // MARK: - Внутреннее
 

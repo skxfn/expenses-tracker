@@ -54,7 +54,7 @@ struct SummaryTexts {
     // MARK: - Пустой период
 
     /// «В октябре пока нет трат» (период идёт) / «В сентябре трат не было» (прошёл), «Сегодня пока нет трат»,
-    /// «6 окт трат не было», «С 2 по 4 окт трат не было» (`home.empty.period.*`).
+    /// «6 окт трат не было», «С 10 окт пока нет трат», «С 2 по 4 окт трат не было» (`home.empty.period.*`).
     func emptyPeriod(_ period: StatsPeriod) -> String {
         let isCurrent = period.contains(dates.now)
         let start = period.interval.start
@@ -71,8 +71,9 @@ struct SummaryTexts {
         case .year:
             let year = String(calendar.component(.year, from: start))
             return L10n.format(isCurrent ? "home.empty.period.in.current" : "home.empty.period.in.past", year)
+        case nil where isCurrent:
+            return rangeCurrent(period.interval)
         case .week, nil:
-            // Своего «пока нет» для диапазона в copy.json нет — и для идущего свой период «не было».
             return rangePast(period.interval)
         }
     }
@@ -101,6 +102,14 @@ struct SummaryTexts {
         case .range(let interval):
             L10n.format(period.kind == nil ? "range.compare" : "home.compare.week.past", dates.range(interval))
         }
+    }
+
+    /// Свой период, в который входит сегодня: «пока нет» — про дни от начала до сегодня (будущие трат не содержат).
+    /// «С 10 окт пока нет трат», не текущий год — «С 28 дек 2025 …»; начался сегодня — «Сегодня пока нет трат».
+    private func rangeCurrent(_ interval: DateInterval) -> String {
+        calendar.isDate(interval.start, inSameDayAs: dates.now)
+            ? L10n.format("home.empty.period.day.current")
+            : L10n.format("home.empty.period.range.current", dates.short(interval.start))
     }
 
     /// «С 2 по 4 окт трат не было», «С 28 сен по 4 окт трат не было» (концы — `rangeBounds`);

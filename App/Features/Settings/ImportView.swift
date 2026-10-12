@@ -93,8 +93,8 @@ struct ImportView: View {
                 HStack(spacing: Theme.Spacing.sm) {
                     Text(title)
                     if session.applyingMode == mode {
-                        // TODO(copy): подписи «идёт восстановление» в copy.json нет — VoiceOver назовёт системное «Выполняется».
                         ProgressView()
+                            .accessibilityLabel(Text("settings.backup.import.busy.a11y"))
                     }
                 }
             }

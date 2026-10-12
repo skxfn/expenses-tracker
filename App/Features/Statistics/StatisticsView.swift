@@ -206,8 +206,7 @@ struct StatisticsView: View {
     private func seriesTitle(_ step: StatsTimeStep) -> Text {
         switch step {
         case .hour: Text("stats.dayView.heading")
-        // TODO(copy): заголовка «По месяцам» для вида «Год» в copy.json нет.
-        case .month: Text(verbatim: "По месяцам")
+        case .month: Text("stats.months.heading")
         case .day, .week: Text("stats.days.heading")
         }
     }

@@ -82,12 +82,6 @@ public struct EnglishDateFormatter: DateTextFormatter {
         }
     }
 
-    /// Начало часа: «9:00», «14:00» — как у оси «По часам» (номер часа).
-    public func hour(_ date: Date) -> String {
-        let parts = calendar.dateComponents([.hour, .minute], from: date)
-        return "\(parts.hour ?? 0):" + String(format: "%02d", parts.minute ?? 0)
-    }
-
     /// «as of the 8th»: 1st, 2nd, 3rd, 4th … 11th, 12th, 13th … 21st, 22nd, 23rd … 31st.
     public func dayOrdinal(_ day: Int) -> String {
         let suffix = switch (day % 100, day % 10) {

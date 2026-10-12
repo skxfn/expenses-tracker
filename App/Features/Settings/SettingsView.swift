@@ -4,7 +4,7 @@ import ExpenseCore
 
 /// «Настройки» (макет `12-settings`): пуш из ⚙ на главной, системная кнопка «Назад», Large Title,
 /// группы r 22 на бумаге с аурой. Валюта, категории, вид диаграммы на вкладке «Траты», резервная копия,
-/// версия и лицензии. Корень экрана — этот тип; стек навигации даёт оболочка.
+/// версия. Корень экрана — этот тип; стек навигации даёт оболочка.
 struct SettingsView: View {
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
     @AppStorage(SettingsKeys.currencySymbolStyle) private var symbolStyle = CurrencySymbolStyle.default
@@ -127,7 +127,10 @@ struct SettingsView: View {
                 Button {
                     Task { await backup.prepareExport(context: modelContext, currencyCode: currencyCode) }
                 } label: {
-                    actionRow("settings.backup.export", systemImage: "square.and.arrow.up", isBusy: backup.isPreparingExport)
+                    actionRow(
+                        "settings.backup.export", systemImage: "square.and.arrow.up",
+                        isBusy: backup.isPreparingExport, busyLabel: "settings.backup.export.busy.a11y"
+                    )
                 }
                 .fileExporter(
                     isPresented: $backup.isExporterPresented,
@@ -145,7 +148,10 @@ struct SettingsView: View {
                 Button {
                     backup.isImporterPresented = true
                 } label: {
-                    actionRow("settings.backup.import", systemImage: "square.and.arrow.down", isBusy: backup.isReadingImport)
+                    actionRow(
+                        "settings.backup.import", systemImage: "square.and.arrow.down",
+                        isBusy: backup.isReadingImport, busyLabel: "settings.backup.import.busy.a11y"
+                    )
                 }
                 .fileImporter(
                     isPresented: $backup.isImporterPresented,
@@ -164,22 +170,18 @@ struct SettingsView: View {
         SettingsGroup(header: "settings.about.heading") {
             SettingsRow("settings.about.version", value: Self.appVersion)
                 .accessibilityElement(children: .combine)
-            NavigationLink {
-                LicensesView()
-            } label: {
-                SettingsRow("settings.about.licenses", showsChevron: true)
-            }
-            .buttonStyle(.pressable(Motion.PressScale.row))
         }
     }
 
     /// Строка-действие: подпись слева, иконка справа (макет: «Сохранить копию ⇪»); пока действие идёт —
-    /// индикатор вместо иконки.
-    private func actionRow(_ title: LocalizedStringKey, systemImage: String, isBusy: Bool) -> some View {
+    /// индикатор вместо иконки; видимого текста у него нет, VoiceOver читает `busyLabel` вместо системного «Выполняется».
+    private func actionRow(
+        _ title: LocalizedStringKey, systemImage: String, isBusy: Bool, busyLabel: LocalizedStringKey
+    ) -> some View {
         SettingsRow(title: title) {
             if isBusy {
-                // TODO(copy): подписи «идёт сохранение/восстановление» в copy.json нет — VoiceOver назовёт системное «Выполняется».
                 ProgressView()
+                    .accessibilityLabel(Text(busyLabel))
             } else {
                 Image(systemName: systemImage)
                     .typeStyle(.headline)
