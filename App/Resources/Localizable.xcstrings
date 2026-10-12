@@ -9191,6 +9191,204 @@
         }
       }
     },
+    "settings.language" : {
+      "comment" : "строка. Группа «О приложении», первая строка; значение — выбранный язык («Как в системе», «Русский», «English»), переход к выбору языка",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Язык"
+          }
+        }
+      }
+    },
+    "settings.language.categories" : {
+      "comment" : "заголовок секции. Экран «Язык», вторая группа: «Русский» / «English» — на каком языке названия категорий по умолчанию; выбор сразу переименовывает их",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default Category Names"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Названия категорий по умолчанию"
+          }
+        }
+      }
+    },
+    "settings.language.categories.footer" : {
+      "comment" : "сноска. Под группой «Названия категорий по умолчанию»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only categories that haven’t been renamed are translated."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переводятся только категории, которые не переименовывали."
+          }
+        }
+      }
+    },
+    "settings.language.en" : {
+      "comment" : "вариант выбора языка. Экран «Язык»: строка выбора английского; та же строка — в «Названиях категорий по умолчанию»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
+          }
+        }
+      }
+    },
+    "settings.language.restart.categories" : {
+      "comment" : "текст алерта. Тот же алерт, если есть категории по умолчанию, которые можно перевести на выбранный язык; кнопки — settings.language.restart.translate / .keep",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close the app in the App Switcher, then open it again. Default category names can be translated now."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закройте приложение в переключателе приложений и откройте снова. Названия категорий по умолчанию можно перевести сейчас."
+          }
+        }
+      }
+    },
+    "settings.language.restart.keep" : {
+      "comment" : "кнопка алерта. Отказ: категории остаются как есть (их можно перевести позже на экране «Язык»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don’t Translate"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не переводить"
+          }
+        }
+      }
+    },
+    "settings.language.restart.message" : {
+      "comment" : "текст алерта. Алерт после выбора языка, если категорий по умолчанию для перевода нет; кнопка — error.alert.ok («ОК»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close the app in the App Switcher, then open it again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закройте приложение в переключателе приложений и откройте снова."
+          }
+        }
+      }
+    },
+    "settings.language.restart.title" : {
+      "comment" : "заголовок алерта. Алерт после выбора языка, если язык меняется: приложение нельзя перезапустить само",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart to Change Language"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Язык сменится после перезапуска"
+          }
+        }
+      }
+    },
+    "settings.language.restart.translate" : {
+      "comment" : "кнопка алерта. Переводит категории по умолчанию, которые не переименовывали, на выбранный язык",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Translate Categories"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перевести категории"
+          }
+        }
+      }
+    },
+    "settings.language.ru" : {
+      "comment" : "вариант выбора языка. Экран «Язык»: строка выбора русского; та же строка — в «Названиях категорий по умолчанию»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Русский"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Русский"
+          }
+        }
+      }
+    },
+    "settings.language.system" : {
+      "comment" : "вариант выбора языка. Экран «Язык», первая строка: язык по списку языков iOS; со следующего запуска",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same as System"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как в системе"
+          }
+        }
+      }
+    },
     "settings.nav.a11y" : {
       "comment" : "контейнер «‹ Траты». VoiceOver: контейнер кнопки «назад»",
       "extractionState" : "manual",

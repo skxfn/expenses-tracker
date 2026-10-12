@@ -5,7 +5,7 @@ import ExpenseCore
 
 /// «Настройки» (макет `12-settings`): пуш из ⚙ на главной, системная кнопка «Назад», Large Title,
 /// группы r 22 на бумаге с аурой. Валюта, категории, вид диаграммы на вкладке «Траты», резервная копия,
-/// версия. Корень экрана — этот тип; стек навигации даёт оболочка.
+/// язык, версия. Корень экрана — этот тип; стек навигации даёт оболочка.
 struct SettingsView: View {
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
     @AppStorage(SettingsKeys.currencySymbolStyle) private var symbolStyle = CurrencySymbolStyle.default
@@ -187,6 +187,7 @@ struct SettingsView: View {
 
     private var aboutGroup: some View {
         SettingsGroup(header: "settings.about.heading") {
+            LanguageSettingsRow()
             SettingsRow("settings.about.version", value: Self.appVersion)
                 .accessibilityElement(children: .combine)
         }
