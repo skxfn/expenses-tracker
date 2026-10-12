@@ -127,7 +127,10 @@ struct SettingsView: View {
                 Button {
                     Task { await backup.prepareExport(context: modelContext, currencyCode: currencyCode) }
                 } label: {
-                    actionRow("settings.backup.export", systemImage: "square.and.arrow.up", isBusy: backup.isPreparingExport)
+                    actionRow(
+                        "settings.backup.export", systemImage: "square.and.arrow.up",
+                        isBusy: backup.isPreparingExport, busyLabel: "settings.backup.export.busy.a11y"
+                    )
                 }
                 .fileExporter(
                     isPresented: $backup.isExporterPresented,
@@ -145,7 +148,10 @@ struct SettingsView: View {
                 Button {
                     backup.isImporterPresented = true
                 } label: {
-                    actionRow("settings.backup.import", systemImage: "square.and.arrow.down", isBusy: backup.isReadingImport)
+                    actionRow(
+                        "settings.backup.import", systemImage: "square.and.arrow.down",
+                        isBusy: backup.isReadingImport, busyLabel: "settings.backup.import.busy.a11y"
+                    )
                 }
                 .fileImporter(
                     isPresented: $backup.isImporterPresented,
@@ -174,12 +180,14 @@ struct SettingsView: View {
     }
 
     /// Строка-действие: подпись слева, иконка справа (макет: «Сохранить копию ⇪»); пока действие идёт —
-    /// индикатор вместо иконки.
-    private func actionRow(_ title: LocalizedStringKey, systemImage: String, isBusy: Bool) -> some View {
+    /// индикатор вместо иконки; видимого текста у него нет, VoiceOver читает `busyLabel` вместо системного «Выполняется».
+    private func actionRow(
+        _ title: LocalizedStringKey, systemImage: String, isBusy: Bool, busyLabel: LocalizedStringKey
+    ) -> some View {
         SettingsRow(title: title) {
             if isBusy {
-                // TODO(copy): подписи «идёт сохранение/восстановление» в copy.json нет — VoiceOver назовёт системное «Выполняется».
                 ProgressView()
+                    .accessibilityLabel(Text(busyLabel))
             } else {
                 Image(systemName: systemImage)
                     .typeStyle(.headline)

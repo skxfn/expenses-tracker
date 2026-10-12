@@ -6195,6 +6195,24 @@
         }
       }
     },
+    "home.empty.period.range.current" : {
+      "comment" : "пустое состояние: свой период, который идёт. Свой период начался раньше и включает сегодня: «пока нет» — про отрезок от начала до сегодня (будущие дни трат не содержат). Дата начала — D7, с годом, если он не текущий: «С 28 дек 2025 пока нет трат». Начинается сегодня — home.empty.period «Сегодня пока нет трат»; целиком в прошлом — «С 2 по 4 окт трат не было». Общая для главной и статистики, чип тот же — «К последней трате». Аргументы: %@ — начало своего периода D7 («10 окт»; не текущий год — «28 дек 2025»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No expenses since %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "С %@ пока нет трат"
+          }
+        }
+      }
+    },
     "home.empty.period.range.past" : {
       "comment" : "copy.json home.empty.period: пустое состояние: период без трат. Формы: «В октябре пока нет трат», «На этой неделе пока нет трат», «Сегодня пока нет трат», «6 окт трат не было», «С 2 по 4 окт трат не было», «В 2025 трат не было». Чип — стеклянный, 44 px. Аргументы: %1$@ — начало («2»), %2$@ — конец с месяцем («4 окт»)",
       "extractionState" : "manual",
@@ -8053,6 +8071,24 @@
         }
       }
     },
+    "settings.backup.export.busy.a11y" : {
+      "comment" : "индикатор сохранения копии. VoiceOver: пока идёт сохранение, в строке «Сохранить копию» вместо иконки крутится индикатор; видимого текста нет (как в макете). Подпись читается вместо системного «Выполняется»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saving backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранение копии"
+          }
+        }
+      }
+    },
     "settings.backup.exportDone" : {
       "comment" : "тост после сохранения. После системного окна сохранения",
       "extractionState" : "manual",
@@ -8103,6 +8139,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Восстановить из копии"
+          }
+        }
+      }
+    },
+    "settings.backup.import.busy.a11y" : {
+      "comment" : "индикатор восстановления из копии. VoiceOver: пока идёт восстановление, в строке «Восстановить из копии» и на кнопке режима восстановления вместо иконки крутится индикатор; видимого текста нет. Подпись читается вместо системного «Выполняется»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restoring from backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстановление из копии"
           }
         }
       }
@@ -8330,13 +8384,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How amounts are labeled"
+            "value" : "Changes the currency symbol on all amounts"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Как подписывать суммы"
+            "value" : "Меняет обозначение валюты у всех сумм"
           }
         }
       }
@@ -8593,6 +8647,24 @@
         }
       }
     },
+    "stats.cats.caption.group.none" : {
+      "comment" : "фраза под «Категории»: больше всего без категории. Уровень категорий, крупнейшая доля — «Без категории». Вместо stats.cats.caption.group. Аргументы: %@ — доля D7. Выделение **…** — SF 600 графитом, выводить через L10n.attributed",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most spent **without a category: %@**"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Больше всего — **без категории: %@**"
+          }
+        }
+      }
+    },
     "stats.cats.caption.sub" : {
       "comment" : "фраза при раскрытой категорийе. То же при раскрытой группе (пример «…на супермаркет: 69%»). Аргументы: %1$@ — имя подкатегории; %2$@ — доля D7. Выделение **…** — SF 600 графитом, выводить через L10n.attributed",
       "extractionState" : "manual",
@@ -8607,6 +8679,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Больше всего — **%1$@: %2$@**"
+          }
+        }
+      }
+    },
+    "stats.cats.caption.sub.none" : {
+      "comment" : "фраза при раскрытой категории: больше всего без подкатегории. Раскрыта категория, крупнейшая доля — траты «без подкатегории». Вместо stats.cats.caption.sub. Аргументы: %@ — доля D7. Выделение **…** — SF 600 графитом, выводить через L10n.attributed",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most spent **with no subcategory: %@**"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Больше всего — **без подкатегории: %@**"
           }
         }
       }
@@ -9257,6 +9347,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показывает подкатегории"
+          }
+        }
+      }
+    },
+    "stats.months.a11y" : {
+      "comment" : "график по месяцам. VoiceOver: график по месяцам целиком (вид «Год»); год подставляется всегда. Аргументы: %@ — год («2026»); у своего периода — диапазон",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ expenses by month"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Траты по месяцам за %@"
+          }
+        }
+      }
+    },
+    "stats.months.heading" : {
+      "comment" : "заголовок секции. Заголовок секции столбиков в виде «Год» (столбик — месяц)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By Month"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "По месяцам"
           }
         }
       }

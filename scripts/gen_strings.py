@@ -184,6 +184,8 @@ EMPHASIZED = {
     "stats.habits.insight.weekend": "04-stats: «В будни»",
     "stats.habits.insight.weekendMore": "по аналогии с weekend: «В выходные»",
     "stats.habits.insight.even": "по аналогии: вывод «почти поровну»",
+    "stats.cats.caption.group.none": "по аналогии с stats.cats.caption.group: «без категории: 18%»",
+    "stats.cats.caption.sub.none": "по аналогии с stats.cats.caption.sub: «без подкатегории: 40%»",
 }
 
 # --- Главная ---------------------------------------------------------------
@@ -248,6 +250,11 @@ custom("home.empty.period",
              lambda t, it: (t("home.empty.period.day.past", "6 окт"), it["context"]),
              lambda t, it: (t("home.empty.period.range.past", "2", "4 окт"), it["context"]),
              lambda t, it: (t("home.empty.period.in.past", "2025"), it["context"])])
+custom("home.empty.period.range.current",
+       {"home.empty.period.range.current": Key("С %@ пока нет трат",
+                                               args="%@ — начало своего периода D7 («10 окт»; не текущий год — «28 дек 2025»)")},
+       lambda t: t("home.empty.period.range.current", f"10{NB}окт"),
+       also=[lambda t, it: (t("home.empty.period.range.current", f"28{NB}дек{NB}2025"), it["context"])], kind="fmt")
 fmt("feed.dayHeader.today", "**Сегодня** · %@", f"чт, 8{NB}окт", args="%@ — короткая дата с днём недели D7")
 fmt("feed.dayHeader.yesterday", "**Вчера** · %@", f"ср, 7{NB}окт", args="%@ — короткая дата с днём недели D7")
 skip("feed.dayHeader.other", "данные: короткая дата с днём недели D7 («Вт, 6 окт»)")
@@ -341,6 +348,8 @@ fmt("stats.cats.caption.group", f"Больше всего{NB}— **%1$@: %2$@**"
     args="%1$@ — имя категории; %2$@ — доля D7 («35%», «<1%»)")
 fmt("stats.cats.caption.sub", f"Больше всего{NB}— **%1$@: %2$@**", "{Подкатегория}", "{доля}%",
     args="%1$@ — имя подкатегории; %2$@ — доля D7")
+fmt("stats.cats.caption.sub.none", f"Больше всего{NB}— **без подкатегории: %@**", "40%", args="%@ — доля D7")
+fmt("stats.cats.caption.group.none", f"Больше всего{NB}— **без категории: %@**", "18%", args="%@ — доля D7")
 custom("stats.center.meta",
        {"stats.center.meta": Key("%1$@ · %#@count@", subs={"count": (2, TRATA)},
                                  args="%1$@ — знак валюты; %2$lld — число трат")},
@@ -350,6 +359,7 @@ fmt("stats.list.noSub", "%@, подкатегорий нет", "6%", args="%@ �
 fmt("stats.days.avg", "в среднем %@", "51,54", args="%@ — сумма без знака валюты")
 alias("stats.days.tip", lambda t: f"{t('header.title.day.today')}  57,20{NB}{SIGN}",
       "два Text: день (header.title.day.today / .yesterday или дата D7) и сумма")
+skip("stats.months.tip", "данные: два Text, как stats.days.tip, — месяц в именительном падеже и сумма")
 fmt("stats.pace.note", "к %@ при текущем темпе", f"31{NB}октября",
     args="%@ — конец периода в дательном («31 октября», «воскресенью»)")
 split("stats.pace.note.variants", " · ",
@@ -604,6 +614,8 @@ a11y("stats.list.group.a11y", "%1$@, %2$@, %3$@ всех трат", "Показ�
 fmt("stats.list.sub.group.a11y", "%@: подкатегории", "Продукты", args="%@ — имя категории")
 fmt("stats.days.a11y", "Траты по дням за %@", "октябрь", args="%@ — период")
 skip("stats.days.bar.a11y", "данные: «Сегодня» / «Вчера» / дата и сумма")
+fmt("stats.months.a11y", "Траты по месяцам за %@", "2026", args="%@ — год («2026»); у своего периода — диапазон")
+skip("stats.months.bar.a11y", "данные: месяц (год — если не текущий) и сумма (a11y.money)")
 custom("stats.pace.a11y",
        {"stats.pace.a11y": Key("Накопленные траты."),
         "stats.pace.a11y.current": Key(f"%1$@: %2$@ к %3$@{NB}числу.",
@@ -763,6 +775,9 @@ en("home.empty.period",
          lambda t, it: (t("home.empty.period.day.past", f"Oct{NB}6"), it["why"]),
          lambda t, it: (t("home.empty.period.range.past", f"Oct{NB}2", "4"), it["why"]),
          lambda t, it: (t("home.empty.period.in.past", "2025"), it["why"])])
+en("home.empty.period.range.current", {"home.empty.period.range.current": Key("No expenses since %@")},
+   lambda t: t("home.empty.period.range.current", f"Oct{NB}10"),
+   also=[lambda t, it: (t("home.empty.period.range.current", f"Dec{NB}28, 2025"), it["why"])])
 en_fmt("feed.dayHeader.today", "**Today** · %@", f"Thu, Oct{NB}8")
 en_fmt("feed.dayHeader.yesterday", "**Yesterday** · %@", f"Wed, Oct{NB}7")
 
@@ -821,6 +836,8 @@ en("stats.summary.meta", {"stats.summary.meta": Key("%#@count@ · daily average 
    en_forms("stats.summary.meta", [(1, f"9.50{S}"), (18, f"51.54{S}")]))
 en_fmt("stats.cats.caption.group", "Most spent on **%1$@: %2$@**", "{Category}", "{share}%")
 en_fmt("stats.cats.caption.sub", "Most spent on **%1$@: %2$@**", "{Subcategory}", "{share}%")
+en_fmt("stats.cats.caption.sub.none", "Most spent **with no subcategory: %@**", "40%")
+en_fmt("stats.cats.caption.group.none", "Most spent **without a category: %@**", "18%")
 en("stats.center.meta", {"stats.center.meta": Key("%1$@ · %#@count@", subs={"count": (2, EXPENSE)})},
    en_forms("stats.center.meta", [(SIGN, 1), (SIGN, 18)]))
 en_fmt("stats.list.sub.share", "%@ of the category", "69%")
@@ -1003,6 +1020,7 @@ en_a11y("stats.list.group.a11y", "%1$@, %2$@, %3$@ of all expenses", "Shows subc
         ("{Category}", "{amount}", "{share}%"))
 en_fmt("stats.list.sub.group.a11y", "%@: subcategories", "Groceries")
 en_fmt("stats.days.a11y", "%@ expenses by day", "October")
+en_fmt("stats.months.a11y", "%@ expenses by month", "2026")
 en("stats.pace.a11y",
    {"stats.pace.a11y": Key("Running total."),
     "stats.pace.a11y.current": Key("%1$@: %2$@ as of the %3$@."),

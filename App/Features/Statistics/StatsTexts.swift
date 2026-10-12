@@ -79,7 +79,7 @@ struct StatsTexts {
 
     // MARK: - Столбики
 
-    /// Подсказка и подпись оси: «Сегодня», «Вчера», «чт, 1 окт»; час — «14:00»; месяц — «Октябрь».
+    /// Подсказка (`stats.days.tip`, `stats.months.tip`): «Сегодня», «Вчера», «чт, 1 окт»; час — «14:00»; месяц — «Октябрь».
     func bucketTitle(_ bucket: StatsTimeBucket, step: StatsTimeStep) -> String {
         let start = bucket.interval.start
         switch step {
@@ -89,7 +89,8 @@ struct StatsTexts {
         }
     }
 
-    /// `stats.days.bar.a11y`: «Сегодня, 57,20 рубля», «Четверг, 1 октября, 12 рублей».
+    /// `stats.days.bar.a11y`: «Сегодня, 57,20 рубля», «Четверг, 1 октября, 12 рублей»;
+    /// `stats.months.bar.a11y`: «Октябрь, 412,30 рубля»; час — «14:00, 12,50 рубля».
     func bucketAccessibility(_ bucket: StatsTimeBucket, step: StatsTimeStep) -> String {
         let start = bucket.interval.start
         let title: String = switch step {
@@ -119,14 +120,14 @@ struct StatsTexts {
         L10n.format("stats.days.avg", money.string(fromMinor: minor, style: .plain))
     }
 
-    /// Заголовок графика VoiceOver: «Траты по дням за октябрь», «Траты по часам за 8 октября».
+    /// Заголовок графика VoiceOver: «Траты по дням за октябрь», «Траты по часам за 8 октября»,
+    /// «Траты по месяцам за 2026».
     func seriesAccessibility(_ period: StatsPeriod, step: StatsTimeStep) -> String {
         switch step {
         case .hour:
             return L10n.format("stats.dayView.a11y", dates.dayMonth(period.interval.start))
         case .month:
-            // TODO(copy): «Траты по месяцам за 2026» — строки для вида «Год» в copy.json нет.
-            return "Траты по месяцам за " + periodName(period)
+            return L10n.format("stats.months.a11y", periodName(period))
         case .day, .week:
             return L10n.format("stats.days.a11y", periodName(period))
         }
