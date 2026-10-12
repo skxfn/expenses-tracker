@@ -32,7 +32,9 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         # Экран запуска (UILaunchScreen → UIColorName) — в Config/Info.plist: вложенных INFOPLIST_KEY_* нет.
         INFOPLIST_FILE: Config/Info.plist
-        INFOPLIST_KEY_CFBundleDisplayName: Траты
+        # Только латиница: SideStore 0.7 делает из него имя App ID, а Apple отклоняет кириллицу.
+        # «Траты» на русском — из App/Resources/InfoPlist.xcstrings.
+        INFOPLIST_KEY_CFBundleDisplayName: Expenses
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
