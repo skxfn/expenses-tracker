@@ -201,7 +201,7 @@ Packages/ExpenseCore/Sources/ExpenseCore/Catalog/GouachePalette.swift ← id т�
     | `settings.currency.symbol` | Обозначение | Symbol |
     | `settings.currency.symbol.sign.a11y` | Знак рубля | Ruble sign |
     | `settings.currency.symbol.code` | BYN | BYN |
-    | `settings.currency.symbol.a11y.hint` | Как подписывать суммы | How amounts are labeled |
+    | `settings.currency.symbol.a11y.hint` | Меняет обозначение валюты у всех сумм | Changes the currency symbol on all amounts |
 
 ### 3.4 Стекло
 
