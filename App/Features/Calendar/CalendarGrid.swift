@@ -5,7 +5,8 @@ import ExpenseCore
 /// Свайп влево / вправо листает месяц; смена месяца — растворение (без полёта: и при Reduce Motion то же).
 /// Линза выбранного дня рисуется слоем поверх сетки по рамке клетки (`SelectedCellAnchorKey`): выступ линзы должен
 /// лежать поверх соседей, а `zIndex` у клетки уводил её в конец порядка VoiceOver (после 31-го).
-/// Выбор другого дня — линза переезжает к нему пружиной `morph`; при Reduce Motion — гаснет и проявляется.
+/// Выбор другого дня — линза поднимается и перелетает к нему (`SelectionLens`, `LensMotion`); при Reduce Motion —
+/// гаснет и проявляется. Касание выбранного дня приподнимает линзу, остальные клетки при нажатии сжимаются.
 struct CalendarGrid: View {
     let model: CalendarModel
     let strings: CalendarStrings
@@ -14,6 +15,10 @@ struct CalendarGrid: View {
     let onSwipe: (_ forward: Bool) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Полёт линзы к выбранному дню; `nil` — линза стоит над ним.
+    @State private var lensFlight: LensFlight?
+    /// Клетка под пальцем.
+    @State private var pressedDay: Date?
 
     var body: some View {
         VStack(spacing: Theme.Spacing.sm) {
@@ -32,6 +37,28 @@ struct CalendarGrid: View {
             .accessibilityLabel(Text(verbatim: strings.gridAccessibility(model.month)))
         }
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        // Другой месяц — без полёта: линза новой сетки сразу над выбранным днём.
+        .onChange(of: model.month.start) { lensFlight = nil }
+        // Посадка: цифры выбранного дня — после неё; новый выбор в полёте откладывает её.
+        .task(id: [model.selectedDay, lensFlight?.takeoff]) {
+            guard lensFlight != nil else { return }
+            try? await Task.sleep(for: LensMotion.cruise)
+            guard !Task.isCancelled else { return }
+            lensFlight?.isLanding = true
+            try? await Task.sleep(for: LensMotion.landing - LensMotion.cruise)
+            guard !Task.isCancelled else { return }
+            lensFlight = nil
+        }
+    }
+
+    /// Выбор касанием: линза взлетает (Reduce Motion — без полёта, сразу над новым днём).
+    private func liftOff(to date: Date) {
+        guard date != model.selectedDay, !reduceMotion else { return }
+        if lensFlight == nil {
+            lensFlight = LensFlight(takeoff: model.selectedDay)
+        } else {
+            lensFlight?.isLanding = false
+        }
     }
 
     private var weekdays: some View {
@@ -51,12 +78,26 @@ struct CalendarGrid: View {
     }
 
     private var weeks: some View {
+        weeksGrid(dayView)
+    }
+
+    /// Копия клеток без кнопок — то, что линза в полёте показывает увеличенным (`SelectionLens`).
+    /// Цифры в ней видны всегда: при посадке окно линзы гаснет вместе с ними, пока проявляются цифры линзы.
+    private var weeksBackdrop: some View {
+        weeksGrid { date in
+            cell(date, isUnderLens: false)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func weeksGrid<Day: View>(_ day: @escaping (Date) -> Day) -> some View {
         Grid(horizontalSpacing: CalendarMetrics.gridGap, verticalSpacing: CalendarMetrics.gridGap) {
             ForEach(Array(model.month.weeks.enumerated()), id: \.offset) { _, week in
                 GridRow {
                     ForEach(Array(week.enumerated()), id: \.offset) { _, date in
                         if let date {
-                            dayView(date)
+                            day(date)
                         } else {
                             Color.clear.gridCellUnsizedAxes(.vertical)
                         }
@@ -66,25 +107,43 @@ struct CalendarGrid: View {
         }
     }
 
+    private func cell(_ date: Date, isUnderLens: Bool) -> CalendarDayCell {
+        let day = model.day(date)
+        return CalendarDayCell(
+            day: day, number: strings.dayNumber(date), amount: strings.cellAmount(day.totalMinor), isUnderLens: isUnderLens
+        )
+    }
+
     @ViewBuilder
     private func dayView(_ date: Date) -> some View {
         let day = model.day(date)
         let isSelected = date == model.selectedDay
         let isPeak = date == model.summary.peakDay
         let amount = strings.cellAmount(day.totalMinor)
-        let cell = CalendarDayCell(day: day, number: strings.dayNumber(date), amount: amount, isSelected: isSelected)
+        // Цифры клетки гаснут с началом посадки: окно линзы над ней ещё показывает их копию.
+        let cell = self.cell(date, isUnderLens: isSelected && (lensFlight?.isLanding ?? true))
         let label = Text(verbatim: strings.dayAccessibility(day, isSelected: isSelected, isPeak: isPeak))
 
         if day.isSelectable {
             let marksSelection = isSelected && !strings.accessibilityStatesSelection(day, isSelected: isSelected)
             Button {
+                liftOff(to: date)
                 onSelect(date)
             } label: {
                 cell
             }
-            .buttonStyle(.pressable(Motion.PressScale.tile))
+            .buttonStyle(DayButtonStyle(isSelected: isSelected) { isPressed in
+                if isPressed {
+                    pressedDay = date
+                } else if pressedDay == date {
+                    pressedDay = nil
+                }
+            })
             .simultaneousGesture(
-                LongPressGesture(minimumDuration: Self.longPressDuration).onEnded { _ in onAdd(date) }
+                LongPressGesture(minimumDuration: Self.longPressDuration).onEnded { _ in
+                    liftOff(to: date)
+                    onAdd(date)
+                }
             )
             .anchorPreference(key: SelectedCellAnchorKey.self, value: .bounds) { isSelected ? $0 : nil }
             .accessibilityLabel(label)
@@ -101,26 +160,28 @@ struct CalendarGrid: View {
     }
 
     /// Линза поверх выбранной клетки с выступом за её края. Только рисунок: касания и VoiceOver — у клетки.
-    /// Одна линза на сетку переезжает от дня к дню; при Reduce Motion у каждого дня своя — без перелёта.
+    /// Тинт — по выбранной клетке; в полёте цифр нет (гаснут цифры дня, откуда линза взлетела).
     @ViewBuilder
     private func selectionLens(_ anchor: Anchor<CGRect>?) -> some View {
         if let anchor {
-            let day = model.selected
+            let selected = model.selected
+            let shown = lensFlight.map { model.day($0.takeoff) } ?? selected
             GeometryReader { proxy in
-                let rect = proxy[anchor].insetBy(dx: -CalendarMetrics.lensOutset, dy: -CalendarMetrics.lensOutset)
-                ZStack {
-                    DayLens(
-                        number: strings.dayNumber(day.date),
-                        amount: strings.cellAmount(day.totalMinor),
-                        level: day.level,
-                        isToday: day.isToday
+                SelectionLens(
+                    rect: proxy[anchor].insetBy(dx: -CalendarMetrics.lensOutset, dy: -CalendarMetrics.lensOutset),
+                    canvas: proxy.size,
+                    backdrop: weeksBackdrop,
+                    date: selected.date,
+                    isPressed: pressedDay == selected.date && lensFlight == nil,
+                    lens: DayLens(
+                        number: strings.dayNumber(shown.date),
+                        amount: strings.cellAmount(shown.totalMinor),
+                        level: shown.level,
+                        isToday: shown.isToday,
+                        tintLevel: selected.level,
+                        showsDigits: lensFlight == nil
                     )
-                    .frame(width: rect.width, height: rect.height)
-                    .position(x: rect.midX, y: rect.midY)
-                    .id(reduceMotion ? day.date : nil)
-                    .transition(.opacity)
-                }
-                .animation(Motion.animation(Motion.morph, reduceMotion: reduceMotion), value: day.date)
+                )
             }
             .allowsHitTesting(false)
             .accessibilityHidden(true)
@@ -143,6 +204,28 @@ struct CalendarGrid: View {
     private static func weekdayKey(_ weekday: Int) -> String {
         let names = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
         return "cal.weekdays." + names[(weekday - 1) % names.count]
+    }
+}
+
+/// Полёт линзы: день, откуда она взлетела (его цифры гаснут в линзе), и началась ли посадка.
+private struct LensFlight: Equatable {
+    let takeoff: Date
+    var isLanding = false
+}
+
+/// Нажатие клетки: невыбранная сжимается, как `pressable`; выбранная остаётся на месте — над ней приподнимается
+/// линза (`onPressChange` сообщает сетке, какая клетка под пальцем).
+private struct DayButtonStyle: ButtonStyle {
+    let isSelected: Bool
+    let onPressChange: (Bool) -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !isSelected && !reduceMotion ? Motion.PressScale.tile : 1)
+            .animation(Motion.press, value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { _, isPressed in onPressChange(isPressed) }
     }
 }
 
