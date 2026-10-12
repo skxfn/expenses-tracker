@@ -79,7 +79,8 @@ final class CategoryFormModel {
     let originalParentName: String?
     /// Траты категории, а у категории верхнего уровня — вместе с тратами подкатегорий.
     let expenseCount: Int
-    let subcategoryCount: Int
+    /// Растёт, когда подкатегорию добавили из этого же шита (`subcategoryAdded()`).
+    private(set) var subcategoryCount: Int
 
     // Список категорий на время шита.
     private(set) var topLevel: [ExpenseCategory] = []
@@ -276,6 +277,12 @@ final class CategoryFormModel {
     }
 
     // MARK: - Внутреннее
+
+    /// Подкатегорию создали из шита правки категории — снять возможность сделать её подкатегорией.
+    func subcategoryAdded() {
+        subcategoryCount = category?.children.count ?? subcategoryCount + 1
+        reload()
+    }
 
     private func reload() {
         topLevel = (try? store.topLevelCategories()) ?? []

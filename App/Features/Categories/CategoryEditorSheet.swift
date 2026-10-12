@@ -2,9 +2,9 @@ import SwiftData
 import SwiftUI
 import ExpenseCore
 
-/// Редактор категории (макет `11-category`, шит): ✕, заголовок, «Готово» prominent в шапке; сегмент
-/// «Категория / Подкатегория», превью-«выкраска», название, родитель, цвет (лесенка оттенков или
-/// 15 образцов «Гуаши»), иконки с поиском; при правке — архив и удаление.
+/// Редактор категории (макет `11-category`, шит): ✕, заголовок, «Готово» prominent в шапке; у новой — сегмент
+/// «Категория / Подкатегория», у правки категории — «Добавить подкатегорию»; превью-«выкраска», название, родитель,
+/// цвет (лесенка оттенков или 15 образцов «Гуаши»), иконки с поиском; при правке — смена уровня, архив и удаление.
 ///
 /// Открывать шитом: `.sheet(item:) { CategoryEditorSheet(mode: $0) { id in … } }`.
 /// `onSaved` получает `id` сохранённой категории («Все категории» сразу выбирают новую).
@@ -38,23 +38,36 @@ private struct CategoryEditorForm: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isConfirmingDelete = false
     @State private var isPickingReassignTarget = false
+    /// Новая подкатегория этой категории («Добавить подкатегорию»).
+    @State private var newSubcategory: CategoryEditorMode?
     @State private var saveFailures = 0
 
     /// Между разделами шита (макет `11-category`).
     private static let sectionSpacing: CGFloat = Theme.Spacing.xl + Theme.Spacing.sm
+    private static let topID = "top"
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: Self.sectionSpacing) {
-                kindSection
+                // Правка: уровень меняется внизу (`levelRow`), сверху у категории — «Добавить подкатегорию».
+                if model.isEditing {
+                    if model.originalKind == .group, model.kind == .group {
+                        addSubcategoryButton
+                    }
+                } else {
+                    kindSection
+                }
                 previewSection
+                    .id(Self.topID)
                 nameSection
                 colorSection
                 iconSection
                 if model.isEditing {
-                    manageSection
+                    manageSection { proxy.scrollTo(Self.topID, anchor: .top) }
                 }
             }
             .padding(.horizontal, Theme.Spacing.screen)
@@ -62,6 +75,7 @@ private struct CategoryEditorForm: View {
             .padding(.bottom, Theme.Spacing.xl)
         }
         .scrollDismissesKeyboard(.interactively)
+        }
         .background {
             AuraBackground(tones: [auraTone], base: Theme.canvasElevated)
                 .ignoresSafeArea()
@@ -90,6 +104,9 @@ private struct CategoryEditorForm: View {
                 if model.delete(reassignTo: target) { dismiss() }
             }
         }
+        .sheet(item: $newSubcategory) { mode in
+            CategoryEditorSheet(mode: mode) { _ in model.subcategoryAdded() }
+        }
         .sensoryFeedback(Haptic.warning, trigger: isConfirmingDelete) { _, isShown in isShown }
         .sensoryFeedback(Haptic.error, trigger: saveFailures)
     }
@@ -110,6 +127,17 @@ private struct CategoryEditorForm: View {
                     .padding(.horizontal, Theme.Spacing.lg)
             }
         }
+    }
+
+    /// Вместо сегмента «Категория / Подкатегория» при правке категории: новая подкатегория сразу внутри неё.
+    private var addSubcategoryButton: some View {
+        Button {
+            if let id = model.categoryID { newSubcategory = .create(parentID: id) }
+        } label: {
+            Label("cat.addSub", systemImage: "plus")
+        }
+        .buttonStyle(.glassCapsule())
+        .accessibilityShowsLargeContentViewer()
     }
 
     private var previewSection: some View {
@@ -269,8 +297,19 @@ private struct CategoryEditorForm: View {
         }
     }
 
-    private var manageSection: some View {
+    /// Смена уровня, архив и удаление. `onLevelChange` — показать верх шита: там меняются превью, родитель и цвет.
+    private func manageSection(onLevelChange: @escaping () -> Void) -> some View {
         SettingsGroup(footer: "cat.archive.foot") {
+            if let level = levelChange {
+                Button {
+                    withAnimation(Motion.animation(Motion.select, reduceMotion: reduceMotion)) {
+                        model.kind = level.kind
+                        onLevelChange()
+                    }
+                } label: {
+                    manageRow(level.title, color: Theme.ink)
+                }
+            }
             Button {
                 model.toggleArchive()
             } label: {
@@ -283,6 +322,16 @@ private struct CategoryEditorForm: View {
             }
         }
         .buttonStyle(.pressable(Motion.PressScale.row))
+    }
+
+    /// «Сделать подкатегорией» — у категории без подкатегорий, если есть куда вложить; «Сделать категорией» —
+    /// у подкатегории, пока категорий меньше 15. Повторное нажатие возвращает уровень (до «Готово»).
+    private var levelChange: (kind: CategoryKind, title: LocalizedStringKey)? {
+        switch model.kind {
+        case .group where !model.isSubcategoryBlocked: (.subcategory, "cat.makeSub")
+        case .subcategory where !model.isGroupBlocked: (.group, "cat.makeGroup")
+        default: nil
+        }
     }
 
     private func manageRow(_ title: LocalizedStringKey, color: Color) -> some View {

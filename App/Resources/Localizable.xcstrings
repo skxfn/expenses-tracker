@@ -1599,6 +1599,24 @@
         }
       }
     },
+    "cat.addSub" : {
+      "comment" : "кнопка над превью при правке категории. Правка категории верхнего уровня: вместо сегмента «Категория / Подкатегория» (решение владельца 2026-10-12) — открывает новую подкатегорию внутри этой категории",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Subcategory"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить подкатегорию"
+          }
+        }
+      }
+    },
     "cat.archive" : {
       "comment" : "кнопка архивации. Правка категории (макета нет). В коде — «Перенести в архив»",
       "extractionState" : "manual",
@@ -3649,6 +3667,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ничего не найдено"
+          }
+        }
+      }
+    },
+    "cat.makeGroup" : {
+      "comment" : "строка в блоке управления при правке подкатегории. Смена уровня спрятана вниз (решение владельца 2026-10-12): подкатегория становится категорией верхнего уровня",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make Category"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сделать категорией"
+          }
+        }
+      }
+    },
+    "cat.makeSub" : {
+      "comment" : "строка в блоке управления при правке категории. Смена уровня спрятана вниз, рядом с «В архив» и «Удалить» (решение владельца 2026-10-12): категория без подкатегорий становится подкатегорией — ниже появляется выбор родителя",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make Subcategory"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сделать подкатегорией"
           }
         }
       }

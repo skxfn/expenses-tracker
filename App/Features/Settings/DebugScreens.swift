@@ -10,6 +10,8 @@ enum DebugScreen: String {
     case settings, categories, currency
     /// Правка подкатегории «Кофе» (или первой подкатегории) — сверка с макетом `11-category`.
     case category
+    /// Правка категории верхнего уровня «Кафе» (или первой): «Добавить подкатегорию», смена уровня внизу.
+    case group
     /// Новая категория верхнего уровня (режим «Категория»: 15 образцов «Гуаши»).
     case newCategory
     /// Новая подкатегория «Кафе».
@@ -94,7 +96,7 @@ private struct DebugScreenRoot: View {
         switch screen {
         case .settings, .importSheet, .monefy, .launchError: SettingsView()
         case .currency: CurrencyPickerView()
-        case .categories, .category, .newCategory, .newSubcategory: CategoriesView()
+        case .categories, .category, .group, .newCategory, .newSubcategory: CategoriesView()
         }
     }
 
@@ -104,6 +106,9 @@ private struct DebugScreenRoot: View {
         switch screen {
         case .category:
             let target = all.first { $0.name == "Кофе" && $0.parent != nil } ?? all.first { $0.parent != nil } ?? all.first
+            editorMode = target.map { .edit(categoryID: $0.id) }
+        case .group:
+            let target = all.first { $0.name == "Кафе" && $0.parent == nil } ?? all.first { $0.parent == nil }
             editorMode = target.map { .edit(categoryID: $0.id) }
         case .newCategory:
             editorMode = .create()
