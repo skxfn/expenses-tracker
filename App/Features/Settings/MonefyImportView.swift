@@ -273,7 +273,8 @@ struct MonefyImportView: View {
 }
 
 /// Строка сопоставления: имя категории Monefy и «48 трат · 1 234,50 ⃅» слева, выбор справа
-/// (плашка категории и имя, «Без категории», «Не переносить» или «Выбрать»). На AX-размерах выбор — под именем.
+/// (плашка категории и имя, «Без категории», «Не переносить» или «Выбрать»). Если в ряд не помещается
+/// (длинные имена, английский, AX-размеры) — выбор под именем, ничего не обрезается посреди подписи.
 private struct MonefyMappingRow: View {
     struct Target {
         let title: String
@@ -291,21 +292,11 @@ private struct MonefyMappingRow: View {
     var body: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                    source
-                    HStack(spacing: Theme.Spacing.sm) {
-                        targetLabel
-                        Spacer(minLength: 0)
-                        chevron
-                    }
-                }
+                stacked
             } else {
-                HStack(spacing: Theme.Spacing.md) {
-                    source
-                        .layoutPriority(1)
-                    Spacer(minLength: Theme.Spacing.sm)
-                    targetLabel
-                    chevron
+                ViewThatFits(in: .horizontal) {
+                    inline
+                    stacked
                 }
             }
         }
@@ -315,17 +306,40 @@ private struct MonefyMappingRow: View {
         .contentShape(Rectangle())
     }
 
-    private var source: some View {
+    /// Подписи по своей ширине: `ViewThatFits` выбирает ряд по сумме ширин, а `HStack` без `fixedSize`
+    /// всё равно урезал бы выбор (ловушка AGENTS.md).
+    private var inline: some View {
+        HStack(spacing: Theme.Spacing.md) {
+            source(lineLimit: 1)
+                .fixedSize()
+            Spacer(minLength: Theme.Spacing.sm)
+            targetLabel
+                .fixedSize()
+            chevron
+        }
+    }
+
+    private var stacked: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+            source(lineLimit: nil)
+            HStack(spacing: Theme.Spacing.sm) {
+                targetLabel
+                Spacer(minLength: 0)
+                chevron
+            }
+        }
+    }
+
+    private func source(lineLimit: Int?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: name)
                 .typeStyle(.body)
                 .foregroundStyle(Theme.ink)
-                .lineLimit(2)
             Text(verbatim: meta)
                 .typeStyle(.footnote)
                 .foregroundStyle(Theme.secondary)
-                .lineLimit(1)
         }
+        .lineLimit(lineLimit)
         .multilineTextAlignment(.leading)
     }
 
