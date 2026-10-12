@@ -5,7 +5,7 @@ import SwiftUI
 /// или `-debugShowcase <страница>` — сразу страницу (для скриншотов без касаний).
 enum ShowcasePage: String, CaseIterable, Identifiable {
     case tokens, tones, components, glass, fonts, currencySign
-    case tabBarSystem, tabBarCustom, feed, addSheet
+    case tabBarSystem, tabBarNative, tabBarLens, tabBarCustom, feed, addSheet
     case viz
 
     var id: String { rawValue }
@@ -19,6 +19,8 @@ enum ShowcasePage: String, CaseIterable, Identifiable {
         case .fonts: "Unbounded: регистрация и tnum"
         case .currencySign: "Знак рубля: подстановка"
         case .tabBarSystem: "Спайк: системный TabView + «+»"
+        case .tabBarNative: "Спайк: системный TabView, «+» — Tab(role: .search)"
+        case .tabBarLens: "Спайк: свой бар с линзой (касание, перетаскивание)"
         case .tabBarCustom: "Спайк: свой бар поверх TabView"
         case .feed: "Спайк: лента на List"
         case .addSheet: "Спайк: шит записи (зум, клавиатура)"
@@ -29,7 +31,7 @@ enum ShowcasePage: String, CaseIterable, Identifiable {
     /// Страница, которой нужен весь экран (без NavigationStack витрины).
     var isFullScreen: Bool {
         switch self {
-        case .tabBarSystem, .tabBarCustom, .feed, .addSheet: true
+        case .tabBarSystem, .tabBarNative, .tabBarLens, .tabBarCustom, .feed, .addSheet: true
         default: false
         }
     }
@@ -94,6 +96,8 @@ struct ShowcaseDestination: View {
         case .fonts: FontsShowcase()
         case .currencySign: CurrencySignShowcase()
         case .tabBarSystem: TabBarSystemSpike()
+        case .tabBarNative: TabBarNativeSpike()
+        case .tabBarLens: TabBarLensSpike()
         case .tabBarCustom: TabBarCustomSpike()
         case .feed: FeedSpike()
         case .addSheet: AddSheetSpike()

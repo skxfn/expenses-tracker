@@ -23,6 +23,10 @@ enum SpikeTab: Hashable, CaseIterable {
     }
 }
 
+private extension Double {
+    var nonZero: Double? { self == 0 ? nil : self }
+}
+
 private struct SpikePlaceholder: View {
     let title: String
 
@@ -65,6 +69,237 @@ struct TabBarSystemSpike: View {
             AddSheetSpikeContent()
                 .navigationTransition(.zoom(sourceID: "add", in: zoom))
         }
+    }
+}
+
+// MARK: - Вариант (б): системный TabView, «+» — вкладка `Tab(role: .search)`
+
+/// «+» — закреплённая вкладка с ролью поиска (отдельный круг справа). Выбор этой вкладки перехватывается
+/// привязкой: вкладка не меняется, открывается шит. Во «Календаре» — пуш со скрытым таб-баром.
+struct TabBarNativeSpike: View {
+    enum Value: Hashable {
+        case tab(SpikeTab)
+        case add
+    }
+
+    @State private var tab = SpikeTab.feed
+    @State private var isAddPresented = false
+
+    private var selection: Binding<Value> {
+        Binding {
+            .tab(tab)
+        } set: { value in
+            switch value {
+            case .tab(let newTab): tab = newTab
+            case .add: isAddPresented = true
+            }
+        }
+    }
+
+    var body: some View {
+        TabView(selection: selection) {
+            Tab(SpikeTab.feed.title, systemImage: "house", value: Value.tab(.feed)) {
+                FeedSpikeContent()
+            }
+            Tab(SpikeTab.calendar.title, systemImage: "calendar", value: Value.tab(.calendar)) {
+                NavigationStack {
+                    SpikePlaceholder(title: SpikeTab.calendar.title)
+                        .overlay(alignment: .top) {
+                            NavigationLink("Пуш без таб-бара") {
+                                SpikePlaceholder(title: "Пуш")
+                                    .toolbarVisibility(.hidden, for: .tabBar)
+                            }
+                            .padding(.top, 80)
+                        }
+                }
+            }
+            Tab(SpikeTab.statistics.title, systemImage: "chart.pie", value: Value.tab(.statistics)) {
+                SpikePlaceholder(title: SpikeTab.statistics.title)
+            }
+            Tab("Новая трата", systemImage: "plus", value: Value.add, role: .search) {
+                SpikePlaceholder(title: "Вкладка «+» (не должна открываться)")
+            }
+        }
+        .tint(Theme.ink)
+        .tabBarMinimizeBehavior(.never)
+        .sheet(isPresented: $isAddPresented) {
+            AddSheetSpikeContent()
+        }
+    }
+}
+
+// MARK: - Вариант (в) с линзой: касание, перетаскивание, пружина
+
+/// Свой бар с линзой выделения как у системного: касание поднимает линзу над вкладкой, линза едет за пальцем,
+/// отпускание выбирает вкладку под пальцем и линза пружиной садится на неё.
+/// `-spikeLens fill|glass|clear`: покой — пилюля графит 8 % (`fill`), стекло с тинтом в общем контейнере (`glass`),
+/// пилюля + прозрачное стекло поверх бара при касании (`clear`).
+struct TabBarLensSpike: View {
+    @State private var tab = SpikeTab.feed
+
+    var body: some View {
+        TabView(selection: $tab) {
+            ForEach(SpikeTab.allCases, id: \.self) { item in
+                Tab(item.title, systemImage: item.systemImage(selected: false), value: item) {
+                    Group {
+                        if item == .feed { FeedSpikeContent() } else { SpikePlaceholder(title: item.title) }
+                    }
+                    .toolbarVisibility(.hidden, for: .tabBar)
+                }
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            SpikeLensBar(selection: $tab)
+        }
+    }
+}
+
+struct SpikeLensBar: View {
+    @Binding var selection: SpikeTab
+
+    @State private var rowWidth: CGFloat = 0
+    /// Палец на ряду: x в координатах ряда; `nil` — не касаются.
+    @State private var dragX: CGFloat?
+    @State private var touchStartX: CGFloat = 0
+    @State private var lensStartX: CGFloat = 0
+    @State private var hovered: SpikeTab?
+    @Namespace private var glassNamespace
+
+    private let mode = UserDefaults.standard.string(forKey: "spikeLens") ?? "fill"
+    private let tabs = SpikeTab.allCases
+    private let spring = Animation.spring(duration: 0.4, bounce: 0.2)
+
+    private let containerSpacing = CGFloat(UserDefaults.standard.double(forKey: "spikeSpacing").nonZero ?? Double(Theme.Spacing.md))
+
+    var body: some View {
+        GlassEffectContainer(spacing: containerSpacing) {
+            HStack(spacing: Theme.Spacing.md) {
+                ZStack(alignment: .leading) {
+                    if mode == "glass" { glassLens }
+                    row
+                }
+                .padding(Theme.Spacing.xs)
+                .frame(height: Theme.Size.tabBar)
+                .glassEffect(.regular.interactive(), in: .capsule)
+                .glassEffectID("bar", in: glassNamespace)
+
+                Button("Новая трата", systemImage: "plus") {}
+                    .buttonStyle(.glassCircle(diameter: Theme.Size.addButton, prominent: true))
+            }
+        }
+        .overlay(alignment: .leading) {
+            if mode == "clear" { clearLens }
+        }
+        .padding(.horizontal, Theme.Spacing.screen)
+        .sensoryFeedback(Haptic.selection, trigger: hovered)
+    }
+
+    private var itemWidth: CGFloat { rowWidth / CGFloat(tabs.count) }
+    private var isLifted: Bool { dragX != nil }
+
+    /// Левый край линзы: за пальцем при касании, иначе — у выбранной вкладки.
+    private var lensX: CGFloat {
+        let index = CGFloat(tabs.firstIndex(of: selection) ?? 0)
+        let x = dragX.map { lensStartX + $0 - touchStartX } ?? index * itemWidth
+        return min(max(x, 0), max(rowWidth - itemWidth, 0))
+    }
+
+    private var row: some View {
+        HStack(spacing: 0) {
+            ForEach(tabs, id: \.self) { tab in
+                item(tab)
+            }
+        }
+        .background(alignment: .leading) {
+            if mode != "glass" && mode != "morph" {
+                Capsule()
+                    .fill(Theme.tabPill)
+                    .frame(width: itemWidth)
+                    .scaleEffect(isLifted && mode == "fill" ? 1.12 : 1)
+                    .opacity(isLifted && mode == "clear" ? 0 : 1)
+                    .offset(x: lensX)
+            }
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { rowWidth = $0 }
+        .contentShape(Rectangle())
+        .gesture(drag)
+    }
+
+    private var glassLens: some View {
+        Capsule()
+            .fill(.clear)
+            .frame(width: itemWidth)
+            .glassEffect(.regular.tint(Theme.tabPill).interactive(), in: .capsule)
+            .glassEffectID("lens", in: glassNamespace)
+            .scaleEffect(isLifted ? 1.12 : 1)
+            .offset(x: lensX)
+    }
+
+    private var clearLens: some View {
+        Capsule()
+            .fill(.clear)
+            .frame(width: itemWidth + 8, height: Theme.Size.tabBar - 4)
+            .glassEffect(isLifted ? .clear.interactive() : .identity, in: .capsule)
+            .offset(x: lensX + Theme.Spacing.xs - 4)
+            .allowsHitTesting(false)
+    }
+
+    private func item(_ tab: SpikeTab) -> some View {
+        let isActive = (hovered ?? selection) == tab
+        return VStack(spacing: 2) {
+            Image(systemName: tab.systemImage(selected: isActive))
+                .font(.system(size: 22, weight: .medium))
+                .frame(height: 26)
+            Text(verbatim: tab.title)
+                .typeStyle(.caption)
+        }
+        .foregroundStyle(isActive ? Theme.ink : Theme.secondary)
+        .scaleEffect(isLifted && hovered == tab ? 1.15 : 1)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            if mode == "morph" && isActive {
+                Capsule()
+                    .fill(.clear)
+                    .glassEffect(.regular.tint(Theme.tabPill).interactive(), in: .capsule)
+                    .glassEffectID("lens", in: glassNamespace)
+                    .scaleEffect(isLifted ? 1.12 : 1)
+            }
+        }
+    }
+
+    private func tab(at x: CGFloat) -> SpikeTab {
+        guard itemWidth > 0 else { return selection }
+        let index = Int(x / itemWidth)
+        return tabs[min(max(index, 0), tabs.count - 1)]
+    }
+
+    private var drag: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                if dragX == nil {
+                    let touched = tab(at: value.startLocation.x)
+                    touchStartX = value.startLocation.x
+                    lensStartX = CGFloat(tabs.firstIndex(of: touched) ?? 0) * itemWidth
+                    withAnimation(spring) {
+                        dragX = value.location.x
+                        hovered = touched
+                    }
+                } else {
+                    dragX = value.location.x
+                    let over = tab(at: value.location.x)
+                    if over != hovered {
+                        withAnimation(.snappy(duration: 0.2)) { hovered = over }
+                    }
+                }
+            }
+            .onEnded { value in
+                let target = tab(at: value.location.x)
+                withAnimation(spring) {
+                    selection = target
+                    dragX = nil
+                    hovered = nil
+                }
+            }
     }
 }
 
