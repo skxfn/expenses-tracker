@@ -447,6 +447,35 @@ plural("import.missingCategory", forms(
     f"%lld{NB}траты без категории: их категорий нет ни в копии, ни в приложении."),
     P(5, "{N}"), args="%lld — число трат")
 
+# --- Перенос трат из Monefy ------------------------------------------------
+
+fmt("monefy.currencyDiff", f"В файле другая валюта{NB}— %@. Суммы запишутся как есть, без пересчёта.",
+    "GBP", args="%@ — коды валют файла через запятую")
+custom("monefy.group.meta",
+       {"monefy.group.meta": Key("%#@count@ · %2$@", subs={"count": (1, TRATA)},
+                                 args="%1$lld — число трат категории Monefy; %2$@ — их сумма (фразой, с ⃅)")},
+       lambda t: t("monefy.group.meta", 48, f"1{NB}234,50{NB}{SIGN}"), kind="fmt")
+custom("monefy.group.a11y",
+       {"monefy.group.a11y": Key("%1$@, %#@count@ на %3$@", subs={"count": (2, TRATA)},
+                                 args="%1$@ — имя категории Monefy; %2$lld — число трат; %3$@ — сумма (a11y.money)")},
+       lambda t: t("monefy.group.a11y", "Food", 48, f"1234{NB}рубля"), kind="fmt")
+plural("monefy.import", whole(noun("трату", "траты", "трат", "траты"), "Перенести "), 1131,
+       args="%lld — число трат к переносу (без «Не переносить»)")
+plural("monefy.import.remaining", forms(
+    f"Осталось выбрать для %lld{NB}категории Monefy.",
+    f"Осталось выбрать для %lld{NB}категорий Monefy.",
+    f"Осталось выбрать для %lld{NB}категорий Monefy.",
+    f"Осталось выбрать для %lld{NB}категории Monefy."),
+    3, args="%lld — число категорий Monefy без выбора")
+split("monefy.importError", " / ",
+      ("monefy.importError.title", Key("Не удалось перенести траты")),
+      ("monefy.importError.message", Key("Данные в приложении не изменились. Попробуйте ещё раз.")))
+for _id, _text in (("error.monefy.row.missingField", "Файл повреждён: в строке %lld не хватает данных. Выберите другой файл."),
+                   ("error.monefy.row.badDate", "Файл повреждён: в строке %lld неверная дата. Выберите другой файл."),
+                   ("error.monefy.row.badAmount", "Файл повреждён: в строке %lld неверная сумма. Выберите другой файл."),
+                   ("error.monefy.row.amountTooLarge", "В строке %lld слишком большая сумма. Выберите другой файл.")):
+    fmt(_id, _text, 12, args="%lld — номер строки файла (заголовок — строка 1)")
+
 # --- Ошибки и подтверждения ------------------------------------------------
 
 fmt("error.alert.title", "Не удалось %@", "{действие}", args="%@ — глагол с объектом («сохранить трату»)")
@@ -895,6 +924,27 @@ en("import.missingCategory", {"import.missingCategory": Key(plural={
     "one": f"%lld{NB}expense is now uncategorized: its category isn’t in the backup or the app.",
     "other": f"%lld{NB}expenses are now uncategorized: their categories aren’t in the backup or the app."})},
    en_forms("import.missingCategory", [(1,), (P(5, "{N}"),)]))
+
+# --- Перенос трат из Monefy ------------------------------------------------
+
+en_fmt("monefy.currencyDiff",
+       "This file uses a different currency: %@. Amounts will be imported as is, without conversion.", "GBP")
+en("monefy.group.meta", {"monefy.group.meta": Key("%#@count@ · %2$@", subs={"count": (1, EXPENSE)})},
+   en_forms("monefy.group.meta", [(1, f"9.50{S}"), (48, f"1,234.50{S}")]))
+en("monefy.group.a11y", {"monefy.group.a11y": Key("%1$@, %#@count@ totaling %3$@", subs={"count": (2, EXPENSE)})},
+   en_forms("monefy.group.a11y", [("Food", 1, f"9{NB}rubles"), ("Food", 48, f"1,234{NB}rubles")]))
+en("monefy.import", {"monefy.import": Key(plural={"one": f"Import %lld{NB}Expense", "other": f"Import %lld{NB}Expenses"})},
+   en_forms("monefy.import", [(1,), (1131,)]))
+en("monefy.import.remaining", {"monefy.import.remaining": Key(plural={
+    "one": f"%lld{NB}Monefy category still needs a choice.",
+    "other": f"%lld{NB}Monefy categories still need a choice."})},
+   en_forms("monefy.import.remaining", [(1,), (3,)]))
+for _id, _text in (("error.monefy.row.missingField", "The file is damaged: line %lld is missing data. Choose a different file."),
+                   ("error.monefy.row.badDate", "The file is damaged: line %lld has an incorrect date. Choose a different file."),
+                   ("error.monefy.row.badAmount",
+                    "The file is damaged: line %lld has an incorrect amount. Choose a different file."),
+                   ("error.monefy.row.amountTooLarge", "Line %lld has an amount that’s too large. Choose a different file.")):
+    en_fmt(_id, _text, 12)
 
 # --- Ошибки и подтверждения ------------------------------------------------
 
