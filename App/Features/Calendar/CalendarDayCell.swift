@@ -1,9 +1,8 @@
 import SwiftUI
 
 /// Клетка дня (DESIGN.md → Calendar): 52, r 6, число SF 13/600, сумма SF 13/500, заливка heat-0…4.
-/// Будущий день — без клетки, число серым. Сегодня — стеклянная линза поверх клетки (`TodayLens`, рисует
-/// `CalendarGrid` слоем над сеткой), цифры клетки под ней скрыты.
-/// Выбранный не-сегодняшний день — обводка 2 графитом со смещением 2 (как фокус).
+/// Будущий день — без клетки, число серым. Выбранный день — стеклянная линза поверх клетки (`DayLens`, рисует
+/// `CalendarGrid` слоем над сеткой), цифры клетки под ней гаснут. Сегодня — число подчёркнуто (2), и в клетке, и в линзе.
 struct CalendarDayCell: View {
     let day: CalendarModel.Day
     let number: String
@@ -19,9 +18,9 @@ struct CalendarDayCell: View {
             content(digits: Theme.tertiary)
         } else {
             content(digits: Theme.heatDigits(day.level))
-                .opacity(day.isToday ? 0 : 1)
+                .opacity(isSelected ? 0 : 1)
+                .motion(Motion.morph, value: isSelected)
                 .background { cell }
-                .overlay { selectionOutline }
         }
     }
 
@@ -29,6 +28,14 @@ struct CalendarDayCell: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(verbatim: number)
                 .typeStyle(.footnoteStrong)
+                // Подчёркивание поверх, а не отступом: раскладка клетки «сегодня» та же, что у соседних.
+                .overlay(alignment: .bottom) {
+                    if day.isToday {
+                        Rectangle()
+                            .frame(height: CalendarMetrics.lensUnderline)
+                            .offset(y: CalendarMetrics.lensUnderlineGap + CalendarMetrics.lensUnderline)
+                    }
+                }
             Spacer(minLength: 0)
             if let amount {
                 Text(verbatim: amount)
@@ -49,25 +56,15 @@ struct CalendarDayCell: View {
             .overlay { shape.strokeBorder(Theme.hairlineOutline, lineWidth: Theme.Size.hairline) }
             .paperShadow(Tokens.Shadow.swatchRest)
     }
-
-    @ViewBuilder
-    private var selectionOutline: some View {
-        if isSelected && !day.isToday {
-            let outset = CalendarMetrics.selectionOffset + CalendarMetrics.selectionLineWidth
-            RoundedRectangle(cornerRadius: Theme.Radius.swatch + outset, style: .continuous)
-                .strokeBorder(Theme.ink, lineWidth: CalendarMetrics.selectionLineWidth)
-                .padding(-outset)
-                .allowsHitTesting(false)
-        }
-    }
 }
 
-/// Линза «сегодня» (`lens`, §3.4): прозрачное стекло r 12 с выступом 6 над клеткой heat, цифры крупнее,
-/// дата подчёркнута (2). Цвет цифр — по ступени клетки: на heat-4 светлые (design.json → openQuestions).
-struct TodayLens: View {
+/// Линза выбранного дня (`lens`, §3.4): прозрачное стекло r 12 с выступом 6 над клеткой heat, цифры крупнее;
+/// у «сегодня» дата подчёркнута (2). Цвет цифр — по ступени клетки: на heat-4 светлые (design.json → openQuestions).
+struct DayLens: View {
     let number: String
     let amount: String?
     let level: Int
+    let isToday: Bool
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -78,7 +75,10 @@ struct TodayLens: View {
                 .typeStyle(.calendarLensNumber)
                 .padding(.bottom, CalendarMetrics.lensUnderlineGap + CalendarMetrics.lensUnderline)
                 .overlay(alignment: .bottom) {
-                    Rectangle().frame(height: CalendarMetrics.lensUnderline)
+                    Rectangle()
+                        .frame(height: CalendarMetrics.lensUnderline)
+                        .opacity(isToday ? 1 : 0)
+                        .animation(nil, value: isToday)
                 }
             Spacer(minLength: 0)
             if let amount {
@@ -89,6 +89,8 @@ struct TodayLens: View {
         }
         .foregroundStyle(Theme.heatDigits(level))
         .lineLimit(1)
+        // Линза везёт цифры нового дня сразу (и подчёркивание): наплыв «12» на «9» в полёте читается как сбой.
+        .contentTransition(.identity)
         .padding(CalendarMetrics.lensPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         // В тёмной теме линза чуть затемняет центр (DESIGN.md → Calendar, `lens-dark`).

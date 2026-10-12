@@ -3,8 +3,9 @@ import ExpenseCore
 
 /// Сетка месяца: дни недели с `calendar.firstWeekday` и 4–6 недель по 7 клеток с зазором 4.
 /// Свайп влево / вправо листает месяц; смена месяца — растворение (без полёта: и при Reduce Motion то же).
-/// Линза «сегодня» рисуется слоем поверх сетки по рамке клетки (`TodayCellAnchorKey`): выступ линзы должен
+/// Линза выбранного дня рисуется слоем поверх сетки по рамке клетки (`SelectedCellAnchorKey`): выступ линзы должен
 /// лежать поверх соседей, а `zIndex` у клетки уводил её в конец порядка VoiceOver (после 31-го).
+/// Выбор другого дня — линза переезжает к нему пружиной `morph`; при Reduce Motion — гаснет и проявляется.
 struct CalendarGrid: View {
     let model: CalendarModel
     let strings: CalendarStrings
@@ -12,13 +13,15 @@ struct CalendarGrid: View {
     let onAdd: (Date) -> Void
     let onSwipe: (_ forward: Bool) -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: Theme.Spacing.sm) {
             weekdays
             ZStack {
                 weeks
-                    .overlayPreferenceValue(TodayCellAnchorKey.self) { anchor in
-                        todayLens(anchor)
+                    .overlayPreferenceValue(SelectedCellAnchorKey.self) { anchor in
+                        selectionLens(anchor)
                     }
                     .id(model.month.start)
                     .transition(.opacity)
@@ -83,7 +86,7 @@ struct CalendarGrid: View {
             .simultaneousGesture(
                 LongPressGesture(minimumDuration: Self.longPressDuration).onEnded { _ in onAdd(date) }
             )
-            .anchorPreference(key: TodayCellAnchorKey.self, value: .bounds) { day.isToday ? $0 : nil }
+            .anchorPreference(key: SelectedCellAnchorKey.self, value: .bounds) { isSelected ? $0 : nil }
             .accessibilityLabel(label)
             .accessibilityAddTraits(marksSelection ? .isSelected : [])
             .accessibilityAction(named: Text("cal.longPress.a11y")) { onAdd(date) }
@@ -97,16 +100,27 @@ struct CalendarGrid: View {
         }
     }
 
-    /// Линза поверх клетки «сегодня» с выступом за её края. Только рисунок: касания и VoiceOver — у клетки.
+    /// Линза поверх выбранной клетки с выступом за её края. Только рисунок: касания и VoiceOver — у клетки.
+    /// Одна линза на сетку переезжает от дня к дню; при Reduce Motion у каждого дня своя — без перелёта.
     @ViewBuilder
-    private func todayLens(_ anchor: Anchor<CGRect>?) -> some View {
+    private func selectionLens(_ anchor: Anchor<CGRect>?) -> some View {
         if let anchor {
-            let today = model.day(model.calendar.startOfDay(for: model.now))
+            let day = model.selected
             GeometryReader { proxy in
                 let rect = proxy[anchor].insetBy(dx: -CalendarMetrics.lensOutset, dy: -CalendarMetrics.lensOutset)
-                TodayLens(number: strings.dayNumber(today.date), amount: strings.cellAmount(today.totalMinor), level: today.level)
+                ZStack {
+                    DayLens(
+                        number: strings.dayNumber(day.date),
+                        amount: strings.cellAmount(day.totalMinor),
+                        level: day.level,
+                        isToday: day.isToday
+                    )
                     .frame(width: rect.width, height: rect.height)
                     .position(x: rect.midX, y: rect.midY)
+                    .id(reduceMotion ? day.date : nil)
+                    .transition(.opacity)
+                }
+                .animation(Motion.animation(Motion.morph, reduceMotion: reduceMotion), value: day.date)
             }
             .allowsHitTesting(false)
             .accessibilityHidden(true)
@@ -132,8 +146,8 @@ struct CalendarGrid: View {
     }
 }
 
-/// Рамка клетки «сегодня» для линзы поверх сетки; `nil` — сегодня не в показанном месяце.
-private nonisolated struct TodayCellAnchorKey: PreferenceKey {
+/// Рамка выбранной клетки для линзы поверх сетки.
+private nonisolated struct SelectedCellAnchorKey: PreferenceKey {
     static var defaultValue: Anchor<CGRect>? { nil }
 
     static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
