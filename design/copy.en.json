@@ -4681,8 +4681,8 @@
      "id": "monefy.currencyDiff",
      "element": "сноска о валюте",
      "context": "Импорт из Monefy (дизайна нет, только код): сноска, если валюта файла не совпадает с валютой приложения",
-     "current": "В файле другая валюта — GBP. Суммы запишутся как есть, без пересчёта.",
-     "proposed": "This file uses a different currency: GBP. Amounts will be imported as is, without conversion.",
+     "current": "В файле указана валюта GBP. Суммы запишутся в BYN как есть, без пересчёта.",
+     "proposed": "This file is set to GBP. Amounts will be imported in BYN as is, without conversion.",
      "alternatives": [],
      "why": "Как import.currencyDiff; код валюты — для однозначности (E7).",
      "ref": "",
@@ -4690,7 +4690,7 @@
      "risk": "",
      "decision": "",
      "status": "added-dev",
-     "final": "This file uses a different currency: GBP. Amounts will be imported as is, without conversion."
+     "final": "This file is set to GBP. Amounts will be imported in BYN as is, without conversion."
     },
     {
      "id": "monefy.categories",

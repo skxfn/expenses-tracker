@@ -59,9 +59,7 @@ struct MonefyImportView: View {
                 if let period = periodText {
                     SettingsRow("monefy.period", value: period)
                 }
-                if !codes.isEmpty {
-                    currencyRow(codes: codes)
-                }
+                currencyRow
                 if plan.notExpenseCount > 0 {
                     SettingsRow("monefy.notExpenses", value: number(plan.notExpenseCount))
                 }
@@ -69,14 +67,13 @@ struct MonefyImportView: View {
         }
     }
 
-    /// «Британский фунт стерлингов · GBP»; не помещается — только код (он же в сноске о валюте).
-    /// Несколько валют — коды через запятую.
-    private func currencyRow(codes: [String]) -> some View {
-        let full = codes.count == 1 ? CurrencyOption(code: codes[0]).nameWithCode : codes.joined(separator: ", ")
-        return SettingsRow(title: "import.currency") {
+    /// Валюта, в которой запишутся траты, — валюта приложения: «Белорусский рубль · BYN»; не помещается — только код.
+    /// Код валюты из файла не пересчитывается (Monefy мог быть настроен не на ту валюту) — он только в сноске.
+    private var currencyRow: some View {
+        SettingsRow(title: "import.currency") {
             ViewThatFits(in: .horizontal) {
-                Text(verbatim: full)
-                Text(verbatim: codes.joined(separator: ", "))
+                Text(verbatim: CurrencyOption(code: currencyCode).nameWithCode)
+                Text(verbatim: currencyCode)
             }
             .typeStyle(.body)
             .foregroundStyle(Theme.secondary)
@@ -250,7 +247,7 @@ struct MonefyImportView: View {
     private func fileFootnote(codes: [String]) -> String? {
         var sentences: [String] = []
         if !codes.isEmpty, codes != [currencyCode] {
-            sentences.append(L10n.format("monefy.currencyDiff", codes.joined(separator: ", ")))
+            sentences.append(L10n.format("monefy.currencyDiff", codes.joined(separator: ", "), currencyCode))
         }
         if session.plan.notExpenseCount > 0 {
             sentences.append(String(localized: "monefy.notExpensesFooter"))

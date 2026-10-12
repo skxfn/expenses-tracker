@@ -449,8 +449,8 @@ plural("import.missingCategory", forms(
 
 # --- Перенос трат из Monefy ------------------------------------------------
 
-fmt("monefy.currencyDiff", f"В файле другая валюта{NB}— %@. Суммы запишутся как есть, без пересчёта.",
-    "GBP", args="%@ — коды валют файла через запятую")
+fmt("monefy.currencyDiff", "В файле указана валюта %1$@. Суммы запишутся в %2$@ как есть, без пересчёта.",
+    "GBP", "BYN", args="%1$@ — коды валют файла через запятую; %2$@ — код валюты приложения")
 custom("monefy.group.meta",
        {"monefy.group.meta": Key("%#@count@ · %2$@", subs={"count": (1, TRATA)},
                                  args="%1$lld — число трат категории Monefy; %2$@ — их сумма (фразой, с ⃅)")},
@@ -928,7 +928,7 @@ en("import.missingCategory", {"import.missingCategory": Key(plural={
 # --- Перенос трат из Monefy ------------------------------------------------
 
 en_fmt("monefy.currencyDiff",
-       "This file uses a different currency: %@. Amounts will be imported as is, without conversion.", "GBP")
+       "This file is set to %1$@. Amounts will be imported in %2$@ as is, without conversion.", "GBP", "BYN")
 en("monefy.group.meta", {"monefy.group.meta": Key("%#@count@ · %2$@", subs={"count": (1, EXPENSE)})},
    en_forms("monefy.group.meta", [(1, f"9.50{S}"), (48, f"1,234.50{S}")]))
 en("monefy.group.a11y", {"monefy.group.a11y": Key("%1$@, %#@count@ totaling %3$@", subs={"count": (2, EXPENSE)})},
