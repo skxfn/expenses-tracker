@@ -6,7 +6,7 @@ import SwiftUI
 enum ShowcasePage: String, CaseIterable, Identifiable {
     case tokens, tones, components, glass, fonts, currencySign
     case tabBarSystem, tabBarNative, tabBarLens, tabBarCustom, feed, addSheet
-    case viz
+    case viz, nativeLens
 
     var id: String { rawValue }
 
@@ -25,13 +25,14 @@ enum ShowcasePage: String, CaseIterable, Identifiable {
         case .feed: "Спайк: лента на List"
         case .addSheet: "Спайк: шит записи (зум, клавиатура)"
         case .viz: "Визуализации категорий"
+        case .nativeLens: "Эталон линзы: системные сегмент и таб-бар"
         }
     }
 
     /// Страница, которой нужен весь экран (без NavigationStack витрины).
     var isFullScreen: Bool {
         switch self {
-        case .tabBarSystem, .tabBarNative, .tabBarLens, .tabBarCustom, .feed, .addSheet: true
+        case .tabBarSystem, .tabBarNative, .tabBarLens, .tabBarCustom, .feed, .addSheet, .nativeLens: true
         default: false
         }
     }
@@ -102,6 +103,7 @@ struct ShowcaseDestination: View {
         case .feed: FeedSpike()
         case .addSheet: AddSheetSpike()
         case .viz: CategoryVizShowcase()
+        case .nativeLens: NativeLensReference()
         }
     }
 }
