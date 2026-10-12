@@ -7981,42 +7981,6 @@
         }
       }
     },
-    "settings.about.icons" : {
-      "comment" : "строка-атрибуция. Строка-атрибуция; значение «MingCute · Apache 2.0», ведёт на лицензию",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Icon License"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Лицензия иконок"
-          }
-        }
-      }
-    },
-    "settings.about.licenses" : {
-      "comment" : "строка «Лицензии» и заголовок экрана. Раздел «О приложении»: одна строка вместо «Лицензия иконок» (settings.about.icons), ведёт на экран с двумя блоками — иконки и шрифт, у каждого полный текст лицензии. Тот же текст — заголовок экрана",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Licenses"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Лицензии"
-          }
-        }
-      }
-    },
     "settings.about.version" : {
       "comment" : "строка. Строка; значение «1.0.0»",
       "extractionState" : "manual",
@@ -8445,42 +8409,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ · %2$@"
-          }
-        }
-      }
-    },
-    "settings.licenses" : {
-      "comment" : "экран лицензии. По нажатию на «Лицензия иконок»",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Category icons: MingCute Icons, licensed under the Apache License 2.0."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Иконки категорий — MingCute Icons, лицензия Apache 2.0."
-          }
-        }
-      }
-    },
-    "settings.licenses.fonts" : {
-      "comment" : "экран лицензий: шрифт. Второй блок экрана «Лицензии», под строкой — полный текст OFL (App/Resources/Fonts/OFL.txt). Построен как settings.licenses",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Font for amounts and month names: Unbounded, licensed under the SIL Open Font License 1.1."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Шрифт сумм и месяцев — Unbounded, лицензия SIL Open Font License 1.1."
           }
         }
       }

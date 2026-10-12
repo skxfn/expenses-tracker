@@ -3631,75 +3631,6 @@
      "rewritten": false
     },
     {
-     "id": "settings.about.icons",
-     "element": "строка-атрибуция",
-     "context": "Строка-атрибуция; значение «MingCute · Apache 2.0», ведёт на лицензию",
-     "current": "Иконки",
-     "proposed": "Лицензия иконок",
-     "alternatives": [
-      "Иконки MingCute",
-      "Благодарности"
-     ],
-     "why": "Строка «Иконки — MingCute · Apache 2.0» читается как настройка набора иконок; это лицензия. Значение справа — «MingCute · Apache 2.0».",
-     "ref": "",
-     "limit": "≤ 34 симв. · 326 px · SF 17 regular",
-     "risk": "",
-     "decision": "",
-     "status": "change",
-     "final": "Лицензия иконок",
-     "rewritten": false
-    },
-    {
-     "id": "settings.licenses",
-     "element": "экран лицензии",
-     "context": "По нажатию на «Лицензия иконок».",
-     "current": "",
-     "proposed": "Иконки категорий — MingCute Icons, лицензия Apache 2.0.",
-     "alternatives": [],
-     "why": "Одна строка по-русски над английским текстом лицензии (его не переводят).",
-     "ref": "",
-     "limit": "",
-     "risk": "",
-     "decision": "",
-     "status": "new",
-     "final": "Иконки категорий — MingCute Icons, лицензия Apache 2.0.",
-     "rewritten": false
-    },
-    {
-     "id": "settings.about.licenses",
-     "element": "строка «Лицензии» и заголовок экрана",
-     "context": "Раздел «О приложении»: одна строка вместо «Лицензия иконок» (settings.about.icons), ведёт на экран с двумя блоками — иконки и шрифт, у каждого полный текст лицензии. Тот же текст — заголовок экрана.",
-     "current": "Лицензия иконок",
-     "proposed": "Лицензии",
-     "alternatives": [],
-     "why": "Лицензий две — MingCute (Apache 2.0) и Unbounded (OFL); строка называет экран целиком. Рекомендация INTEGRATION §8 п. 8.",
-     "ref": "design/INTEGRATION.md §8 п. 8",
-     "limit": "",
-     "risk": "",
-     "decision": "",
-     "status": "added-dev",
-     "final": "Лицензии",
-     "rewritten": false
-    },
-    {
-     "id": "settings.licenses.fonts",
-     "element": "экран лицензий: шрифт",
-     "context": "Второй блок экрана «Лицензии», под строкой — полный текст OFL (App/Resources/Fonts/OFL.txt). Построен как settings.licenses.",
-     "current": "",
-     "proposed": "Шрифт сумм и месяцев — Unbounded, лицензия SIL Open Font License 1.1.",
-     "alternatives": [
-      "Шрифт — Unbounded, лицензия SIL Open Font License 1.1."
-     ],
-     "why": "В copy.json не было текста для Unbounded (INTEGRATION §8 п. 8). Unbounded в приложении — только суммы и название месяца (DESIGN.md), поэтому «сумм и месяцев».",
-     "ref": "design/INTEGRATION.md §8 п. 8",
-     "limit": "",
-     "risk": "",
-     "decision": "",
-     "status": "added-dev",
-     "final": "Шрифт сумм и месяцев — Unbounded, лицензия SIL Open Font License 1.1.",
-     "rewritten": false
-    },
-    {
      "id": "currency.title",
      "element": "заголовок выбора валюты",
      "context": "Настройки → Валюта (макета нет).",
@@ -7346,6 +7277,7 @@
   "Временный редактор категории: секции «Превью», «Цвет», строка «Пример заметки», имя «Название» на превью, a11y «Цвет N из M», заголовок «Категория» (cat.legacy.*, кроме архива) — заменены макетом; архив и удаление переписаны в разделе «Категории».",
   "Экран «Удаление» категории (catDelete.title, .footer, .none, .count) — заменён диалогом удаления с числами в теле (cat.delete.*).",
   "Полоса-остаток «Другое, связь, здоровье» на главной в виде полос (viz.home.rest, viz.home.rest.a11y) — на вкладке «Траты» доступны только плитки и кольцо.",
-  "Подписи нарисованной клавиатуры «Цифровая клавиатура · Запятая · Стереть» (add.keyboard.a11y) — клавиатура системная, озвучку даёт iOS."
+  "Подписи нарисованной клавиатуры «Цифровая клавиатура · Запятая · Стереть» (add.keyboard.a11y) — клавиатура системная, озвучку даёт iOS.",
+  "Экран «Лицензии» и строка о лицензиях в разделе «О приложении» (settings.about.icons, settings.about.licenses, settings.licenses, settings.licenses.fonts) — решение владельца 2026-10-12: экран не нужен; тексты лицензий MingCute (Apache 2.0) и Unbounded (OFL) остаются файлами в бандле приложения."
  ]
 }
