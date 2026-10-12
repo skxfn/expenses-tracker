@@ -12,13 +12,23 @@
       "developerName": "skxfn",
       "subtitle": "Личный трекер расходов",
       "localizedDescription": "Личный трекер расходов на SwiftUI. Данные хранятся только на устройстве — регулярно экспортируйте резервную копию.",
-      "iconURL": "https://github.com/skxfn.png",
+      "iconURL": "https://raw.githubusercontent.com/skxfn/expenses-tracker/main/Config/AppIcon-512.png",
       "category": "utilities",
       "appPermissions": {
         "entitlements": [],
         "privacy": {}
       },
       "versions": [
+        {
+          "version": "1.1.0",
+          "buildVersion": "2",
+          "date": "2026-10-12T07:43:40Z",
+          "localizedDescription": "Версия 1.1.0 (сборка 2)",
+          "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.1.0/Expenses-1.1.0.ipa",
+          "size": 4612462,
+          "sha256": "ca3410ea676783211a455185f99283633e4cafefa727152ad0dc6adb8f9863fc",
+          "minOSVersion": "26.0"
+        },
         {
           "version": "1.0.0",
           "buildVersion": "1",
@@ -30,11 +40,11 @@
           "minOSVersion": "17.0"
         }
       ],
-      "version": "1.0.0",
-      "versionDate": "2026-10-08T18:48:17Z",
-      "versionDescription": "Версия 1.0.0 (сборка 1)",
-      "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.0.0/Expenses-1.0.0.ipa",
-      "size": 367342
+      "version": "1.1.0",
+      "versionDate": "2026-10-12T07:43:40Z",
+      "versionDescription": "Версия 1.1.0 (сборка 2)",
+      "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.1.0/Expenses-1.1.0.ipa",
+      "size": 4612462
     }
   ],
   "news": []
