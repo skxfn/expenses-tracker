@@ -86,6 +86,17 @@ import Testing
         #expect(data.largestGroup?.id == Self.food)
     }
 
+    /// «Без категории» стоит в списке последней, но крупнейшей может быть и она («Больше всего — без категории»);
+    /// при равенстве сумм — названная категория.
+    @Test func largestGroupCountsUncategorized() {
+        let mostlyUncategorized = data(records + [record(7_000, nil)])
+        #expect(mostlyUncategorized.groups.last?.isUncategorized == true)
+        #expect(mostlyUncategorized.largestGroup?.isUncategorized == true)
+
+        let tie = data([record(500, Self.cafe), record(500, nil)])
+        #expect(tie.largestGroup?.id == Self.cafe)
+    }
+
     @Test func smallGroupsFoldIntoMoreBeforeUncategorized() throws {
         let data = data(records)
         let more = try #require(data.more)
