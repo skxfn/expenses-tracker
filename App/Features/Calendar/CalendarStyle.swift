@@ -6,19 +6,16 @@ nonisolated enum CalendarMetrics {
     static let gridGap = Theme.Spacing.xs
     /// Внутренние отступы клетки (`calendar-cell` → padding 6 7 7).
     static let cellPadding = EdgeInsets(top: 6, leading: 7, bottom: 7, trailing: 7)
-    /// Выступ линзы «сегодня» за клетку и её отступы (`.ds-lens`: inset −6, padding 9 12 11).
+    /// Выступ линзы выбранного дня за клетку и её отступы (`.ds-lens`: inset −6, padding 9 12 11).
     static let lensOutset: CGFloat = 6
     static let lensPadding = EdgeInsets(top: 9, leading: 12, bottom: 11, trailing: 12)
     /// Тинт линзы цветом клетки: прозрачное стекло на светлом белит, и ступень heat под ним теряется.
     static let lensTintOpacity: Double = 0.6
     /// Затемнение центра линзы в тёмной теме (`lens-dark`: чёрный .12 в середине градиента).
     static let lensNightDimming: Double = 0.12
-    /// Подчёркивание даты в линзе: 2 и отступ от числа.
+    /// Подчёркивание даты «сегодня» (в клетке и в линзе): 2 и отступ от числа.
     static let lensUnderline: CGFloat = 2
     static let lensUnderlineGap: CGFloat = 1
-    /// Обводка выбранного дня — как фокус: 2 со смещением 2 (INTEGRATION §2.2).
-    static let selectionLineWidth: CGFloat = 2
-    static let selectionOffset: CGFloat = 2
     /// Капсула шкалы 44×20 (DESIGN.md); радиус по макету 09 — 4.
     static let legendItemWidth: CGFloat = 44
     static let legendItemHeight: CGFloat = 20
@@ -32,7 +29,7 @@ nonisolated extension TypeStyle {
     static let calendarCellAmount = TypeStyle(
         font: .system(.footnote).weight(.medium), size: 13, textStyle: .footnote, trackingEm: 0, tabularDigits: true
     )
-    /// Число в линзе «сегодня»: SF 16/700 — линза увеличивает клетку (`.ds-lens b`).
+    /// Число в линзе: SF 16/700 — линза увеличивает клетку (`.ds-lens b`).
     static let calendarLensNumber = TypeStyle(
         font: .system(.callout).weight(.bold), size: 16, textStyle: .callout, trackingEm: 0, tabularDigits: true
     )
@@ -47,7 +44,7 @@ nonisolated extension TypeStyle {
     )
 }
 
-/// Тень линзы «сегодня» (`.ds-lens`: 0 10 22 / 0 2 5, тёплая .22 / .14; в тёмной — чёрная .5 / .4).
+/// Тень линзы (`.ds-lens`: 0 10 22 / 0 2 5, тёплая .22 / .14; в тёмной — чёрная .5 / .4).
 /// Только снаружи формы: под `.clear`-стеклом заливки быть не должно, иначе стекло покажет её, а не клетку.
 /// Тень и делает линзу читаемой на светлых клетках, где прозрачное стекло почти не видно.
 struct LensShadow: View {

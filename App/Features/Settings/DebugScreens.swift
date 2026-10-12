@@ -16,6 +16,10 @@ enum DebugScreen: String {
     case newSubcategory
     /// Восстановление из копии текущих данных (шит до выбора режима).
     case importSheet = "import"
+    /// Перенос трат из Monefy: CSV по пути из `-debugMonefyFile <путь>` (шит сопоставления или алерт ошибки чтения).
+    /// `-debugMonefyMapping auto` — несопоставленные категории Monefy по порядку в категории приложения, последняя —
+    /// «Без категории»; `-debugMonefyImport YES` — сразу перенести (отчёт).
+    case monefy
     /// Экран сбоя запуска с примерной ошибкой.
     case launchError
 
@@ -56,6 +60,8 @@ private struct DebugScreenRoot: View {
     @Environment(\.modelContext) private var modelContext
     @State private var editorMode: CategoryEditorMode?
     @State private var importSession: ImportSession?
+    @State private var monefySession: MonefyImportSession?
+    @State private var alert: FailureAlert?
 
     var body: some View {
         Group {
@@ -74,6 +80,11 @@ private struct DebugScreenRoot: View {
             ImportView(session: session)
                 .defaultScrollAnchor(DebugScreen.scrollAnchor())
         }
+        .sheet(item: $monefySession) { session in
+            MonefyImportView(session: session)
+                .defaultScrollAnchor(DebugScreen.scrollAnchor())
+        }
+        .failureAlert($alert)
         .defaultScrollAnchor(DebugScreen.scrollAnchor())
         .onAppear(perform: present)
     }
@@ -81,7 +92,7 @@ private struct DebugScreenRoot: View {
     @ViewBuilder
     private var root: some View {
         switch screen {
-        case .settings, .importSheet, .launchError: SettingsView()
+        case .settings, .importSheet, .monefy, .launchError: SettingsView()
         case .currency: CurrencyPickerView()
         case .categories, .category, .newCategory, .newSubcategory: CategoriesView()
         }
@@ -105,6 +116,28 @@ private struct DebugScreenRoot: View {
                 let payload = try? BackupImporter.decode(data)
             else { return }
             importSession = ImportSession(payload: payload)
+        case .monefy:
+            let defaults = UserDefaults.standard
+            let session: MonefyImportSession
+            do {
+                let data = try Data(contentsOf: URL(filePath: defaults.string(forKey: "debugMonefyFile") ?? ""))
+                session = try BackupModel.monefySession(data: data, context: modelContext)
+            } catch {
+                alert = .monefyRead(error)
+                return
+            }
+            if defaults.string(forKey: "debugMonefyMapping") == "auto" {
+                let topLevel = all.filter { $0.parent == nil && !$0.isArchived }
+                for (index, group) in session.plan.groups.enumerated() where session.mapping[group.name] == nil {
+                    let isLast = index == session.plan.groups.count - 1
+                    let target: MonefyCategoryTarget = isLast || index >= topLevel.count ? .uncategorized : .category(topLevel[index].id)
+                    session.select(target, for: group.name)
+                }
+            }
+            monefySession = session
+            if defaults.bool(forKey: "debugMonefyImport") {
+                Task { await session.apply(context: modelContext) }
+            }
         case .settings, .categories, .currency, .launchError:
             break
         }

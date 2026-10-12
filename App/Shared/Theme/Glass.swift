@@ -11,7 +11,7 @@ nonisolated enum GlassRecipe {
     case inContent
     /// `glass-k`: мелкие клавиши — быстрые суммы, дата, заметка, чипы периодов. Свой отклик нажатия.
     case key
-    /// `lens`: только «сегодня» в календаре. Под `.clear` нужна подложка — клетка heat.
+    /// `lens`: только выбранный день в календаре. Под `.clear` нужна подложка — клетка heat.
     case lens
 
     var glass: Glass {
@@ -34,7 +34,7 @@ extension View {
         glassEffect(recipe.glass, in: shape)
     }
 
-    /// Линза «сегодня» (r 12) поверх клетки календаря.
+    /// Линза выбранного дня (r 12) поверх клетки календаря.
     func glassLens() -> some View {
         glassEffect(GlassRecipe.lens.glass, in: .rect(cornerRadius: Theme.Radius.lens, style: .continuous))
     }
