@@ -29,7 +29,10 @@ DEFAULT_REPO = "skxfn/expenses-tracker"
 DEFAULT_BRANCH = "main"
 
 ROOT = Path(__file__).resolve().parent.parent
-APP_ICON_SET = "App/Resources/Assets.xcassets/AppIcon.appiconset"
+# Картинка иконки для списка SideStore — рендер App/Resources/AppIcon.icon (Icon Composer):
+# ictool App/Resources/AppIcon.icon --export-image --output-file <png> --platform iOS --rendition Default
+#   --width 1024 --height 1024 --scale 1, затем уменьшить до 512.
+APP_ICON_PNG = "Config/AppIcon-512.png"
 INFO_PLIST = re.compile(r"^Payload/[^/]+\.app/Info\.plist$")
 PRIVACY_KEY = re.compile(r"^NS\w*UsageDescription$")
 
@@ -58,19 +61,11 @@ def sha256_of(path):
 
 
 def icon_url(repo, branch):
-    """Raw-ссылка на иконку 1024×1024 из AppIcon.appiconset; если её нет — аватар владельца репо."""
-    contents = ROOT / APP_ICON_SET / "Contents.json"
-    try:
-        images = json.loads(contents.read_text(encoding="utf-8")).get("images", [])
-    except (OSError, ValueError):
-        images = []
-    for image in images:
-        filename = image.get("filename")
-        if filename and (ROOT / APP_ICON_SET / filename).is_file():
-            return f"https://raw.githubusercontent.com/{repo}/{branch}/{quote(f'{APP_ICON_SET}/{filename}')}"
+    """Raw-ссылка на картинку иконки (APP_ICON_PNG); если её нет — аватар владельца репо."""
+    if (ROOT / APP_ICON_PNG).is_file():
+        return f"https://raw.githubusercontent.com/{repo}/{branch}/{quote(APP_ICON_PNG)}"
     owner = repo.split("/")[0]
-    print(f"Предупреждение: в {APP_ICON_SET} нет файла иконки — iconURL указывает на аватар {owner}.",
-          file=sys.stderr)
+    print(f"Предупреждение: нет {APP_ICON_PNG} — iconURL указывает на аватар {owner}.", file=sys.stderr)
     return f"https://github.com/{owner}.png"
 
 
