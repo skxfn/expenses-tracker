@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 import ExpenseCore
 
 /// «Настройки» (макет `12-settings`): пуш из ⚙ на главной, системная кнопка «Назад», Large Title,
@@ -158,6 +159,24 @@ struct SettingsView: View {
                     allowedContentTypes: BackupDocument.readableContentTypes
                 ) { result in
                     Task { await backup.openImportedFile(result) }
+                }
+
+                Button {
+                    backup.isMonefyImporterPresented = true
+                } label: {
+                    actionRow(
+                        "settings.backup.monefy", systemImage: "tray.and.arrow.down",
+                        isBusy: backup.isReadingMonefy, busyLabel: "settings.backup.monefy.busy.a11y"
+                    )
+                }
+                .fileImporter(
+                    isPresented: $backup.isMonefyImporterPresented,
+                    allowedContentTypes: [.commaSeparatedText]
+                ) { result in
+                    Task { await backup.openMonefyFile(result, context: modelContext) }
+                }
+                .sheet(item: $backup.monefySession) { session in
+                    MonefyImportView(session: session)
                 }
             }
             .buttonStyle(.pressable(Motion.PressScale.row))

@@ -59,6 +59,26 @@ struct FailureAlert: Identifiable, Equatable {
         return Bundle.main.localizedString(forKey: key, value: nil, table: nil)
     }
 
+    // MARK: Перенос из Monefy
+
+    /// Файл Monefy не прочитался (`MonefyCSV.parse`): причина — `error.monefy.*`, у строки — с её номером.
+    static func monefyRead(_ error: any Error) -> FailureAlert {
+        let message = switch error as? MonefyCSVError {
+        case .badRow(let line, let problem): L10n.format("error.monefy.row.\(problem.rawValue)", line)
+        case .noExpenses: String(localized: "error.monefy.noExpenses")
+        case .notMonefyFile, nil: String(localized: "error.monefy.notMonefy")
+        }
+        return FailureAlert(title: String(localized: "error.monefy.title"), message: message)
+    }
+
+    /// Импорт не записался — данные не изменились (запись откатывается целиком).
+    static var monefyApply: FailureAlert {
+        FailureAlert(
+            title: String(localized: "monefy.importError.title"),
+            message: String(localized: "monefy.importError.message")
+        )
+    }
+
     // MARK: Хранилище
 
     /// Ошибка записи `ExpenseStore`: заголовок `global.saveError`, текст — по случаю `ExpenseStoreError`
