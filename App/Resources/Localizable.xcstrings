@@ -5147,6 +5147,132 @@
         }
       }
     },
+    "error.monefy.noExpenses" : {
+      "comment" : "текст алерта. Импорт из Monefy (дизайна нет, только код): в файле только доходы и переводы",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This file has no expenses, only income and transfers. Choose a different file."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В файле нет трат — только доходы и переводы. Выберите другой файл."
+          }
+        }
+      }
+    },
+    "error.monefy.notMonefy" : {
+      "comment" : "текст алерта. Импорт из Monefy (дизайна нет, только код): не текст или нет заголовка выгрузки Monefy",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This isn’t a Monefy file. Choose a CSV file saved from Monefy."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это не файл из Monefy. Выберите CSV-файл, сохранённый в Monefy."
+          }
+        }
+      }
+    },
+    "error.monefy.row.amountTooLarge" : {
+      "comment" : "текст алерта. Импорт из Monefy (дизайна нет, только код): сумма больше предела одной траты. Аргументы: %lld — номер строки файла (заголовок — строка 1)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Line %lld has an amount that’s too large. Choose a different file."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В строке %lld слишком большая сумма. Выберите другой файл."
+          }
+        }
+      }
+    },
+    "error.monefy.row.badAmount" : {
+      "comment" : "текст алерта. Импорт из Monefy (дизайна нет, только код): сумма в строке не число. Аргументы: %lld — номер строки файла (заголовок — строка 1)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is damaged: line %lld has an incorrect amount. Choose a different file."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл повреждён: в строке %lld неверная сумма. Выберите другой файл."
+          }
+        }
+      }
+    },
+    "error.monefy.row.badDate" : {
+      "comment" : "текст алерта. Импорт из Monefy (дизайна нет, только код): дата в строке не читается или такого дня нет. Аргументы: %lld — номер строки файла (заголовок — строка 1)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is damaged: line %lld has an incorrect date. Choose a different file."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл повреждён: в строке %lld неверная дата. Выберите другой файл."
+          }
+        }
+      }
+    },
+    "error.monefy.row.missingField" : {
+      "comment" : "текст алерта. Импорт из Monefy (дизайна нет, только код): в строке файла меньше столбцов, чем нужно. Аргументы: %lld — номер строки файла (заголовок — строка 1)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is damaged: line %lld is missing data. Choose a different file."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл повреждён: в строке %lld не хватает данных. Выберите другой файл."
+          }
+        }
+      }
+    },
+    "error.monefy.title" : {
+      "comment" : "заголовок алерта. Импорт из Monefy (дизайна нет, только код): файл не читается",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Open Monefy File"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось открыть файл Monefy"
+          }
+        }
+      }
+    },
     "error.store.duplicateCategoryName" : {
       "comment" : "проверка названия. LocalizedError валидации ExpenseStore, показывается в алерте «Не получилось». Аргументы: %@ — название категории",
       "extractionState" : "manual",
@@ -7151,6 +7277,622 @@
         }
       }
     },
+    "monefy.categories" : {
+      "comment" : "секция сопоставления. Импорт из Monefy (дизайна нет, только код): заголовок секции со списком категорий Monefy",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monefy Categories"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Категории Monefy"
+          }
+        }
+      }
+    },
+    "monefy.categoriesFooter" : {
+      "comment" : "сноска сопоставления. Импорт из Monefy (дизайна нет, только код): сноска под списком категорий Monefy",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monefy categories aren’t added. For each one, choose where its expenses go."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Категории из Monefy не создаются: для каждой выберите, куда записать её траты."
+          }
+        }
+      }
+    },
+    "monefy.currencyDiff" : {
+      "comment" : "сноска о валюте. Импорт из Monefy (дизайна нет, только код): сноска, если валюта файла не совпадает с валютой приложения. Аргументы: %@ — коды валют файла через запятую",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This file uses a different currency: %@. Amounts will be imported as is, without conversion."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В файле другая валюта — %@. Суммы запишутся как есть, без пересчёта."
+          }
+        }
+      }
+    },
+    "monefy.duplicatesFooter" : {
+      "comment" : "сноска о повторах. Импорт из Monefy (дизайна нет, только код): сноска под кнопкой переноса",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expenses already in the app (same day, amount, category, and note) won’t be added again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Траты, которые уже есть в приложении (тот же день, сумма, категория и заметка), повторно не запишутся."
+          }
+        }
+      }
+    },
+    "monefy.file" : {
+      "comment" : "секция сведений о файле. Импорт из Monefy (дизайна нет, только код): заголовок секции",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In This File"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В файле"
+          }
+        }
+      }
+    },
+    "monefy.group.a11y" : {
+      "comment" : "VoiceOver: строка категории Monefy. VoiceOver: имя строки сопоставления; значение — выбранная категория. Аргументы: %1$@ — имя категории Monefy; %2$lld — число трат; %3$@ — сумма (a11y.money)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %#@count@ totaling %3$@"
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expense"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expenses"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %#@count@ на %3$@"
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трата"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трат"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "monefy.group.a11y.hint" : {
+      "comment" : "VoiceOver: подсказка строки категории Monefy. VoiceOver: подсказка строки сопоставления",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens choices for where to add these expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открывает выбор, куда записать траты"
+          }
+        }
+      }
+    },
+    "monefy.group.meta" : {
+      "comment" : "подпись строки категории Monefy. Импорт из Monefy (дизайна нет, только код): число трат и их сумма под именем категории Monefy. Аргументы: %1$lld — число трат категории Monefy; %2$@ — их сумма (фразой, с ⃅)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@count@ · %2$@"
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expense"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expenses"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@count@ · %2$@"
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трата"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трат"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "monefy.import" : {
+      "comment" : "кнопка переноса. Импорт из Monefy (дизайна нет, только код): главная кнопка; неактивна, пока не выбрано для всех категорий Monefy; число — траты без «Не переносить». Аргументы: %lld — число трат к переносу (без «Не переносить»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Import %lld Expense"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Import %lld Expenses"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Перенести %lld трату"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Перенести %lld траты"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Перенести %lld трат"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Перенести %lld траты"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "monefy.import.busy.a11y" : {
+      "comment" : "индикатор переноса. VoiceOver: пока идёт перенос, на кнопке крутится индикатор; подпись читается вместо системного «Выполняется»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importing expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенос трат"
+          }
+        }
+      }
+    },
+    "monefy.import.remaining" : {
+      "comment" : "сноска под неактивной кнопкой. Импорт из Monefy (дизайна нет, только код): сколько категорий Monefy ещё без выбора. Аргументы: %lld — число категорий Monefy без выбора",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Monefy category still needs a choice."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Monefy categories still need a choice."
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Осталось выбрать для %lld категории Monefy."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Осталось выбрать для %lld категорий Monefy."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Осталось выбрать для %lld категорий Monefy."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Осталось выбрать для %lld категории Monefy."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "monefy.importError.message" : {
+      "comment" : "copy.json monefy.importError: алерт ошибки переноса. Импорт из Monefy (дизайна нет, только код): запись не удалась — всё откатилось",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing in the app has changed. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Данные в приложении не изменились. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "monefy.importError.title" : {
+      "comment" : "copy.json monefy.importError: алерт ошибки переноса. Импорт из Monefy (дизайна нет, только код): запись не удалась — всё откатилось",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Import Expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось перенести траты"
+          }
+        }
+      }
+    },
+    "monefy.notExpenses" : {
+      "comment" : "строка сведений и отчёта: не траты. Импорт из Monefy (дизайна нет, только код): число строк файла, которые не траты (доходы, переводы между счетами, начальные остатки); видна, если больше нуля",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Income and Transfers"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доходы и переводы"
+          }
+        }
+      }
+    },
+    "monefy.notExpensesFooter" : {
+      "comment" : "сноска о доходах. Импорт из Monefy (дизайна нет, только код): сноска под сведениями, если в файле есть доходы или переводы",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Income and transfers between accounts aren’t imported."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доходы и переводы между счетами не переносятся."
+          }
+        }
+      }
+    },
+    "monefy.period" : {
+      "comment" : "строка сведений: даты трат. Импорт из Monefy (дизайна нет, только код): строка «Период» со значением «21 мар 2024 – 7 окт 2026» (D7)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dates"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Период"
+          }
+        }
+      }
+    },
+    "monefy.report.duplicates" : {
+      "comment" : "строка отчёта. Импорт из Monefy (дизайна нет, только код): строка отчёта (число справа): пропущены как повторы",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already in the App"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уже были в приложении"
+          }
+        }
+      }
+    },
+    "monefy.report.excluded" : {
+      "comment" : "строка отчёта. Импорт из Monefy (дизайна нет, только код): строка отчёта (число справа): траты категорий «Не переносить»; видна, если больше нуля",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Imported"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не перенесено"
+          }
+        }
+      }
+    },
+    "monefy.target.choose" : {
+      "comment" : "пункт меню строки. Импорт из Monefy (дизайна нет, только код): пункт меню: открыть «Все категории» (picker.title)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Category"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать категорию"
+          }
+        }
+      }
+    },
+    "monefy.target.none" : {
+      "comment" : "значение строки: ещё не выбрано. Импорт из Monefy (дизайна нет, только код): значение строки сопоставления, пока ничего не выбрано (secondary)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать"
+          }
+        }
+      }
+    },
+    "monefy.target.none.a11y" : {
+      "comment" : "VoiceOver: значение строки без выбора. VoiceOver: значение строки сопоставления, пока ничего не выбрано",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not chosen"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не выбрано"
+          }
+        }
+      }
+    },
+    "monefy.target.skip" : {
+      "comment" : "пункт меню и значение строки. Импорт из Monefy (дизайна нет, только код): пункт меню и значение строки: траты этой категории Monefy не переносятся",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don’t Import"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не переносить"
+          }
+        }
+      }
+    },
+    "monefy.title" : {
+      "comment" : "заголовок шита сопоставления. Импорт из Monefy (дизайна нет, только код): заголовок шита до переноса",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import from Monefy"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Траты из Monefy"
+          }
+        }
+      }
+    },
+    "monefy.titleDone" : {
+      "comment" : "заголовок после переноса. Импорт из Monefy (дизайна нет, только код): заголовок шита после переноса",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Complete"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенос завершён"
+          }
+        }
+      }
+    },
     "period.apply" : {
       "comment" : "главная кнопка шита. Главное действие шита (prominent внизу). Аргументы: %@ — диапазон D7",
       "extractionState" : "manual",
@@ -8139,6 +8881,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Последняя копия: %@"
+          }
+        }
+      }
+    },
+    "settings.backup.monefy" : {
+      "comment" : "строка: перенести траты из Monefy. Настройки → секция «Резервная копия»: выбрать CSV-файл Monefy и сопоставить категории",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import from Monefy"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенести траты из Monefy"
+          }
+        }
+      }
+    },
+    "settings.backup.monefy.busy.a11y" : {
+      "comment" : "индикатор чтения файла Monefy. VoiceOver: пока файл Monefy читается, в строке «Перенести траты из Monefy» вместо иконки крутится индикатор; видимого текста нет",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading Monefy file"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтение файла Monefy"
           }
         }
       }

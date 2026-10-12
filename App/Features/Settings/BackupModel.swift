@@ -12,6 +12,8 @@ final class BackupModel {
     var isExporterPresented = false
     var isImporterPresented = false
     var importSession: ImportSession?
+    var isMonefyImporterPresented = false
+    var monefySession: MonefyImportSession?
     var alert: FailureAlert?
     /// Тост «Копия сохранена» после системного окна сохранения.
     var isExportDoneToastShown = false
@@ -20,8 +22,9 @@ final class BackupModel {
     /// Идёт подготовка копии или чтение файла: строка показывает индикатор, обе кнопки не нажимаются.
     private(set) var isPreparingExport = false
     private(set) var isReadingImport = false
+    private(set) var isReadingMonefy = false
 
-    var isBusy: Bool { isPreparingExport || isReadingImport }
+    var isBusy: Bool { isPreparingExport || isReadingImport || isReadingMonefy }
 
     func prepareExport(context: ModelContext, currencyCode: String) async {
         guard !isBusy else { return }
@@ -66,6 +69,27 @@ final class BackupModel {
         } catch {
             alert = .backupRead(error)
         }
+    }
+
+    /// Читает выгрузку Monefy и открывает сопоставление категорий. Хранилище не меняется до «Перенести».
+    func openMonefyFile(_ result: Result<URL, any Error>, context: ModelContext) async {
+        guard !isBusy else { return }
+        isReadingMonefy = true
+        defer { isReadingMonefy = false }
+        await Self.letProgressAppear()
+        do {
+            let data = try BackupDocument(contentsOf: try result.get()).data
+            monefySession = try Self.monefySession(data: data, context: context)
+        } catch {
+            alert = .monefyRead(error)
+        }
+    }
+
+    /// Сопоставление для прочитанного файла; запомненный выбор — только для существующих категорий.
+    static func monefySession(data: Data, context: ModelContext) throws -> MonefyImportSession {
+        let plan = MonefyImportPlan(file: try MonefyCSV.parse(data))
+        let categoryIDs = Set(try ExpenseStore(context: context).allCategories().map(\.id))
+        return MonefyImportSession(plan: plan, categoryIDs: categoryIDs)
     }
 
     /// `.fileExporter` сам ставит расширение по типу содержимого: без расширения дописывает `.json`,
