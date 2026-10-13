@@ -6,7 +6,7 @@ import ExpenseCore
 /// Сегмент кольца со скруглёнными углами. Углы — в радианах, 0 — направо, рост — по часовой стрелке
 /// (ось y вниз), как `RingArc`. Начало и конец анимируются: так сегмент разрастается в полный круг
 /// при раскрытии категории. Полный круг рисуется кольцом без шва.
-struct AnnularSector: Shape {
+nonisolated struct AnnularSector: Shape {
     var start: Double
     var end: Double
     let inner: CGFloat
