@@ -24,7 +24,7 @@ extension AppTab: Identifiable {
 
 /// Таб-бар (DESIGN.md → Navigation, §8 п. 5, вариант «в»): стеклянная капсула 62 с тремя вкладками
 /// (иконка + подпись 11) и отдельный prominent-круг «+» 62 — действие, а не вкладка.
-/// Оба — в одном `GlassEffectContainer`. «+» — источник зум-перехода шита записи (`addTransitionID`).
+/// Бар с линзой — в `GlassEffectContainer`, «+» — рядом, вне него: он источник зум-перехода шита записи (`addTransitionID`).
 /// Активная вкладка — стеклянная линза с тинтом графит 8 %, как выделение системного таб-бара iOS 26:
 /// касание поднимает линзу над вкладкой под пальцем, линза едет за пальцем, отпускание выбирает вкладку,
 /// и линза пружиной садится на неё; переход пальца на другую вкладку — тактильный отклик выбора.
@@ -43,7 +43,7 @@ struct ShellTabBar: View {
     /// Поднятая линза дорастает до краёв капсулы (54 → 62), вкладка под пальцем крупнее — как у системной.
     private static let liftedLensScale = Theme.Size.tabBar / (Theme.Size.tabBar - 2 * Theme.Spacing.xs)
     private static let liftedItemScale: CGFloat = 1.15
-    /// Стёкла бара и «+» не сливаются, даже когда бар вздувается от касания (`.interactive()`).
+    /// Стёкла контейнера не сливаются, даже когда бар вздувается от касания (`.interactive()`).
     private static let glassMergeSpacing: CGFloat = 0
 
     let selection: AppTab
@@ -66,20 +66,22 @@ struct ShellTabBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        GlassEffectContainer(spacing: Self.glassMergeSpacing) {
-            HStack(spacing: Theme.Spacing.md) {
+        HStack(spacing: Theme.Spacing.md) {
+            GlassEffectContainer(spacing: Self.glassMergeSpacing) {
                 tabs
                     .padding(Theme.Spacing.xs)
                     .frame(height: Theme.Size.tabBar)
                     .glassEffect(.regular.interactive(), in: .capsule)
-
-                Button(action: onAdd) {
-                    Label("tabbar.add.a11y", systemImage: "plus")
-                }
-                .buttonStyle(.glassCircle(diameter: Theme.Size.addButton, prominent: true))
-                .matchedTransitionSource(id: Self.addTransitionID, in: addTransition)
-                .accessibilityShowsLargeContentViewer()
             }
+
+            // «+» — вне `GlassEffectContainer`: в iOS 27 источник зума внутри контейнера не находится
+            // («zoom transition from a nil view»), и шит открывается запасным переходом без зума.
+            Button(action: onAdd) {
+                Label("tabbar.add.a11y", systemImage: "plus")
+            }
+            .buttonStyle(.glassCircle(diameter: Theme.Size.addButton, prominent: true))
+            .matchedTransitionSource(id: Self.addTransitionID, in: addTransition)
+            .accessibilityShowsLargeContentViewer()
         }
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .sensoryFeedback(Haptic.selection, trigger: touch?.tab) { old, new in old != nil && new != nil }
