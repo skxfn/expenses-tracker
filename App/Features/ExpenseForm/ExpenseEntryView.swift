@@ -36,6 +36,8 @@ struct ExpenseEntryView: View {
     @State private var availableWidth: CGFloat = 0
     /// Видимая высота прокрутки над рядом кнопок: пока всё помещается, раскладка занимает её целиком.
     @State private var visibleHeight: CGFloat = 0
+    /// Содержимое ушло под шапку — только тогда виден плотный край прокрутки.
+    @State private var isScrolledUnderHeader = false
     /// Высота раскладки над клавиатурой — держится, пока открыт шит поверх.
     @State private var keyboardLayoutHeight: CGFloat = 0
     /// Шит поверх закрылся, клавиатура ещё не вернулась — раскладка держится.
@@ -137,6 +139,13 @@ struct ExpenseEntryView: View {
         // Крупный текст: прокрученное содержимое уходит под прозрачную шапку — край плотный, иначе ✕ и заголовок
         // ложатся прямо на образцы. На размере по умолчанию прокрутки нет — и края не видно.
         .scrollEdgeEffectStyle(.hard, for: .top)
+        // iOS 27 рисует плотный край и без прокрутки — полосой под шапкой; прячем его, пока ничего не прокручено (как в 26).
+        .scrollEdgeEffectHidden(!isScrolledUnderHeader, for: .top)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top > 0.5
+        } action: { _, isScrolled in
+            isScrolledUnderHeader = isScrolled
+        }
         // Размер без безопасных областей: между шапкой и рядом кнопок.
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { visibleHeight = $0 }
         // Быстрые суммы — в своём ряду над клавиатурой, а не в `ToolbarItem(.keyboard)`: панель клавиатуры
