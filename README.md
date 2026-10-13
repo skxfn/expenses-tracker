@@ -4,7 +4,7 @@
 
 ## Сборка
 
-Нужен Xcode 26 с установленной платформой iOS (Xcode → Settings → Components).
+Нужен Xcode 27 с установленной платформой iOS (Xcode → Settings → Components).
 
 ```bash
 ./scripts/build_ipa.sh            # поднять версию (patch +1, build +1) и собрать
@@ -28,7 +28,7 @@
 
 1. Поднять версию и закоммитить `Config/Version.xcconfig`.
 2. Создать и запушить тег, равный версии: `git tag v1.0.1`, `git push origin main v1.0.1`.
-3. Action `Release` (`.github/workflows/release.yml`, раннер `macos-26`, Xcode 26.6) соберёт `.ipa`, выложит его в GitHub Releases и закоммитит обновлённый `source.json` в основную ветку.
+3. Action `Release` (`.github/workflows/release.yml`, раннер `xcode-27`, Xcode 27.0) соберёт `.ipa`, выложит его в GitHub Releases и закоммитит обновлённый `source.json` в основную ветку.
 
 Можно запустить и вручную: Actions → Release → Run workflow — тег `v<MARKETING_VERSION>` создастся сам. Сборка падает, если тег не совпадает с версией или такой релиз уже есть. Если основная ветка защищена (branch protection), разрешите пуш для GitHub Actions, иначе `source.json` не обновится. В публичном репозитории раннеры GitHub бесплатны, в приватном macOS-минуты платные (примерно в 10 раз дороже Linux).
 

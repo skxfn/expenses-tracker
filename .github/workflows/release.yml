@@ -16,11 +16,11 @@ concurrency:
 
 jobs:
   release:
-    runs-on: macos-26
+    # Образ xcode-27 (preview, macOS 27): тот же Xcode 27 / iOS 27 SDK, что и локально; список версий — actions/runner-images.
+    runs-on: xcode-27
     timeout-minutes: 45
     env:
-      # Xcode 26.6 (iOS 26.5 SDK) на образе macos-26; список версий — actions/runner-images.
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
       GH_TOKEN: ${{ github.token }}
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
