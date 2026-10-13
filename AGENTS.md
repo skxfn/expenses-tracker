@@ -60,6 +60,7 @@
 - Главная — `App/Features/Home` (`-debugHome ring,range,empty,scrolled,saved,day,week,year,past`); подсветка новой траты — `AppRouter.savedExpenseID`. Статистика — `App/Features/Statistics` (`-statsPeriod day|yesterday|week|year|range|past|pastYear`, `-statsExpand YES|<имя>`, `-statsScroll summary|categories|days|pace|habits|year|top`, `-statsFocus <имя>`, `-statsCategoryView tiles|strips|sun|ring`). Раскрытая категория фильтрует и сводку; «Крупнейшие траты» — 3 строки; карта года — у всех периодов, кроме «Дня».
 ## Ловушки
 - Xcode 26: без установленной iOS-платформы (`xcodebuild -downloadPlatform iOS`) сборка по схеме падает «iOS 26.5 is not installed»; `-target Expenses -sdk iphoneos` при этом собирается.
+- С 2026-10-13 локально Xcode 27 (Swift 6.4, iOS 27 SDK) и симулятор iOS 27; релизы — образ `xcode-27` (preview) в Actions. В SDK 27 `Shape`/`Animatable` требуют развязки с главным актором: при `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` свои фигуры с `animatableData` объявлять `nonisolated struct`.
 - SwiftData: `transaction {}` при ошибке не откатывает — нужен явный `rollback()`, после него заново выбрать модели (старые ссылки падают «model instance was invalidated»).
 - Даты в бэкапе — через `BackupFormat` (ISO 8601 с округлением до мс). `.iso8601`/наивный `ISO8601FormatStyle` теряют доли секунды и сдвигают дату на 1 мс за цикл.
 - `DateInterval.contains` включает `end` — для периодов не использовать.
