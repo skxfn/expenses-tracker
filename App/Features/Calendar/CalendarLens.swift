@@ -96,9 +96,8 @@ struct SelectionLens<Backdrop: View>: View {
             if showsDigits || reduceMotion {
                 withAnimation(LensMotion.windowOut) { window = 0 }
             } else {
-                var transaction = Transaction()
-                transaction.disablesAnimations = true
-                withTransaction(transaction) { window = 1 }
+                // Без анимации, но не `disablesAnimations`: в iOS 27 он гасит и полёт с подъёмом того же кадра — линза прыгает.
+                withAnimation(nil) { window = 1 }
             }
         }
     }
