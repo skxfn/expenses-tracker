@@ -20,6 +20,16 @@
       },
       "versions": [
         {
+          "version": "1.2.4",
+          "buildVersion": "9",
+          "date": "2026-10-13T12:58:53Z",
+          "localizedDescription": "Версия 1.2.4 (сборка 9)",
+          "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.2.4/Expenses-1.2.4.ipa",
+          "size": 7410627,
+          "sha256": "0bf8f32a0d52931f67037b53ddddfeceaa9464eba2d1d3d1b0322d9e3dd0834f",
+          "minOSVersion": "26.0"
+        },
+        {
           "version": "1.2.3",
           "buildVersion": "8",
           "date": "2026-10-12T13:01:47Z",
@@ -100,11 +110,11 @@
           "minOSVersion": "17.0"
         }
       ],
-      "version": "1.2.3",
-      "versionDate": "2026-10-12T13:01:47Z",
-      "versionDescription": "Версия 1.2.3 (сборка 8)",
-      "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.2.3/Expenses-1.2.3.ipa",
-      "size": 4779882
+      "version": "1.2.4",
+      "versionDate": "2026-10-13T12:58:53Z",
+      "versionDescription": "Версия 1.2.4 (сборка 9)",
+      "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.2.4/Expenses-1.2.4.ipa",
+      "size": 7410627
     }
   ],
   "news": []
