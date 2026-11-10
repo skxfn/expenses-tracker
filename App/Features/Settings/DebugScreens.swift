@@ -64,6 +64,7 @@ private struct DebugScreenRoot: View {
     @State private var importSession: ImportSession?
     @State private var monefySession: MonefyImportSession?
     @State private var alert: FailureAlert?
+    @State private var autoBackup = AutoBackupModel()
 
     var body: some View {
         Group {
@@ -74,6 +75,7 @@ private struct DebugScreenRoot: View {
             }
         }
         .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app, symbolStyle: symbolStyle))
+        .environment(autoBackup)
         .sheet(item: $editorMode) { mode in
             CategoryEditorSheet(mode: mode)
                 .defaultScrollAnchor(DebugScreen.scrollAnchor())

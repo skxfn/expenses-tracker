@@ -128,6 +128,7 @@ final class ImportSession: Identifiable {
         await BackupModel.letProgressAppear()
         do {
             report = try BackupImporter.apply(payload, to: context, mode: mode)
+            AutoBackupModel.recordRestore(of: payload)
         } catch {
             alert = .backupApply(error)
         }

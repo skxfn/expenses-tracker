@@ -931,6 +931,170 @@
         }
       }
     },
+    "autoBackup.existing.message" : {
+      "comment" : "диалог: текст. Под заголовком: дата копии (D7) и число трат в ней; кнопки — «Восстановить из копии», «Заменить копию», системная отмена. Аргументы: %1$@ — дата копии D7; %2$lld — число трат в копии",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backup from %1$@ — %#@count@. You can restore it or replace it with the current data."
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expense"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expenses"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копия от %1$@ — %#@count@. Её можно восстановить или заменить текущими данными."
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трата"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трат"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "autoBackup.existing.replace" : {
+      "comment" : "кнопка диалога. Диалог «В папке уже есть копия»: записать текущие данные поверх копии (destructive)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replace Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заменить копию"
+          }
+        }
+      }
+    },
+    "autoBackup.existing.title" : {
+      "comment" : "диалог: в папке уже есть копия. После выбора папки, где лежит «последняя» копия с другого iPhone или прошлой установки",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Folder Already Has a Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В папке уже есть копия"
+          }
+        }
+      }
+    },
+    "autoBackup.existing.unreadable" : {
+      "comment" : "диалог: текст, копия не читается. Вместо autoBackup.existing.message, если файл в папке повреждён или из более новой версии; кнопки — «Заменить копию» и отмена",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version of Expenses can’t read the backup in this folder. You can replace it with the current data."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта версия «Трат» не может прочитать копию из папки. Её можно заменить текущими данными."
+          }
+        }
+      }
+    },
+    "autoBackup.pickError.message" : {
+      "comment" : "copy.json autoBackup.pickError: алерт: заголовок / текст. Папку не удалось запомнить (провайдер файлов не дал доступ)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a different folder."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите другую папку."
+          }
+        }
+      }
+    },
+    "autoBackup.pickError.title" : {
+      "comment" : "copy.json autoBackup.pickError: алерт: заголовок / текст. Папку не удалось запомнить (провайдер файлов не дал доступ)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Use This Folder"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось выбрать папку"
+          }
+        }
+      }
+    },
     "backup.exportPrepareError.message" : {
       "comment" : "copy.json backup.exportPrepareError: алерт: заголовок / текст. Алерт «Не получилось»",
       "extractionState" : "manual",
@@ -6595,6 +6759,24 @@
         }
       }
     },
+    "home.empty.firstRun.restore" : {
+      "comment" : "кнопка: восстановить. Первый запуск (трат нет совсем): капсула под «Нажмите «+»…» — после переустановки вернуть данные из резервной копии",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore from Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстановить из резервной копии"
+          }
+        }
+      }
+    },
     "home.empty.firstRun.title" : {
       "comment" : "copy.json home.empty.firstRun: пустое состояние: первый запуск. Ни одной траты; вместо карты — серый сложенный обзор. В коде — «Пока нет трат / Добавьте первый расход…». План: «Добавить первую трату»",
       "extractionState" : "manual",
@@ -9119,6 +9301,204 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Версия"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.chooseAgain" : {
+      "comment" : "строка: выбрать папку заново. Вместо строки «Папка», когда папка недоступна (удалена, перемещена, нет доступа)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Folder Again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать папку заново"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.error.folder" : {
+      "comment" : "сноска: папка недоступна. Сноска под секцией: папку удалили, переместили в корзину или доступ к ней потерян",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The folder isn’t available. It may have been deleted or moved. Choose the folder again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка недоступна: возможно, её удалили или переместили. Выберите папку заново."
+          }
+        }
+      }
+    },
+    "settings.autoBackup.error.write" : {
+      "comment" : "сноска: копия не записалась. Сноска под секцией: запись не удалась по другой причине (нет места, сбой облака)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t save the backup. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить копию. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "settings.autoBackup.folder" : {
+      "comment" : "строка: папка. Настройки → «Автокопия в облако»: папка копий, значение — «iCloud Drive/Траты»; тап — выбрать другую",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.footer" : {
+      "comment" : "сноска: как работает. Сноска под секцией, пока автокопия выключена",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A backup is saved to the chosen folder after each change. Choose a folder in iCloud Drive to keep the backup even if the app is deleted."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копия сама сохраняется в выбранную папку после изменений. Выберите папку в iCloud Drive — тогда копия останется, даже если удалить приложение."
+          }
+        }
+      }
+    },
+    "settings.autoBackup.heading" : {
+      "comment" : "заголовок секции. Настройки: секция автокопии под «Резервная копия»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автокопия в облако"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.last.date" : {
+      "comment" : "copy.json settings.autoBackup.last: сноска: последняя копия. Сноска под секцией, автокопия включена: когда записана последняя копия (3 варианта: сегодня, вчера, дата D7). Аргументы: %1$@ — дата D7 («8 ноя», год — если не текущий); %2$@ — время HH:mm",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last backup: %1$@ at %2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя копия: %1$@, %2$@"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.last.today" : {
+      "comment" : "copy.json settings.autoBackup.last: сноска: последняя копия. Сноска под секцией, автокопия включена: когда записана последняя копия (3 варианта: сегодня, вчера, дата D7). Аргументы: %@ — время HH:mm",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last backup: today at %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя копия: сегодня, %@"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.last.yesterday" : {
+      "comment" : "copy.json settings.autoBackup.last: сноска: последняя копия. Сноска под секцией, автокопия включена: когда записана последняя копия (3 варианта: сегодня, вчера, дата D7). Аргументы: %@ — время HH:mm",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last backup: yesterday at %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя копия: вчера, %@"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.now" : {
+      "comment" : "строка: сохранить сейчас. Настройки → «Автокопия в облако», автокопия включена: записать копию в папку немедленно",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back Up Now"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить сейчас"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.toggle" : {
+      "comment" : "переключатель. Настройки → «Автокопия в облако»: вкл/выкл; первое включение открывает выбор папки",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back Up Automatically"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранять автоматически"
           }
         }
       }

@@ -59,6 +59,16 @@ struct FailureAlert: Identifiable, Equatable {
         return Bundle.main.localizedString(forKey: key, value: nil, table: nil)
     }
 
+    // MARK: Автокопия
+
+    /// Папку из окна выбора не удалось запомнить или прочитать.
+    static var autoBackupPick: FailureAlert {
+        FailureAlert(
+            title: String(localized: "autoBackup.pickError.title"),
+            message: String(localized: "autoBackup.pickError.message")
+        )
+    }
+
     // MARK: Перенос из Monefy
 
     /// Файл Monefy не прочитался (`MonefyCSV.parse`): причина — `error.monefy.*`, у строки — с её номером.

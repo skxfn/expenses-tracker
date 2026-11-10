@@ -51,6 +51,7 @@ struct HomeView: View {
         .sensoryFeedback(Haptic.selection, trigger: selectionCount)
         .sensoryFeedback(Haptic.success, trigger: repeatCount)
         .errorAlert($errorMessage)
+        .restoreBackupHost()
         .onChange(of: inputs, initial: true) { _, inputs in
             model.update(inputs, context: modelContext)
         }
