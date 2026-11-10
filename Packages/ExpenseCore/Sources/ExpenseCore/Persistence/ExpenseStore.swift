@@ -47,18 +47,21 @@ public final class ExpenseStore {
         }
     }
 
-    /// Добавляет траты одним сохранением (импорт): всё или ничего. Суммы проверяются до изменений;
-    /// при ошибке сохранения вставки откатываются, а загруженные объекты перечитываются.
-    public func addExpenses(_ expenses: [NewExpense]) throws {
+    /// Добавляет траты одним сохранением (импорт, ИИ-запись): всё или ничего. Суммы проверяются до изменений;
+    /// при ошибке сохранения вставки откатываются, а загруженные объекты перечитываются. Возвращает id новых трат.
+    @discardableResult
+    public func addExpenses(_ expenses: [NewExpense]) throws -> [UUID] {
         try addExpenses(expenses, beforeCommit: {})
     }
 
     /// `beforeCommit` вызывается после вставок, перед сохранением, — точка для проверки отката в тестах.
-    func addExpenses(_ expenses: [NewExpense], beforeCommit: () throws -> Void) throws {
+    @discardableResult
+    func addExpenses(_ expenses: [NewExpense], beforeCommit: () throws -> Void) throws -> [UUID] {
         for expense in expenses {
             try validateAmount(expense.amountMinor)
         }
-        guard !expenses.isEmpty else { return }
+        guard !expenses.isEmpty else { return [] }
+        var ids: [UUID] = []
         // Несохранённое до импорта не должно пропасть при откате.
         try context.save()
         do {
@@ -69,6 +72,7 @@ public final class ExpenseStore {
                     // Связь — после insert, как в импорте копии: новый объект уже принадлежит контексту категории.
                     context.insert(expense)
                     expense.category = new.category
+                    ids.append(expense.id)
                 }
                 try beforeCommit()
             }
@@ -79,6 +83,7 @@ public final class ExpenseStore {
             _ = try? context.fetch(FetchDescriptor<Expense>())
             throw error
         }
+        return ids
     }
 
     public func updateExpense(

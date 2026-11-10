@@ -148,6 +148,8 @@ struct ContentView: View {
             } else {
                 ExpenseSheet(mode: mode)
             }
+        case .assistant:
+            AssistantSheet()
         }
     }
 
@@ -177,6 +179,8 @@ struct ContentView: View {
     private func applyDebugRequests() async {
         if let mode = ExpenseSheetDebug.requestedMode(context: modelContext) {
             router.sheet = .expense(mode)
+        } else if UserDefaults.standard.string(forKey: "debugSheet") == "assistant" {
+            router.sheet = .assistant
         }
         if DebugLaunchOptions.showsDeletionToast() {
             let item = PendingDeletion.Item(id: UUID(), title: "")

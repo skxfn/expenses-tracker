@@ -913,6 +913,24 @@
         }
       }
     },
+    "app.cameraUsage" : {
+      "comment" : "Info.plist: NSCameraUsageDescription. Системный запрос доступа к камере при первом «Снять чек»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The camera is used to scan receipts into expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Камера нужна, чтобы снять чек и разобрать траты"
+          }
+        }
+      }
+    },
     "app.displayName" : {
       "comment" : "название приложения. Подпись иконки на домашнем экране, переключатель приложений, SideStore",
       "extractionState" : "manual",
@@ -927,6 +945,782 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Траты"
+          }
+        }
+      }
+    },
+    "assistant.camera" : {
+      "comment" : "кнопка-чип. Камера документов (VisionKit): несколько страниц, длинный чек частями",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan Receipt"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Снять чек"
+          }
+        }
+      }
+    },
+    "assistant.cancel" : {
+      "comment" : "кнопка во время запроса",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отменить"
+          }
+        }
+      }
+    },
+    "assistant.discard.discard" : {
+      "comment" : "кнопка диалога",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close Without Saving"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть без записи"
+          }
+        }
+      }
+    },
+    "assistant.discard.keep" : {
+      "comment" : "кнопка диалога",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep Reviewing"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить"
+          }
+        }
+      }
+    },
+    "assistant.discard.title" : {
+      "comment" : "диалог при закрытии. Закрытие шита с черновиками или во время запроса",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close Without Saving?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть без записи?"
+          }
+        }
+      }
+    },
+    "assistant.entry.a11y" : {
+      "comment" : "кнопка ✦ в шапке шита записи (VoiceOver). Видна, если ИИ-запись включена и форма пустая; открывает шит ИИ-записи вместо формы",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add by Text or Photo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записать текстом или по фото"
+          }
+        }
+      }
+    },
+    "assistant.input.placeholder" : {
+      "comment" : "плейсхолдер поля ввода. Многострочное поле; диктовка — кнопкой микрофона системной клавиатуры",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For example: coffee 4.50, taxi yesterday 9. You can dictate from the keyboard"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Например: кофе 4,50, вчера такси 9. Можно продиктовать с клавиатуры"
+          }
+        }
+      }
+    },
+    "assistant.notConfigured" : {
+      "comment" : "плашка над полем. Нет сервера, модели или ключа; ведёт в настройки ИИ-записи",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To read expenses, set the server and key in Settings"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы разбирать траты, укажите сервер и ключ в настройках"
+          }
+        }
+      }
+    },
+    "assistant.openSettings" : {
+      "comment" : "ссылка под текстом ошибки. Ошибки ключа, адреса или модели: пуш на настройки ИИ-записи внутри шита",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть настройки"
+          }
+        }
+      }
+    },
+    "assistant.parse" : {
+      "comment" : "главная кнопка. Отправляет текст и фото модели",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read Expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разобрать"
+          }
+        }
+      }
+    },
+    "assistant.parsing" : {
+      "comment" : "строка вместо кнопки во время запроса. Индикатор + «Отменить»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разбор…"
+          }
+        }
+      }
+    },
+    "assistant.photo.remove.a11y" : {
+      "comment" : "✕ на миниатюре фото (VoiceOver)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Photo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Убрать фото"
+          }
+        }
+      }
+    },
+    "assistant.photos" : {
+      "comment" : "кнопка-чип. Выбор до 5 фото из фотоплёнки: чек или скриншот банка",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From Photos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Из фото"
+          }
+        }
+      }
+    },
+    "assistant.retry" : {
+      "comment" : "главная кнопка после ошибки сети. Повторяет запрос с тем же вводом",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try Again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить"
+          }
+        }
+      }
+    },
+    "assistant.review.addDifference" : {
+      "comment" : "кнопка под расхождением. Добавляет черновик на разницу без категории",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Difference as Expense"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить разницу тратой"
+          }
+        }
+      }
+    },
+    "assistant.review.amount.a11y" : {
+      "comment" : "поле суммы (VoiceOver)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сумма"
+          }
+        }
+      }
+    },
+    "assistant.review.amount.placeholder" : {
+      "comment" : "плейсхолдер суммы в строке. Сумма не найдена — поле подсвечено",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сумма"
+          }
+        }
+      }
+    },
+    "assistant.review.back" : {
+      "comment" : "кнопка внизу. Назад к вводу: поправить текст или фото и разобрать снова",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Request"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изменить запрос"
+          }
+        }
+      }
+    },
+    "assistant.review.category.a11y.hint" : {
+      "comment" : "подсказка плашки категории (VoiceOver)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a category"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать категорию"
+          }
+        }
+      }
+    },
+    "assistant.review.date.a11y.hint" : {
+      "comment" : "подсказка даты (VoiceOver)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a date"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать дату"
+          }
+        }
+      }
+    },
+    "assistant.review.dateAdjusted" : {
+      "comment" : "пометка под строкой. Модель дала дату в будущем — поставлено «сегодня»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date was in the future, set to today"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дата была в будущем — стоит сегодня"
+          }
+        }
+      }
+    },
+    "assistant.review.dateOld" : {
+      "comment" : "пометка под строкой. Дата больше года назад — возможно, ошибка распознавания",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the date: over a year ago"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверьте дату: больше года назад"
+          }
+        }
+      }
+    },
+    "assistant.review.mismatch" : {
+      "comment" : "строка под списком. Итог чека не равен сумме черновиков. Аргументы: %@ — разница (фразой, с ⃅)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off from the receipt total by %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не сходится с итогом чека на %@"
+          }
+        }
+      }
+    },
+    "assistant.review.mode" : {
+      "comment" : "сегмент (VoiceOver-название). Только для чека",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to Save the Receipt"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как записать чек"
+          }
+        }
+      }
+    },
+    "assistant.review.mode.apply" : {
+      "comment" : "кнопка диалога",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rebuild"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пересобрать"
+          }
+        }
+      }
+    },
+    "assistant.review.mode.byCategory" : {
+      "comment" : "пункт сегмента. По умолчанию: одна трата на категорию",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By Category"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "По категориям"
+          }
+        }
+      }
+    },
+    "assistant.review.mode.confirm" : {
+      "comment" : "диалог смены режима. Черновики правили: смена режима пересобирает их из позиций",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rebuild expenses from the receipt? Your edits will be lost"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пересобрать траты из чека? Правки пропадут"
+          }
+        }
+      }
+    },
+    "assistant.review.mode.keep" : {
+      "comment" : "кнопка диалога",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep as Is"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оставить как есть"
+          }
+        }
+      }
+    },
+    "assistant.review.mode.perItem" : {
+      "comment" : "пункт сегмента. Каждая позиция чека — отдельная трата",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By Item"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "По позициям"
+          }
+        }
+      }
+    },
+    "assistant.review.mode.single" : {
+      "comment" : "пункт сегмента. Весь чек — одна трата",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As One"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Одной тратой"
+          }
+        }
+      }
+    },
+    "assistant.review.note.placeholder" : {
+      "comment" : "плейсхолдер заметки в строке",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заметка"
+          }
+        }
+      }
+    },
+    "assistant.review.receiptTotal" : {
+      "comment" : "часть строки чека «Евроопт · 8 ноя · итог 30,83 ⃅». Магазин и дата — данные из чека. Аргументы: %@ — итог чека (фразой, с ⃅)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "total %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "итог %@"
+          }
+        }
+      }
+    },
+    "assistant.review.remove" : {
+      "comment" : "свайп по строке. Убирает черновик",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Убрать"
+          }
+        }
+      }
+    },
+    "assistant.review.save" : {
+      "comment" : "главная кнопка. Число черновиков к записи. Аргументы: %lld — число черновиков к записи",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Save %lld Expense"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Save %lld Expenses"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Записать %lld трату"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Записать %lld траты"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Записать %lld трат"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Записать %lld траты"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "assistant.review.title" : {
+      "comment" : "заголовок экрана черновиков. После ответа модели: правка и «Записать N»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recognized Expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разобранные траты"
+          }
+        }
+      }
+    },
+    "assistant.review.total" : {
+      "comment" : "строка над списком. Число черновиков и их сумма (фразой, с ⃅). Аргументы: %1$lld — число черновиков; %2$@ — их сумма (фразой, с ⃅)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@count@ · %2$@"
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expense"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expenses"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@count@ · %2$@"
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трата"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трат"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "assistant.review.unparsed" : {
+      "comment" : "заголовок блока под списком. Что модель не превратила в траты",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Recognized"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не разобрано"
+          }
+        }
+      }
+    },
+    "assistant.title" : {
+      "comment" : "заголовок шита ИИ-записи. Шит: поле ввода, фото чека, «Разобрать»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI Entry"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ИИ-запись"
           }
         }
       }
@@ -5003,6 +5797,294 @@
         }
       }
     },
+    "error.assistant.badRequest" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.badRequest",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server rejected the request. Try another model in Settings."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер не принял запрос. Попробуйте другую модель в настройках."
+          }
+        }
+      }
+    },
+    "error.assistant.imageUnreadable" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.imageUnreadable",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The photo couldn't be opened. Choose another one."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фото не открылось. Выберите другое."
+          }
+        }
+      }
+    },
+    "error.assistant.invalidBaseURL" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.invalidBaseURL",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server address must start with https://. Check it in Settings."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес сервера должен начинаться с https://. Проверьте его в настройках."
+          }
+        }
+      }
+    },
+    "error.assistant.modelNotFound" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.modelNotFound",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server doesn't have this model. Choose another one in Settings."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На сервере нет такой модели. Выберите другую в настройках."
+          }
+        }
+      }
+    },
+    "error.assistant.notConfigured" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.notConfigured",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server, model, or key is missing. Fill them in AI Entry settings."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не указан сервер, модель или ключ. Заполните их в настройках ИИ-записи."
+          }
+        }
+      }
+    },
+    "error.assistant.nothingFound" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.nothingFound",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No expenses found. Write what you spent and how much: “coffee 4.50”."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Трат не нашлось. Напишите, на что и сколько потрачено: «кофе 4,50»."
+          }
+        }
+      }
+    },
+    "error.assistant.offline" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.offline",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection. Your text and photos are kept, so try again when you're online."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет подключения к интернету. Текст и фото сохранились — повторите, когда появится сеть."
+          }
+        }
+      }
+    },
+    "error.assistant.paymentRequired" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.paymentRequired",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key has run out of balance. Top it up with the provider."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На ключе закончился баланс. Пополните его у поставщика."
+          }
+        }
+      }
+    },
+    "error.assistant.rateLimited" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.rateLimited",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many requests. Try again in a minute."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слишком много запросов. Попробуйте через минуту."
+          }
+        }
+      }
+    },
+    "error.assistant.refused" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.refused",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model declined to read this. Try wording it differently."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модель отказалась разбирать этот текст. Сформулируйте иначе."
+          }
+        }
+      }
+    },
+    "error.assistant.serverUnavailable" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.serverUnavailable",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is unavailable right now. Try again later."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер сейчас недоступен. Попробуйте позже."
+          }
+        }
+      }
+    },
+    "error.assistant.timeout" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.timeout",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is taking too long. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер долго не отвечает. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "error.assistant.tooLarge" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.tooLarge",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many photos. Scan the receipt in parts or remove extra photos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слишком много фото. Снимите чек частями или уберите лишние фото."
+          }
+        }
+      }
+    },
+    "error.assistant.truncated" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.truncated",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The request is too long. Split it into parts."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слишком длинный запрос. Разбейте его на части."
+          }
+        }
+      }
+    },
+    "error.assistant.unauthorized" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.unauthorized",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key was rejected. Check it in Settings."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ не подошёл. Проверьте его в настройках."
+          }
+        }
+      }
+    },
+    "error.assistant.unreadableResponse" : {
+      "comment" : "текст ошибки ИИ-записи. AssistantError.unreadableResponse",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't understand the server's reply. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось понять ответ сервера. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
     "error.backup.detail.badDate" : {
       "comment" : "причина: неверная дата. debugDescription DecodingError даты (может попасть в подробности)",
       "extractionState" : "manual",
@@ -8791,6 +9873,384 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Версия"
+          }
+        }
+      }
+    },
+    "settings.assistant" : {
+      "comment" : "строка в настройках и заголовок экрана",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI Entry"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ИИ-запись"
+          }
+        }
+      }
+    },
+    "settings.assistant.baseURL" : {
+      "comment" : "строка с полем",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Address"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адрес"
+          }
+        }
+      }
+    },
+    "settings.assistant.check" : {
+      "comment" : "кнопка-строка. Короткий запрос к модели по схеме",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test Connection"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить подключение"
+          }
+        }
+      }
+    },
+    "settings.assistant.check.passed" : {
+      "comment" : "значение строки после проверки. Время ответа, секунды. Аргументы: %@ — время ответа в секундах, один знак после запятой",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Works, %@ s"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Работает, %@ с"
+          }
+        }
+      }
+    },
+    "settings.assistant.enable" : {
+      "comment" : "переключатель",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add by Text and Photo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записывать текстом и по фото"
+          }
+        }
+      }
+    },
+    "settings.assistant.footnote" : {
+      "comment" : "сноска под переключателем. Что и куда уходит (ТЗ, раздел 9)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text and photos go to the chosen server along with category names. Expense history is not sent. The key is stored only on this iPhone."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текст и фото уходят на выбранный сервер вместе с названиями категорий. История трат не отправляется. Ключ хранится только на этом iPhone."
+          }
+        }
+      }
+    },
+    "settings.assistant.format" : {
+      "comment" : "сегмент (VoiceOver-название). Только для «Свой»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Format"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Формат API"
+          }
+        }
+      }
+    },
+    "settings.assistant.format.anthropic" : {
+      "comment" : "пункт сегмента",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anthropic"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anthropic"
+          }
+        }
+      }
+    },
+    "settings.assistant.format.openAI" : {
+      "comment" : "пункт сегмента",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenAI"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenAI"
+          }
+        }
+      }
+    },
+    "settings.assistant.key" : {
+      "comment" : "заголовок группы и строка. Ключ — только в Keychain этого iPhone",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ"
+          }
+        }
+      }
+    },
+    "settings.assistant.key.delete" : {
+      "comment" : "кнопка",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Key"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить ключ"
+          }
+        }
+      }
+    },
+    "settings.assistant.key.placeholder" : {
+      "comment" : "плейсхолдер поля ключа",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste key"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вставьте ключ"
+          }
+        }
+      }
+    },
+    "settings.assistant.key.save" : {
+      "comment" : "кнопка",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Key"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить ключ"
+          }
+        }
+      }
+    },
+    "settings.assistant.key.saved" : {
+      "comment" : "значение строки. Последние 4 символа сохранённого ключа. Аргументы: %@ — последние 4 символа ключа",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "saved, …%@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "сохранён, …%@"
+          }
+        }
+      }
+    },
+    "settings.assistant.model" : {
+      "comment" : "строка с полем",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модель"
+          }
+        }
+      }
+    },
+    "settings.assistant.model.choose" : {
+      "comment" : "меню моделей сервера (VoiceOver). Появляется после проверки подключения",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Model"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать модель"
+          }
+        }
+      }
+    },
+    "settings.assistant.off" : {
+      "comment" : "значение строки. Функция выключена: ни одного сетевого запроса",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключена"
+          }
+        }
+      }
+    },
+    "settings.assistant.preset.claude" : {
+      "comment" : "пункт сегмента / значение строки. Claude через шлюз, доступный из РБ без VPN",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude"
+          }
+        }
+      }
+    },
+    "settings.assistant.preset.custom" : {
+      "comment" : "пункт сегмента / значение строки. Свой адрес, формат и модель",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Свой"
+          }
+        }
+      }
+    },
+    "settings.assistant.preset.deepSeek" : {
+      "comment" : "пункт сегмента / значение строки. DeepSeek на Munito (OpenAI-совместимый API)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DeepSeek"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DeepSeek"
+          }
+        }
+      }
+    },
+    "settings.assistant.server" : {
+      "comment" : "заголовок группы",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер"
           }
         }
       }

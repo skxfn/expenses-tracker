@@ -18,6 +18,24 @@
           }
         }
       }
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "copy.json app.cameraUsage: Info.plist: NSCameraUsageDescription. Системный запрос доступа к камере при первом «Снять чек»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The camera is used to scan receipts into expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Камера нужна, чтобы снять чек и разобрать траты"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

@@ -19,10 +19,13 @@ enum AppRoute: Hashable {
 /// Шит поверх всего приложения. Показывает корень (`ContentView`), экраны только просят.
 enum AppSheet: Identifiable, Hashable {
     case expense(ExpenseSheet.Mode)
+    /// ИИ-запись: текст или фото чека → черновики → «Записать».
+    case assistant
 
     var id: String {
         switch self {
         case .expense(let mode): "expense-\(mode.id)"
+        case .assistant: "assistant"
         }
     }
 }
@@ -54,6 +57,11 @@ final class AppRouter {
 
     func presentEdit(expenseID: UUID) {
         sheet = .expense(.edit(expenseID: expenseID))
+    }
+
+    /// Вместо пустого шита записи — ИИ-запись (кнопка в его шапке).
+    func presentAssistant() {
+        sheet = .assistant
     }
 
     func openStatistics(period: StatsPeriod, groupID: UUID?) {
