@@ -36,7 +36,7 @@ final class AssistantSettingsModel {
         didSet {
             configuration.save(to: defaults)
             if oldValue.baseURL != configuration.baseURL || oldValue.format != configuration.format { models = nil }
-            checkState = .idle
+            resetCheck()
         }
     }
 
@@ -49,6 +49,8 @@ final class AssistantSettingsModel {
 
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let keyStore: AssistantKeyStore
+    /// Растёт при каждой смене настроек и ключа: результат проверки старых настроек не показывается.
+    @ObservationIgnored private var checkRevision = 0
 
     init(defaults: UserDefaults = .standard, keyStore: AssistantKeyStore = KeychainAssistantKeyStore()) {
         self.defaults = defaults
@@ -86,26 +88,37 @@ final class AssistantSettingsModel {
             keyError = true
         }
         refreshKey()
-        checkState = .idle
+        resetCheck()
     }
 
     func deleteKey() {
         try? keyStore.deleteKey()
         refreshKey()
-        checkState = .idle
+        resetCheck()
     }
 
     /// Короткий запрос по схеме; заодно — список моделей сервера для выбора.
     func check() async {
+        resetCheck()
+        let revision = checkRevision
         checkState = .checking
         do {
             let service = try AssistantService(configuration: configuration, apiKey: (try? keyStore.readKey()) ?? "")
             let elapsed = try await service.checkConnection()
+            guard revision == checkRevision else { return }
             checkState = .passed(elapsed)
-            models = try? await service.availableModels()
+            let available = try? await service.availableModels()
+            guard revision == checkRevision else { return }
+            models = available
         } catch {
+            guard revision == checkRevision else { return }
             checkState = .failed(error as? AssistantError ?? .unreadableResponse)
         }
+    }
+
+    private func resetCheck() {
+        checkRevision += 1
+        checkState = .idle
     }
 
     private func refreshKey() {
@@ -164,7 +177,7 @@ struct AssistantSettingsView: View {
                     )
                 }
             }
-            .padding(.vertical, Theme.Spacing.sm)
+            .padding(Theme.Spacing.sm)
             fieldRow("settings.assistant.baseURL", text: $model.configuration.baseURL, prompt: "https://", keyboard: .URL)
             modelRow
         }
@@ -214,6 +227,14 @@ struct AssistantSettingsView: View {
                 }
                 .buttonStyle(.pressable(Motion.PressScale.row))
                 .disabled(model.keyInput.trimmingCharacters(in: .whitespaces).isEmpty)
+                if model.keyError {
+                    Text("settings.assistant.key.error")
+                        .typeStyle(.footnote)
+                        .foregroundStyle(Theme.secondary)
+                        .padding(.horizontal, Theme.Spacing.lg)
+                        .padding(.vertical, Theme.Spacing.sm)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
         }
     }
@@ -246,6 +267,7 @@ struct AssistantSettingsView: View {
                 Text(LocalizedStringKey(AssistantText.errorKey(error)))
                     .typeStyle(.footnote)
                     .foregroundStyle(Theme.secondary)
+                    .padding(.horizontal, Theme.Spacing.lg)
                     .padding(.vertical, Theme.Spacing.sm)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }

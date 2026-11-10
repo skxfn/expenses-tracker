@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 import Observation
 import SwiftData
 import UIKit
@@ -28,15 +29,26 @@ final class AssistantModel {
     @ObservationIgnored private let keyStore: AssistantKeyStore
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let transport: HTTPTransport
+    /// Дата трат, для которых модель даты не назвала (день из шита записи).
+    @ObservationIgnored private let defaultDate: EntryDate
 
-    init(keyStore: AssistantKeyStore = KeychainAssistantKeyStore(), defaults: UserDefaults = .standard, transport: HTTPTransport = URLSessionTransport()) {
+    init(
+        keyStore: AssistantKeyStore = KeychainAssistantKeyStore(), defaults: UserDefaults = .standard,
+        transport: HTTPTransport = URLSessionTransport(), defaultDate: EntryDate = .today
+    ) {
         self.keyStore = keyStore
         self.defaults = defaults
         self.transport = transport
+        self.defaultDate = defaultDate
+    }
+
+    /// Есть текст или фото — закрытие шита спросит.
+    var hasInput: Bool {
+        !AssistantInput(text: text, images: photos.map(\.data)).isEmpty
     }
 
     var canSend: Bool {
-        !isSending && !AssistantInput(text: text, images: photos.map(\.data)).isEmpty
+        !isSending && hasInput
     }
 
     var canAddPhotos: Bool { photos.count < Self.maxPhotos }
@@ -75,24 +87,34 @@ final class AssistantModel {
                 calendar: calendar,
                 currencyCode: formatter.currencyCode,
                 noteLanguage: AppLanguage.current.code,
-                formatter: formatter
+                formatter: formatter,
+                defaultDate: defaultDate
             )
         } catch {
             self.error = error as? AssistantError ?? .notConfigured
             return
         }
+        task?.cancel()
         isSending = true
         task = Task { [weak self] in
+            let outcome: Result<AssistantResult, Error>
             do {
-                let result = try await service.parse(input, context: assistantContext)
-                guard let self, !Task.isCancelled else { return }
-                review = DraftReviewModel(result: result, formatter: formatter, defaults: defaults)
-            } catch is CancellationError {
-                // Отмена пользователем — ввод остаётся как был.
+                outcome = .success(try await service.parse(input, context: assistantContext))
             } catch {
-                self?.error = error as? AssistantError ?? .unreadableResponse
+                outcome = .failure(error)
             }
-            self?.isSending = false
+            // Отменённый запрос ничего не трогает: «Отменить» уже вернуло ввод, а новый запрос мог начаться
+            // (нарезку фото не прервать — старая задача доходит сюда позже).
+            guard let self, !Task.isCancelled else { return }
+            isSending = false
+            switch outcome {
+            case .success(let result):
+                review = DraftReviewModel(result: result, formatter: formatter, defaults: defaults)
+            case .failure(is CancellationError):
+                break
+            case .failure(let error):
+                self.error = error as? AssistantError ?? .unreadableResponse
+            }
         }
     }
 
@@ -107,7 +129,15 @@ final class AssistantModel {
         review = nil
     }
 
+    /// Миниатюра через ImageIO: без декодирования всего снимка (12 Мп) на главном потоке, с учётом EXIF-поворота.
     private static func thumbnail(of data: Data) -> UIImage? {
-        UIImage(data: data)?.preparingThumbnail(of: CGSize(width: 160, height: 160))
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: 320,
+        ]
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        return UIImage(cgImage: image)
     }
 }

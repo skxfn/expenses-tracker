@@ -12,19 +12,22 @@ public struct AssistantDraftBuilder {
     let now: Date
     let calendar: Calendar
     let formatter: MoneyFormatter
+    /// Дата трат без даты в ответе.
+    let defaultDate: EntryDate
 
-    public init(catalog: AssistantCatalog, now: Date, calendar: Calendar, formatter: MoneyFormatter) {
+    public init(catalog: AssistantCatalog, now: Date, calendar: Calendar, formatter: MoneyFormatter, defaultDate: EntryDate = .today) {
         self.catalog = catalog
         self.now = now
         self.calendar = calendar
         self.formatter = formatter
+        self.defaultDate = defaultDate
     }
 
     public func build(from json: Data) throws -> AssistantResult {
         guard let response = try? JSONDecoder().decode(AssistantResponse.self, from: json) else {
             throw AssistantError.unreadableResponse
         }
-        let receipt = response.receipt.map(receiptSummary)
+        let receipt = response.receipt.flatMap(receiptSummary)
         let kept = response.expenses.prefix(AssistantPrompt.maxExpenses)
         let items = kept.map { draft(from: $0, receiptDay: receipt?.day) }
         let unparsed = response.unparsed.map(Self.trimmed).filter { !$0.isEmpty }
@@ -44,7 +47,7 @@ public struct AssistantDraftBuilder {
         let date: EntryDate
         switch item.date.flatMap(day(from:)) ?? receiptDay {
         case .none:
-            date = .today
+            date = defaultDate
         case .some(let day) where day > today:
             date = .today
             issues.insert(.dateAdjusted)
@@ -52,7 +55,8 @@ public struct AssistantDraftBuilder {
             if let oldest = calendar.date(byAdding: .day, value: -Self.oldDateDays, to: today), day < oldest {
                 issues.insert(.dateOld)
             }
-            date = EntryDate.picked(day, now: now, calendar: calendar)
+            // Названный день — точный момент, не «Вчера»: черновики, сохранённые после полуночи, не съедут на день.
+            date = .moment(EntryDate.combining(day: day, timeOf: now, calendar: calendar))
         }
 
         let amountText = amount.map {
@@ -65,10 +69,14 @@ public struct AssistantDraftBuilder {
         )
     }
 
-    private func receiptSummary(_ receipt: AssistantResponse.Receipt) -> ReceiptSummary {
+    /// `nil`, если в «чеке» ни магазина, ни даты, ни итога: модели так отвечают и без чека (скриншот банка),
+    /// а чек включает слияние позиций.
+    private func receiptSummary(_ receipt: AssistantResponse.Receipt) -> ReceiptSummary? {
         let day = receipt.date.flatMap(day(from:)).flatMap { $0 > today ? nil : $0 }
         let store = receipt.store.map(Self.trimmed).flatMap { $0.isEmpty ? nil : $0 }
-        return ReceiptSummary(store: store, day: day, totalMinor: receipt.total.flatMap(Self.minor(from:)))
+        let total = receipt.total.flatMap(Self.minor(from:))
+        guard store != nil || day != nil || total != nil else { return nil }
+        return ReceiptSummary(store: store, day: day, totalMinor: total)
     }
 
     private var today: Date { calendar.startOfDay(for: now) }
@@ -87,11 +95,17 @@ public struct AssistantDraftBuilder {
     /// Сумма из строки модели: «7.50», «7,5», «1 200»; лишние знаки дроби округляются. Больше 0 и не больше предела.
     static func minor(from text: String) -> Int64? {
         let compact = text.filter { !$0.isWhitespace }
-        let value = Money.minor(fromInput: compact)
-            ?? Decimal(string: compact.replacingOccurrences(of: ",", with: "."), locale: Locale(identifier: "en_US_POSIX"))
-                .flatMap(Money.minor(fromMajor:))
-        guard let value, value > 0, value <= Money.maxAmountMinor else { return nil }
+        guard let value = Money.minor(fromInput: compact) ?? roundedMinor(compact),
+              value > 0, value <= Money.maxAmountMinor else { return nil }
         return value
+    }
+
+    /// Лишние знаки дроби («6.160», «12.349999») с округлением. Только цифры и один разделитель:
+    /// `Decimal(string:)` молча берёт начало строки («1.200.50» → 1,2, «7abc» → 7).
+    private static func roundedMinor(_ text: String) -> Int64? {
+        guard text.wholeMatch(of: #/[0-9]+[.,][0-9]+/#) != nil else { return nil }
+        return Decimal(string: text.replacingOccurrences(of: ",", with: "."), locale: Locale(identifier: "en_US_POSIX"))
+            .flatMap(Money.minor(fromMajor:))
     }
 
     static func trimmed(_ text: String) -> String {

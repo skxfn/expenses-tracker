@@ -75,7 +75,7 @@ struct ExpenseEntryView: View {
                     if isAssistantEnabled, model.isNew, !model.hasUnsavedChanges {
                         ToolbarItem(placement: .confirmationAction) {
                             Button {
-                                router?.presentAssistant()
+                                router?.presentAssistant(date: model.draft.date)
                             } label: {
                                 Label("assistant.entry.a11y", systemImage: "sparkles")
                             }

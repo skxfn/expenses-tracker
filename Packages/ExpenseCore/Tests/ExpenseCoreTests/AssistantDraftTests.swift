@@ -68,6 +68,7 @@ import Testing
     @Test(arguments: [
         ("\"7.5\"", Int64?(750)), ("\"7,50\"", 750), ("\"1 200\"", 120_000), ("\"6.160\"", 616), ("7.4", 740), ("12", 1200),
         ("\"0\"", nil), ("\"-3\"", nil), ("\"abc\"", nil), ("null", nil), ("\"99999999999999\"", nil),
+        ("\"12.349999\"", 1235), ("\"1.200.50\"", nil), ("\"1,200.50\"", nil), ("\"7abc\"", nil), ("\"7.5 BYN\"", nil),
     ])
     func amountsAreParsedWithoutDouble(amount: String, expected: Int64?) throws {
         let result = try F.build(#"{"expenses":[{"amount":\#(amount),"category":"c01","date":null,"note":"x","source":"x"}],"receipt":null,"unparsed":[]}"#)
@@ -92,11 +93,27 @@ import Testing
         ],"receipt":null,"unparsed":[]}
         """#
         let items = try F.build(json).items
-        #expect(items[0].draft.date == .yesterday)
+        // Названный день — точный момент: «вчера», сохранённое после полуночи, не уедет на позавчера.
+        #expect(items[0].draft.date == .moment(F.calendar.date(from: DateComponents(year: 2026, month: 11, day: 9, hour: 12))!))
+        #expect(items[0].draft.date.segment(now: F.now, calendar: F.calendar) == .yesterday)
         #expect(items[1].draft.date.resolved(now: F.now, calendar: F.calendar).formatted(.iso8601.year().month().day()) == "2026-11-06")
         #expect(items[2].draft.date == .today && items[2].issues == [.dateAdjusted])
         #expect(items[3].issues == [.dateOld])
         #expect(items[4].draft.date == .today && items[4].issues.isEmpty)
+    }
+
+    @Test func missingDateTakesDayFromEntrySheet() throws {
+        let picked = EntryDate.moment(F.day(2026, 11, 3))
+        let builder = AssistantDraftBuilder(catalog: F.catalog, now: F.now, calendar: F.calendar, formatter: F.formatter, defaultDate: picked)
+        let json = #"{"expenses":[{"amount":"5","category":"c02","date":null,"note":"Кофе","source":""},{"amount":"9","category":null,"date":"2026-11-09","note":"Такси","source":""}],"receipt":null,"unparsed":[]}"#
+        let items = try builder.build(from: Data(json.utf8)).items
+        #expect(items[0].draft.date == picked)
+        #expect(items[1].draft.date.segment(now: F.now, calendar: F.calendar) == .yesterday)
+    }
+
+    @Test func receiptWithoutStoreDateAndTotalIsNoReceipt() throws {
+        let json = #"{"expenses":[{"amount":"9","category":null,"date":"2026-11-08","note":"Такси","source":""}],"receipt":{"store":" ","date":null,"total":null},"unparsed":[]}"#
+        #expect(try F.build(json).receipt == nil)
     }
 
     @Test func receiptDateAndTotalApplyToItems() throws {
@@ -166,6 +183,29 @@ import Testing
         #expect(whole.draft.note == "Евроопт")
         #expect(!whole.issues.contains(.amountMissing))
         #expect(ReceiptGrouping.drafts(from: result.items, mode: .perItem, receipt: result.receipt, formatter: F.formatter) == result.items)
+    }
+
+    @Test func singleWithoutTotalLeavesAmountEmptyWhenItemHasNone() throws {
+        let result = try receipt()
+        let noTotal = ReceiptSummary(store: "Евроопт")
+        let whole = try #require(ReceiptGrouping.drafts(from: result.items, mode: .single, receipt: noTotal, formatter: F.formatter).first)
+        #expect(whole.amountMinor == nil)
+        #expect(whole.issues.contains(.amountMissing))
+        let priced = Array(result.items.dropLast())
+        #expect(ReceiptGrouping.drafts(from: priced, mode: .single, receipt: noTotal, formatter: F.formatter).first?.amountMinor == 3058)
+    }
+
+    @Test func byCategoryKeepsDifferentDaysApart() throws {
+        let result = try F.build(#"""
+        {"expenses":[
+          {"amount":"9","category":"c01","date":"2026-11-08","note":"Такси","source":""},
+          {"amount":"12","category":"c01","date":"2026-11-09","note":"Такси","source":""},
+          {"amount":"3","category":"c01","date":"2026-11-08","note":"Метро","source":""}
+        ],"receipt":{"store":"Яндекс Go","date":null,"total":null},"unparsed":[]}
+        """#)
+        let drafts = ReceiptGrouping.drafts(from: result.items, mode: .byCategory, receipt: result.receipt, formatter: F.formatter)
+        #expect(drafts.map(\.amountMinor) == [1200, 1200])
+        #expect(drafts.map { $0.draft.date.resolved(now: F.now, calendar: F.calendar).formatted(.iso8601.year().month().day()) } == ["2026-11-08", "2026-11-09"])
     }
 
     @Test func mismatchNeedsTotalAndAllAmounts() throws {

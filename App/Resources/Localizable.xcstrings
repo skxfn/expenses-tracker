@@ -1273,6 +1273,60 @@
         }
       }
     },
+    "assistant.review.back.apply" : {
+      "comment" : "кнопка диалога",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to Request"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вернуться к запросу"
+          }
+        }
+      }
+    },
+    "assistant.review.back.confirm" : {
+      "comment" : "диалог «Изменить запрос». Черновики правили: возврат к вводу их сбросит",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the request? Your edits will be lost"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вернуться к запросу? Правки в тратах пропадут"
+          }
+        }
+      }
+    },
+    "assistant.review.back.keep" : {
+      "comment" : "кнопка диалога",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stay"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Остаться"
+          }
+        }
+      }
+    },
     "assistant.review.category.a11y.hint" : {
       "comment" : "подсказка плашки категории (VoiceOver)",
       "extractionState" : "manual",
@@ -10071,6 +10125,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Удалить ключ"
+          }
+        }
+      }
+    },
+    "settings.assistant.key.error" : {
+      "comment" : "строка под полем ключа. Keychain не сохранил ключ",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't save the key. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить ключ. Попробуйте ещё раз."
           }
         }
       }

@@ -9,9 +9,14 @@ import ExpenseCore
 struct AssistantSheet: View {
     var startsWithCamera = false
 
-    @State private var model = AssistantModel.make()
+    @State private var model: AssistantModel
     @State private var isConfirmingDiscard = false
     @Environment(\.dismiss) private var dismiss
+
+    /// `defaultDate` — дата из шита записи для трат, у которых модель даты не назвала.
+    init(defaultDate: EntryDate = .today) {
+        _model = State(initialValue: AssistantModel.make(defaultDate: defaultDate))
+    }
 
     var body: some View {
         NavigationStack {
@@ -37,9 +42,9 @@ struct AssistantSheet: View {
         }
     }
 
-    /// Черновики или отправленный запрос — закрытие спрашивает.
+    /// Введённый текст или фото, отправленный запрос, черновики — закрытие спрашивает.
     private var hasUnsavedWork: Bool {
-        model.review != nil || model.isSending
+        model.review != nil || model.isSending || model.hasInput
     }
 
     private func close() {

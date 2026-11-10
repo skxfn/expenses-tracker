@@ -8,6 +8,7 @@ import Testing
         ("https://claude-n-codex.com:8443/", "https://claude-n-codex.com:8443/v1/messages"),
         ("  https://claude-n-codex.com:8443/v1/ ", "https://claude-n-codex.com:8443/v1/messages"),
         ("https://gw.example/claude", "https://gw.example/claude/v1/messages"),
+        ("https://claude-n-codex.com:8443/v1/messages", "https://claude-n-codex.com:8443/v1/messages"),
     ])
     func anthropicEndpointIsNormalized(base: String, expected: String) {
         let configuration = AssistantConfiguration(preset: .custom, format: .anthropic, baseURL: base, model: "claude-sonnet-5")
@@ -19,6 +20,8 @@ import Testing
         let configuration = AssistantConfiguration(preset: .deepSeek)
         #expect(configuration.completionsURL?.absoluteString == "https://api.munito.ai/inference/v1/chat/completions")
         #expect(configuration.modelsURL?.absoluteString == "https://api.munito.ai/inference/v1/models")
+        let pasted = AssistantConfiguration(preset: .custom, format: .openAI, baseURL: "https://api.munito.ai/inference/v1/chat/completions/", model: "m")
+        #expect(pasted.completionsURL == configuration.completionsURL)
     }
 
     @Test(arguments: ["http://claude-n-codex.com:8443", "", "claude-n-codex.com", "https://"])

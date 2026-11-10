@@ -8198,6 +8198,51 @@
      "final": "Edit Request"
     },
     {
+     "id": "assistant.review.back.confirm",
+     "element": "диалог «Изменить запрос»",
+     "context": "Черновики правили: возврат к вводу их сбросит.",
+     "current": "Вернуться к запросу? Правки в тратах пропадут",
+     "proposed": "Back to the request? Your edits will be lost",
+     "alternatives": [],
+     "why": "ИИ-запись; Title Case у кнопок, предложение — у фраз (E-решения).",
+     "ref": "",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "Back to the request? Your edits will be lost"
+    },
+    {
+     "id": "assistant.review.back.apply",
+     "element": "кнопка диалога",
+     "context": "",
+     "current": "Вернуться к запросу",
+     "proposed": "Back to Request",
+     "alternatives": [],
+     "why": "ИИ-запись; Title Case у кнопок, предложение — у фраз (E-решения).",
+     "ref": "",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "Back to Request"
+    },
+    {
+     "id": "assistant.review.back.keep",
+     "element": "кнопка диалога",
+     "context": "",
+     "current": "Остаться",
+     "proposed": "Stay",
+     "alternatives": [],
+     "why": "ИИ-запись; Title Case у кнопок, предложение — у фраз (E-решения).",
+     "ref": "",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "Stay"
+    },
+    {
      "id": "assistant.review.save",
      "element": "главная кнопка",
      "context": "Число черновиков к записи.",
@@ -8571,6 +8616,21 @@
      "decision": "",
      "status": "added-dev",
      "final": "Save Key"
+    },
+    {
+     "id": "settings.assistant.key.error",
+     "element": "строка под полем ключа",
+     "context": "Keychain не сохранил ключ.",
+     "current": "Не удалось сохранить ключ. Попробуйте ещё раз.",
+     "proposed": "Couldn't save the key. Try again.",
+     "alternatives": [],
+     "why": "ИИ-запись; Title Case у кнопок, предложение — у фраз (E-решения).",
+     "ref": "",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "Couldn't save the key. Try again."
     },
     {
      "id": "settings.assistant.key.saved",

@@ -45,16 +45,22 @@ public enum ReceiptGrouping {
         return difference == 0 ? nil : difference
     }
 
+    /// Группа «По категориям»: траты разных дней не сливаются.
+    private struct GroupKey: Hashable {
+        let categoryID: UUID?
+        let date: EntryDate
+    }
+
     private static func byCategory(_ items: [AssistantDraft], store: String?, formatter: MoneyFormatter) -> [AssistantDraft] {
-        var order: [UUID?] = []
-        var groups: [UUID?: [AssistantDraft]] = [:]
+        var order: [GroupKey] = []
+        var groups: [GroupKey: [AssistantDraft]] = [:]
         var loose: [(position: Int, draft: AssistantDraft)] = []
         for (position, item) in items.enumerated() {
             guard item.amountMinor != nil else {
                 loose.append((position, item))
                 continue
             }
-            let key = item.draft.categoryID
+            let key = GroupKey(categoryID: item.draft.categoryID, date: item.draft.date)
             if groups[key] == nil { order.append(key) }
             groups[key, default: []].append(item)
         }
@@ -85,6 +91,7 @@ public enum ReceiptGrouping {
     }
 
     /// Одна трата из нескольких позиций: сумма, дата первой, заметка «Магазин: a, b, c +N».
+    /// Если у какой-то позиции нет суммы, поле суммы пустое: частичная сумма записалась бы заниженной.
     private static func merged(_ items: [AssistantDraft], store: String?, formatter: MoneyFormatter) -> AssistantDraft {
         let first = items[0]
         guard items.count > 1 else { return first }
@@ -100,7 +107,7 @@ public enum ReceiptGrouping {
         var issues = items.reduce(into: Set<DraftIssue>()) { $0.formUnion($1.issues) }
         if !missing { issues.remove(.amountMissing) }
         var draft = first.draft
-        draft.amountText = total > 0 ? amountText(min(total, Money.maxAmountMinor), formatter: formatter) : ""
+        draft.amountText = !missing && total > 0 ? amountText(min(total, Money.maxAmountMinor), formatter: formatter) : ""
         draft.note = note(for: items, store: store)
         return AssistantDraft(draft: draft, source: items.map(\.source).filter { !$0.isEmpty }.joined(separator: "\n"), issues: issues)
     }

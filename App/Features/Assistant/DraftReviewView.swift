@@ -29,6 +29,7 @@ struct DraftReviewView: View {
     @State private var newCategory: CategoryEditorMode?
     @State private var newCategoryDraftID: UUID?
     @State private var pendingMode: ReceiptGroupingMode?
+    @State private var isConfirmingBack = false
     @State private var saveError: String?
     @State private var saveCount = 0
     @Environment(\.modelContext) private var modelContext
@@ -73,7 +74,7 @@ struct DraftReviewView: View {
         .scrollDismissesKeyboard(.interactively)
         .safeAreaBar(edge: .bottom, spacing: 0) {
             HStack(spacing: Theme.Spacing.sm) {
-                Button("assistant.review.back", action: onEditInput)
+                Button("assistant.review.back", action: requestBack)
                     .buttonStyle(.glassCapsule())
                 Button(L10n.format("assistant.review.save", model.drafts.count), action: save)
                     .buttonStyle(.glassCapsule(.prominent))
@@ -92,6 +93,10 @@ struct DraftReviewView: View {
                 pendingMode = nil
             }
             Button("assistant.review.mode.keep", role: .cancel) { pendingMode = nil }
+        }
+        .confirmationDialog("assistant.review.back.confirm", isPresented: $isConfirmingBack, titleVisibility: .visible) {
+            Button("assistant.review.back.apply", role: .destructive, action: onEditInput)
+            Button("assistant.review.back.keep", role: .cancel) {}
         }
         .errorAlert($saveError)
         .sensoryFeedback(Haptic.success, trigger: saveCount)
@@ -197,6 +202,15 @@ struct DraftReviewView: View {
     }
 
     /// Смена режима пересобирает черновики из позиций: правки пропадут — спросить.
+    /// Правленые черновики при возврате к вводу пропадут — сначала спросить.
+    private func requestBack() {
+        if model.hasEdits {
+            isConfirmingBack = true
+        } else {
+            onEditInput()
+        }
+    }
+
     private func requestMode(_ mode: ReceiptGroupingMode) {
         if model.hasEdits {
             pendingMode = mode

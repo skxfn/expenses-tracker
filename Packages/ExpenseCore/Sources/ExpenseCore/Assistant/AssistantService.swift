@@ -24,14 +24,20 @@ public struct AssistantContext: Sendable {
     /// `ru` или `en` — на нём модель пишет заметки.
     public let noteLanguage: String
     public let formatter: MoneyFormatter
+    /// Дата трат, для которых модель даты не назвала: день, выбранный в шите записи перед ✦.
+    public let defaultDate: EntryDate
 
-    public init(catalog: AssistantCatalog, now: Date, calendar: Calendar, currencyCode: String, noteLanguage: String, formatter: MoneyFormatter) {
+    public init(
+        catalog: AssistantCatalog, now: Date, calendar: Calendar, currencyCode: String, noteLanguage: String,
+        formatter: MoneyFormatter, defaultDate: EntryDate = .today
+    ) {
         self.catalog = catalog
         self.now = now
         self.calendar = calendar
         self.currencyCode = currencyCode
         self.noteLanguage = noteLanguage
         self.formatter = formatter
+        self.defaultDate = defaultDate
     }
 }
 
@@ -66,8 +72,10 @@ public struct AssistantService: Sendable {
     public func parse(_ input: AssistantInput, context: AssistantContext) async throws -> AssistantResult {
         let request = try Self.request(for: input, context: context)
         let json = try await client.complete(request)
-        return try AssistantDraftBuilder(catalog: context.catalog, now: context.now, calendar: context.calendar, formatter: context.formatter)
-            .build(from: json)
+        return try AssistantDraftBuilder(
+            catalog: context.catalog, now: context.now, calendar: context.calendar, formatter: context.formatter, defaultDate: context.defaultDate
+        )
+        .build(from: json)
     }
 
     /// Короткий запрос для «Проверить подключение»: ответил ли сервер по схеме и за сколько.

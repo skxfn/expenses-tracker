@@ -4,15 +4,15 @@ import ExpenseCore
 extension AssistantModel {
     /// Модель шита. DEBUG: `-assistantStub YES` — ответы-заглушки без сети и ключа;
     /// `-debugAssistant text|receipt` — сразу отправить пример и открыть черновики.
-    static func make() -> AssistantModel {
+    static func make(defaultDate: EntryDate) -> AssistantModel {
         #if DEBUG
         if AssistantDebug.isStubbed {
-            let model = AssistantModel(keyStore: InMemoryAssistantKeyStore(key: "stub"), transport: AssistantDebug.StubTransport())
+            let model = AssistantModel(keyStore: InMemoryAssistantKeyStore(key: "stub"), transport: AssistantDebug.StubTransport(), defaultDate: defaultDate)
             if AssistantDebug.scenario == "text" { model.text = AssistantDebug.sampleText }
             return model
         }
         #endif
-        return AssistantModel()
+        return AssistantModel(defaultDate: defaultDate)
     }
 }
 

@@ -68,11 +68,15 @@ public struct AssistantConfiguration: Equatable, Sendable {
         endpointBase != nil && !model.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
-    /// Адрес без хвостовых `/`; только https. Для Anthropic срезается и `/v1` — путь `v1/messages` дописывает клиент.
+    /// Адрес без хвостовых `/`; только https. Путь запроса (`v1/messages`, `chat/completions`) дописывает клиент,
+    /// поэтому вставленный полный адрес запроса и `/v1` у Anthropic срезаются.
     public var endpointBase: URL? {
         var text = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         while text.hasSuffix("/") { text.removeLast() }
-        if format == .anthropic, text.lowercased().hasSuffix("/v1") { text.removeLast(3) }
+        let requestPaths = format == .anthropic ? ["/v1/messages", "/v1"] : ["/chat/completions"]
+        for path in requestPaths where text.lowercased().hasSuffix(path) {
+            text.removeLast(path.count)
+        }
         guard let url = URL(string: text), url.scheme?.lowercased() == "https", let host = url.host(), !host.isEmpty else {
             return nil
         }
