@@ -5,10 +5,13 @@ import ExpenseCore
 /// Вкладка «Статистика» (макеты `04-stats*`, `05-stats-range`; INTEGRATION §2.1, §2.2, §4.6–4.8, §6).
 ///
 /// Сверху на ауре — Large Title, шапка периода, сегмент и сводка; ниже бумажный лист с блоками:
-/// «Категории» (4 вида с раскрытием), «По дням» (у «Дня» — «По часам», у «Года» — по месяцам), «Темп»,
-/// «Привычки», «2026 по дням», «Крупнейшие траты». Раскрытая категория фильтрует сводку и все блоки под
-/// «Категориями» (пометка «только Продукты»). Тап по плитке на главной приходит `AppRouter.statisticsFocus`:
-/// период применяется сразу, категория раскрывается с анимацией.
+/// «Категории» (4 вида с раскрытием), журнал выбранной категории, «По дням» (у «Дня» — «По часам», у «Года» —
+/// по месяцам), «Темп», «Привычки», «2026 по дням», «Крупнейшие траты». Выбрать можно любую категорию,
+/// подкатегорию и «Без категории»: выбор фильтрует сводку и все блоки под «Категориями» (пометка «только Продукты»),
+/// а сразу под «Категориями» появляется журнал её трат. Графики интерактивны: выбранный отрезок, день или день
+/// недели показывает стеклянную подсказку, её шеврон открывает траты среза списком (`AppRoute.statisticsExpenses`).
+/// Тап по плитке на главной приходит `AppRouter.statisticsFocus`: период применяется сразу, категория
+/// раскрывается с анимацией.
 /// Траты читает и держит `StatisticsModel` (при появлении и после сохранений базы), не `@Query` в `body`.
 struct StatisticsView: View {
     @Query private var categories: [ExpenseCategory]
@@ -16,7 +19,8 @@ struct StatisticsView: View {
 
     @State private var selection: PeriodSelection
     @State private var model = StatisticsModel()
-    @State private var expandedID: UUID?
+    /// Выбор в разделе «Категории».
+    @State private var category: StatsCategorySelection?
     /// Категория из `statisticsFocus`: раскрывается после перехода, чтобы было видно анимацию.
     @State private var pendingExpansion: UUID?
 
@@ -38,7 +42,7 @@ struct StatisticsView: View {
             catalog: CategoryCatalogSnapshot(categories: categories),
             period: selection.period,
             now: selection.now,
-            expandedID: expandedID,
+            selection: category,
             hiddenIDs: pendingDeletion.hiddenIDs
         )
         let texts = StatsTexts(money: money, calendar: selection.calendar, now: selection.now)
@@ -70,13 +74,13 @@ struct StatisticsView: View {
         .task(id: pendingExpansion) {
             guard let id = pendingExpansion else { return }
             try? await Task.sleep(for: StatsLayout.focusExpansionDelay)
-            expandedID = id
+            category = .group(id)
             pendingExpansion = nil
         }
         #if DEBUG
         .onChange(of: model.categories) { _, data in
-            if expandedID == nil, let id = StatsDebugOptions.expansion(in: data) {
-                expandedID = id
+            if category == nil, let selection = StatsDebugOptions.selection(in: data) {
+                category = selection
             }
         }
         .task {
@@ -141,10 +145,20 @@ struct StatisticsView: View {
         StatsCategorySection(
             data: model.categories,
             view: $categoryView,
-            expandedID: $expandedID,
+            selection: $category,
             periodName: texts.periodName(model.period)
         )
         .id(StatsAnchor.categories)
+
+        if let journal = model.journal {
+            StatsJournalSection(
+                journal: journal,
+                filterMark: mark,
+                feed: HomeTexts(money: money, calendar: model.calendar, now: model.now),
+                onShowAll: { router.showStatisticsExpenses(model.journalRoute()) }
+            )
+            .id(StatsAnchor.journal)
+        }
 
         if let series = model.series {
             VStack(alignment: .leading, spacing: Theme.Spacing.md) {
@@ -154,7 +168,8 @@ struct StatisticsView: View {
                     period: model.period,
                     now: model.now,
                     averageMinor: series.step == .day ? model.summary.averagePerDayMinor : nil,
-                    texts: texts
+                    texts: texts,
+                    onShow: { router.showStatisticsExpenses(model.route(bucket: $0, step: series.step)) }
                 )
             }
             .id(StatsAnchor.days)
@@ -163,7 +178,9 @@ struct StatisticsView: View {
         if let pace = model.pace {
             VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
                 StatsSectionHeader(title: Text("stats.pace.heading"), filterMark: mark)
-                StatsPaceView(pace: pace, period: model.period, texts: texts)
+                StatsPaceView(pace: pace, period: model.period, texts: texts) {
+                    router.showStatisticsExpenses(model.route(dayContaining: $0))
+                }
             }
             .id(StatsAnchor.pace)
         }
@@ -175,7 +192,9 @@ struct StatisticsView: View {
                     filterMark: mark,
                     note: habits.hasEnoughData ? L10n.format("stats.habits.note", money.currencySymbol) : nil
                 )
-                StatsHabitsView(state: habits, texts: texts)
+                StatsHabitsView(state: habits, texts: texts) {
+                    router.showStatisticsExpenses(model.route(weekday: $0))
+                }
             }
             .id(StatsAnchor.habits)
         }
@@ -187,7 +206,8 @@ struct StatisticsView: View {
                     state: year,
                     now: model.now,
                     texts: texts,
-                    legend: CalendarStrings(money: money, calendar: model.calendar, now: model.now)
+                    legend: CalendarStrings(money: money, calendar: model.calendar, now: model.now),
+                    onShowDay: { router.showStatisticsExpenses(model.route(bucket: $0, step: .day)) }
                 )
             }
             .id(StatsAnchor.year)
@@ -212,7 +232,7 @@ struct StatisticsView: View {
     }
 
     private func filterMark(_ texts: StatsTexts) -> String? {
-        model.filterGroup.map(texts.filterMark)
+        model.filterName.map { texts.filterMark(name: $0) }
     }
 
     // MARK: - Пустые состояния
@@ -260,7 +280,7 @@ struct StatisticsView: View {
         guard let focus else { return }
         router.statisticsFocus = nil
         selection.apply(focus.period)
-        expandedID = nil
+        category = nil
         proxy.scrollTo(StatsAnchor.summary, anchor: .top)
         pendingExpansion = focus.groupID
     }
@@ -268,5 +288,5 @@ struct StatisticsView: View {
 
 /// Якоря прокрутки блоков (`-statsScroll` и переход из главной).
 enum StatsAnchor: String {
-    case summary, categories, days, pace, habits, year, top
+    case summary, categories, journal, days, pace, habits, year, top
 }

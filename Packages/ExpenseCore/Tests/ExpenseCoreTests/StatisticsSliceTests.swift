@@ -67,6 +67,25 @@ import Testing
         #expect(StatsCategorySelection.unassigned(groupID: Self.food).isSelected(parts[1]))
     }
 
+    @Test func tapsToggleSelection() throws {
+        let data = data
+        let food = try #require(data.group(Self.food))
+        let cafe = try #require(data.group(Self.cafe))
+        let market = food.parts[0], unassigned = food.parts[1]
+        typealias S = StatsCategorySelection
+
+        #expect(S.toggling(cafe, from: nil) == .group(Self.cafe))
+        #expect(S.toggling(cafe, from: .group(Self.food)) == .group(Self.cafe))
+        #expect(S.toggling(cafe, from: .group(Self.cafe)) == nil)
+        // Строка категории при выбранной подкатегории сворачивает к обзору.
+        #expect(S.toggling(food, from: .subcategory(Self.market, groupID: Self.food)) == nil)
+
+        #expect(S.toggling(market, of: food, from: .group(Self.food)) == .subcategory(Self.market, groupID: Self.food))
+        #expect(S.toggling(unassigned, of: food, from: .subcategory(Self.market, groupID: Self.food))
+            == .unassigned(groupID: Self.food))
+        #expect(S.toggling(market, of: food, from: .subcategory(Self.market, groupID: Self.food)) == .group(Self.food))
+    }
+
     @Test func selectionResolvesAgainstPeriod() {
         let data = data
         // Любая категория выбирается, в том числе без подкатегорий и «Без категории».

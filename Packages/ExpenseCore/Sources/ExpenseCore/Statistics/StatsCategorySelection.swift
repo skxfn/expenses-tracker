@@ -63,6 +63,22 @@ public enum StatsCategorySelection: Sendable, Hashable {
         case .group, .uncategorized: false
         }
     }
+
+    /// Касание категории (плитка, сегмент, строка): выбрать её; повторное касание выбранной — назад к обзору.
+    public static func toggling(_ group: CategoryVizGroup, from current: StatsCategorySelection?) -> StatsCategorySelection? {
+        let selection = StatsCategorySelection(group)
+        return current?.whole == selection ? nil : selection
+    }
+
+    /// Касание части раскрытой категории: выбрать её; повторное касание выбранной — вся категория.
+    public static func toggling(
+        _ part: CategoryVizPart,
+        of group: CategoryVizGroup,
+        from current: StatsCategorySelection?
+    ) -> StatsCategorySelection? {
+        guard let selection = StatsCategorySelection(part, of: group) else { return current }
+        return current == selection ? selection.whole : selection
+    }
 }
 
 extension CategoryVizData {

@@ -3,13 +3,15 @@ import ExpenseCore
 
 /// Список категорий под «Плитками», «Солнцем» и «Кольцом» (`04-stats`, `-drill`): строка 48 —
 /// плашка 36, имя SF 17, доля SF 13 («6%, подкатегорий нет»), сумма, шеврон у раскрываемых.
-/// Свёрнутые в «Ещё N» тоже здесь — всё остаётся касаемым. В раскрытом виде — строка категории
-/// с шевроном вниз и строки подкатегорий: плашка 28 оттенком, «69% категории».
+/// Свёрнутые в «Ещё N» тоже здесь — всё остаётся касаемым. Касание строки выбирает категорию (с подкатегориями —
+/// раскрывает), касание выбранной — назад к обзору. В раскрытом виде — строка категории с шевроном вниз и строки
+/// подкатегорий: плашка 28 оттенком, «69% категории»; касание подкатегории выбирает её (подсветка tint 12 %),
+/// повторное — вся категория. У выбранной категории без подкатегорий — только её строка.
 /// На AX-размерах сумма уходит под текст (как в `ExpenseRow`), иначе имя обрезается до «Ка…»; плашки растут
 /// только до `plaqueSizeLimit` — иначе имени не хватает места и оно рвётся по слогам («Про-дукты»).
 struct CategoryVizList: View {
     let data: CategoryVizData
-    @Binding var expandedID: UUID?
+    @Binding var selection: StatsCategorySelection?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.moneyFormatter) private var money
@@ -18,7 +20,9 @@ struct CategoryVizList: View {
     /// Самый крупный размер до AX: дальше плашка не растёт, растёт только текст.
     private static let plaqueSizeLimit = DynamicTypeSize.xxxLarge
 
-    private var expanded: CategoryVizGroup? { data.expandedGroup(expandedID) }
+    /// Выбранная категория (у подкатегории — её категория).
+    private var focus: CategoryVizGroup? { data.group(for: selection) }
+    private var expanded: CategoryVizGroup? { data.expandedGroup(focus?.id) }
     private var isStacked: Bool { dynamicTypeSize.isAccessibilitySize }
     private var textLineLimit: Int { isStacked ? 3 : 1 }
 
@@ -33,7 +37,7 @@ struct CategoryVizList: View {
             if let expanded {
                 VStack(spacing: 0) {
                     ForEach(Array(expanded.parts.enumerated()), id: \.element.id) { index, part in
-                        partRow(part, tone: expanded.tone, text: text)
+                        partRow(part, of: expanded, text: text)
                             .vizShade(index: index, visible: true)
                     }
                 }
@@ -42,21 +46,21 @@ struct CategoryVizList: View {
                 .transition(.asymmetric(insertion: .identity, removal: .opacity.animation(Motion.vizShadesOut)))
             }
         }
-        .animation(motion.shape, value: expandedID)
-        .vizCrossfade(on: expanded?.id)
+        .animation(motion.shape, value: data.resolved(selection))
+        .vizCrossfade(on: data.resolved(selection)?.whole)
     }
 
     private var groups: [CategoryVizGroup] {
-        expanded.map { [$0] } ?? data.groups
+        focus.map { [$0] } ?? data.groups
     }
 
     private func groupRow(_ group: CategoryVizGroup, text: VizText) -> some View {
         let isExpanded = expanded?.id == group.id
         return VizRowButton(
-            action: group.isExpandable ? { expandedID = isExpanded ? nil : group.id } : nil,
+            action: { selection = StatsCategorySelection.toggling(group, from: selection) },
             label: text.listLabel(group),
-            hint: isExpanded ? Text("stats.center.back.a11y.hint")
-                : (group.isExpandable ? Text("stats.list.group.a11y.hint") : nil)
+            hint: focus != nil ? Text("stats.center.back.a11y.hint")
+                : (group.isExpandable ? Text("stats.list.group.a11y.hint") : Text("stats.slice.a11y.hint"))
         ) {
             HStack(alignment: isStacked ? .top : .center, spacing: Theme.Spacing.md) {
                 CategoryPlaque(iconName: VizText.iconName(group), tone: group.tone)
@@ -92,7 +96,20 @@ struct CategoryVizList: View {
         }
     }
 
-    private func partRow(_ part: CategoryVizPart, tone: GouacheTone?, text: VizText) -> some View {
+    private func partRow(_ part: CategoryVizPart, of group: CategoryVizGroup, text: VizText) -> some View {
+        let isSelected = selection?.isSelected(part) == true
+        return VizRowButton(
+            action: { selection = StatsCategorySelection.toggling(part, of: group, from: selection) },
+            label: text.label(part),
+            hint: Text(isSelected ? "stats.list.sub.selected.a11y.hint" : "stats.slice.a11y.hint")
+        ) {
+            partRowContent(part, tone: group.tone, text: text)
+                .background { VizSelectionHighlight(tone: group.tone, isSelected: isSelected) }
+        }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func partRowContent(_ part: CategoryVizPart, tone: GouacheTone?, text: VizText) -> some View {
         HStack(alignment: isStacked ? .top : .center, spacing: Theme.Spacing.md + (Theme.Size.plaque - VizMetrics.listSubPlaque) / 2) {
             SubcategoryPlaque(part: part, tone: tone)
                 .dynamicTypeSize(...Self.plaqueSizeLimit)
@@ -117,8 +134,21 @@ struct CategoryVizList: View {
             }
         }
         .frame(minHeight: VizMetrics.listRow)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: text.label(part)))
+        .contentShape(Rectangle())
+    }
+}
+
+/// Подсветка выбранной строки подкатегории: tint категории 12 % (как save-reward ленты) на всю ширину строки
+/// с полями 8 за её краями.
+struct VizSelectionHighlight: View {
+    let tone: GouacheTone?
+    let isSelected: Bool
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: Theme.Radius.plaque, style: .continuous)
+            .fill(CategoryPaint.main(tone).opacity(isSelected ? Motion.saveHighlightOpacity : 0))
+            .padding(.horizontal, -Theme.Spacing.sm)
+            .accessibilityHidden(true)
     }
 }
 

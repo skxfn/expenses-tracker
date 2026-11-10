@@ -6,6 +6,8 @@ import ExpenseCore
 /// Прошлые — graphic, подсвеченный (под пальцем, иначе сегодняшний) — ink, будущие — чёрточки separator.
 /// Пунктир средней с подписью «в среднем 51,54», редкие подписи оси (1, 8, 15, 22, 29 и сегодня — полужирным,
 /// INTEGRATION §6) и скраббинг `chartXSelection` со стеклянной подсказкой «Сегодня 57,20 ⃅» (`stats.days.tip`).
+/// Выбранный касанием столбик закрепляется: подсказка остаётся у него с шевроном и открывает траты отрезка
+/// (`onShow`); касание того же столбика снимает закрепление. VoiceOver — то же действием столбика.
 struct StatsBarsChart: View {
     let series: StatsTimeSeries
     let period: StatsPeriod
@@ -13,9 +15,13 @@ struct StatsBarsChart: View {
     /// Линия средней; `nil` или 0 — без неё.
     var averageMinor: Int64?
     let texts: StatsTexts
+    /// Траты отрезка — списком; `nil` — без действия.
+    var onShow: ((StatsTimeBucket) -> Void)?
 
     @State private var selectedDate: Date?
     @State private var tooltipWidth: CGFloat = 0
+    /// Отрезок, выбранный последним касанием: подсказка остаётся у него и после того, как палец поднят.
+    @State private var pin = StatsPin<Int>()
     @Environment(\.moneyFormatter) private var money
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -96,6 +102,10 @@ struct StatsBarsChart: View {
         // При Reduce Motion подсказка переставляется без движения (§3.6).
         .animation(reduceMotion ? nil : Motion.chartTooltip, value: shownIndex)
         .sensoryFeedback(Haptic.selection, trigger: selectedIndex)
+        .onChange(of: selectedIndex) { old, new in
+            pin.track(from: old, to: new)
+        }
+        .onChange(of: series) { pin.reset() }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: texts.seriesAccessibility(period, step: series.step)))
         // Swift Charts объединяет много столбиков в диапазоны без сумм — свои элементы: отрезок и сумма
@@ -106,6 +116,12 @@ struct StatsBarsChart: View {
                     if isFuture(bucket) {
                         Color.clear
                             .accessibilityHidden(true)
+                    } else if let onShow, bucket.count > 0 {
+                        Rectangle()
+                            .accessibilityLabel(Text(verbatim: texts.bucketAccessibility(bucket, step: series.step)))
+                            .accessibilityHint(Text("stats.slice.a11y.hint"))
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityAction { onShow(bucket) }
                     } else {
                         Rectangle()
                             .accessibilityLabel(Text(verbatim: texts.bucketAccessibility(bucket, step: series.step)))
@@ -118,21 +134,20 @@ struct StatsBarsChart: View {
     // MARK: Подсказка
 
     /// Стеклянная подсказка дня над полем: «Сегодня» secondary + сумма графитом, обе SF 15/600.
+    /// У закреплённого отрезка с тратами — шеврон: касание открывает его траты.
     private func tooltip(_ bucket: StatsTimeBucket) -> some View {
-        HStack(spacing: Theme.Spacing.sm) {
-            Text(verbatim: texts.bucketTitle(bucket, step: series.step))
-                .foregroundStyle(Theme.secondary)
-            Text(verbatim: money.string(fromMinor: bucket.totalMinor))
-                .foregroundStyle(Theme.ink)
+        StatsSliceTip(action: tipAction(for: bucket)) {
+            StatsTipLine(
+                title: texts.bucketTitle(bucket, step: series.step),
+                value: money.string(fromMinor: bucket.totalMinor)
+            )
         }
-        .typeStyle(.callout)
-        .lineLimit(1)
-        .padding(.horizontal, Theme.Spacing.md + Theme.Spacing.xs)
-        .frame(minHeight: Theme.Size.dayHeader)
-        .glass(.inContent)
         .fixedSize()
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+    }
+
+    private func tipAction(for bucket: StatsTimeBucket) -> (() -> Void)? {
+        guard let onShow, bucket.count > 0, selectedIndex != nil || pin.value != nil else { return nil }
+        return { onShow(bucket) }
     }
 
     // MARK: Ось
@@ -192,8 +207,10 @@ struct StatsBarsChart: View {
         return index.flatMap { isFuture(buckets[$0]) ? nil : $0 }
     }
 
-    /// Подсвеченный отрезок: под пальцем, иначе сегодняшний.
-    private var shownIndex: Int? { selectedIndex ?? currentIndex }
+    /// Подсвеченный отрезок: под пальцем, иначе закреплённый, иначе сегодняшний.
+    private var shownIndex: Int? {
+        selectedIndex ?? pin.value.flatMap { buckets.indices.contains($0) ? $0 : nil } ?? currentIndex
+    }
 
     /// Ширина столбика: доля ширины дня (месяц, часы), а у недели, года и коротких периодов — не шире
     /// `barMaxWidth`, иначе 3–12 столбиков становятся плитами.

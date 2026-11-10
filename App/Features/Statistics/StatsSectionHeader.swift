@@ -39,6 +39,10 @@ nonisolated enum StatsLayout {
     static let yearRowGap: CGFloat = 3
     static let yearCellRadius: CGFloat = 1.5
     static let yearTodayLine: CGFloat = 1.5
+    /// Выбранный касанием день недели «Привычек» и клетка карты года — обводка графитом.
+    static let selectionLine: CGFloat = 2
+    /// Журнал выбранной категории: между днями (как в ленте — 16 до следующего заголовка).
+    static let journalDaySpacing: CGFloat = Theme.Spacing.md
 }
 
 extension DynamicTypeSize {

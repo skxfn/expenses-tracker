@@ -56,7 +56,12 @@ struct StatsTexts {
 
     /// Пометка отфильтрованного блока: «только Продукты».
     func filterMark(_ group: CategoryVizGroup) -> String {
-        L10n.format("viz.drill.filter", VizText.name(group))
+        filterMark(name: VizText.name(group))
+    }
+
+    /// Пометка по имени выбранного: «только Супермаркет», «только без подкатегории».
+    func filterMark(name: String) -> String {
+        L10n.format("viz.drill.filter", name)
     }
 
     // MARK: - Названия периода
@@ -252,6 +257,61 @@ struct StatsTexts {
             "stats.year.a11y",
             String(year.year), shared.spoken(year.scale.thresholds.last ?? 0), dates.dayMonth(first), dates.dayMonth(lastData)
         )
+    }
+
+    // MARK: - Срезы и подсказки
+
+    /// «Октябрь», не текущий год — «Октябрь 2025»: заголовок списка трат месяца.
+    func monthTitle(_ date: Date) -> String {
+        dates.monthTitle(calendar.component(.month, from: date)) + yearSuffix(date)
+    }
+
+    /// «По пятницам» / «On Fridays»: подсказка дня недели «Привычек» и заголовок его списка.
+    func weekdayTitle(_ weekday: Int) -> String {
+        dates.capitalized(dates.weekdayHabit(weekday))
+    }
+
+    /// «9 трат · 344 ⃅» (`stats.slice.meta`).
+    func sliceMeta(count: Int, totalMinor: Int64) -> String {
+        L10n.format("stats.slice.meta", count, money.string(fromMinor: totalMinor))
+    }
+
+    /// Плитка дня недели для VoiceOver: «Пятница — 86 рублей», в среднем за день (`stats.habits.a11y.item`).
+    func weekdayAccessibility(_ average: StatsWeekdayAverage) -> String {
+        dates.capitalized(L10n.format("stats.habits.a11y.item", dates.weekdayName(average.weekday), shared.spoken(average.averageMinor)))
+    }
+
+    /// Подсказка дня «Темпа»: «к 12 окт» (`stats.pace.tip.day`).
+    func paceTipDay(_ date: Date) -> String {
+        L10n.format("stats.pace.tip.day", dates.short(date))
+    }
+
+    /// «на **62,10 ⃅ больше**» / «на **…меньше**» / «примерно так же» (`stats.pace.tip.*`); `nil` — сравнивать не с чем.
+    func paceTipDifference(_ day: StatsPaceDay) -> AttributedString? {
+        guard let difference = day.differenceMinor else { return nil }
+        return paceDifference(day.trend, amount: money.string(fromMinor: difference, style: .difference))
+    }
+
+    /// День «Темпа» для VoiceOver: «к 12 октября, 642 рубля, к 12 сентября, 580 рублей, на 62 рубля больше».
+    func paceDayAccessibility(_ day: StatsPaceDay) -> String {
+        var parts = [L10n.format("stats.pace.tip.day", dates.dayMonth(day.current.date)), shared.spoken(day.current.cumulativeMinor)]
+        if let previous = day.previous {
+            parts += [L10n.format("stats.pace.tip.day", dates.dayMonth(previous.date)), shared.spoken(previous.cumulativeMinor)]
+        }
+        if let difference = day.differenceMinor,
+           let phrase = paceDifference(day.trend, amount: shared.spoken(MoneyFormatter.differenceMagnitude(difference))) {
+            parts.append(String(phrase.characters))
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    private func paceDifference(_ trend: StatsTrend?, amount: String) -> AttributedString? {
+        switch trend {
+        case .more: L10n.attributed("stats.pace.tip.more", amount)
+        case .less: L10n.attributed("stats.pace.tip.less", amount)
+        case .same: AttributedString(L10n.format("stats.pace.tip.same"))
+        default: nil
+        }
     }
 
     // MARK: - Внутреннее

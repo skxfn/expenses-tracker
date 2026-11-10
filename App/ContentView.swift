@@ -45,6 +45,11 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { pendingDeletion.commitNow() }
         }
+        .onChange(of: router.pendingRoute) { _, route in
+            guard let route else { return }
+            router.pendingRoute = nil
+            paths[router.tab, default: []].append(route)
+        }
         .errorAlert($pendingDeletion.errorMessage)
         #if DEBUG
         .task { await applyDebugRequests() }
@@ -132,6 +137,7 @@ struct ContentView: View {
     private func destination(_ route: AppRoute) -> some View {
         switch route {
         case .settings: SettingsView()
+        case .statisticsExpenses(let slice): StatsSliceListView(route: slice)
         }
     }
 

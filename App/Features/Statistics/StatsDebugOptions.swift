@@ -4,8 +4,9 @@ import ExpenseCore
 
 /// Аргументы запуска статистики для скриншотов без касаний (вместе с `-demoData YES -debugTab statistics`):
 /// - `-statsPeriod day|yesterday|week|year|range|past|pastYear` — период (`range` — 3 дня до вчера, как `05-stats-range`);
-/// - `-statsExpand YES|<имя>` — раскрыть самую крупную раскрываемую категорию или категорию по имени;
-/// - `-statsScroll categories|days|pace|habits|year|top` — прокрутить к блоку;
+/// - `-statsExpand YES|<имя>|uncategorized` — выбрать самую крупную раскрываемую категорию, категорию
+///   или подкатегорию по имени (в том числе без подкатегорий) или «Без категории»;
+/// - `-statsScroll categories|journal|days|pace|habits|year|top` — прокрутить к блоку;
 /// - `-statsFocus <имя>` — как тап по плитке на главной: `AppRouter.openStatistics` с прошлым месяцем и категорией;
 /// - вид категорий — ключ настроек напрямую: `-statsCategoryView tiles|strips|sun|ring`.
 enum StatsDebugOptions {
@@ -32,12 +33,22 @@ enum StatsDebugOptions {
         }
     }
 
-    /// Какую категорию раскрыть после загрузки данных; `nil` — не раскрывать.
-    static func expansion(in data: CategoryVizData, defaults: UserDefaults = .standard) -> UUID? {
+    /// Что выбрать после загрузки данных; `nil` — не выбирать.
+    static func selection(in data: CategoryVizData, defaults: UserDefaults = .standard) -> StatsCategorySelection? {
         guard let value = defaults.string(forKey: "statsExpand") else { return nil }
-        let expandable = data.groups.filter(\.isExpandable)
-        let named = expandable.first { $0.name == value }
-        return (named ?? (defaults.bool(forKey: "statsExpand") ? expandable.first : nil))?.id
+        if value == "uncategorized" {
+            return data.group(nil).map(StatsCategorySelection.init)
+        }
+        if let group = data.groups.first(where: { $0.name == value }) {
+            return StatsCategorySelection(group)
+        }
+        for group in data.groups {
+            if let part = group.parts.first(where: { $0.name == value }) {
+                return StatsCategorySelection(part, of: group)
+            }
+        }
+        guard defaults.bool(forKey: "statsExpand") else { return nil }
+        return data.groups.first(where: \.isExpandable).map(StatsCategorySelection.init)
     }
 
     /// Категория верхнего уровня по имени для `-statsFocus`; `nil` — аргумента нет или такой категории нет.

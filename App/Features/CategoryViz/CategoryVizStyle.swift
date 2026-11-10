@@ -77,6 +77,8 @@ nonisolated enum VizMetrics {
     static let centerAmountAccessibleMinScale: CGFloat = 0.6
     /// Переключатель видов в статистике (copy.json `stats.cats.heading`: 184 px).
     static let viewSwitcherWidth: CGFloat = 184
+    /// Выбрана подкатегория раскрытой категории — непрозрачность остальных оттенков в визуализации.
+    static let dimmedPartOpacity = 0.35
 }
 
 /// Кольцо категорий: радиусы, скругление концов и подписи-диски.

@@ -6,13 +6,22 @@ import ExpenseCore
 /// «октябрь — сентябрь — прогноз» и накопительные кривые: текущая ink, прошлая graphic, прогноз — точками
 /// до конца периода. У прошедшего периода вместо прогноза — итог («итог за сентябрь»).
 /// Мало данных (`StatsThresholds`) — строка `stats.fewData.pace` вместо графика.
+/// Касание и ведение пальцем по графику выбирают день: вертикаль, точки на обеих кривых и стеклянная подсказка
+/// в свободном верхнем углу поля — накопленное к этому дню сейчас и в прошлом периоде и разница; выбор
+/// закрепляется, шеврон подсказки открывает траты дня (`onShowDay`). VoiceOver — adjustable по дням.
 struct StatsPaceView: View {
     let pace: StatsPaceState
     let period: StatsPeriod
     let texts: StatsTexts
+    /// Траты дня — списком; `nil` — без действия.
+    var onShowDay: ((Date) -> Void)?
 
+    @State private var selectedX: Double?
+    /// Выбранный день (номер с 1): остаётся и после того, как палец поднят.
+    @State private var pin = StatsPin<Int>()
     @Environment(\.moneyFormatter) private var money
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         if pace.hasEnoughData {
@@ -139,6 +148,9 @@ struct StatsPaceView: View {
                 point(today.dayNumber, today.cumulativeMinor, color: Theme.ink, size: StatsLayout.pacePoint)
             }
             endPoint
+            if let day = shownDay {
+                selectionMarks(day)
+            }
             // Подписи оси — аннотациями на нулевой линии: подпись последнего дня ось Swift Charts не рисует.
             ForEach(axisLabels, id: \.day) { label in
                 PointMark(x: .value("x", Double(label.day)), y: .value("y", 0.0))
@@ -165,12 +177,100 @@ struct StatsPaceView: View {
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
         .chartLegend(.hidden)
+        .chartXSelection(value: $selectedX)
+        // Подсказка — слоем в верхнем левом углу поля: накопительные кривые растут вправо вверх, угол свободен.
+        // В аннотациях Swift Charts стекло не рисуется (AGENTS.md).
+        .chartOverlay(alignment: .topLeading) { proxy in
+            GeometryReader { geometry in
+                if let day = shownDay.flatMap(pace.comparison.day), let plotFrame = proxy.plotFrame {
+                    let frame = geometry[plotFrame]
+                    tip(day)
+                        .fixedSize()
+                        .offset(x: frame.minX, y: frame.minY)
+                }
+            }
+        }
         // Подписи — не крупнее AX1, место под ними растёт вместе с ними: иначе подписи у концов кривых режутся краем.
         .vizDynamicTypeLimit()
         .frame(height: StatsLayout.paceHeight)
         .padding(.bottom, dynamicTypeSize.chartScaled(StatsLayout.paceAxisSpace, relativeTo: .footnote))
+        .animation(reduceMotion ? nil : Motion.chartTooltip, value: shownDay)
+        .sensoryFeedback(Haptic.selection, trigger: selectedDay)
+        .onChange(of: selectedDay) { old, new in pin.track(from: old, to: new) }
+        .onChange(of: pace) { pin.reset() }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: texts.paceAccessibility(pace, period: period)))
+        .accessibilityValue(Text(verbatim: shownDay.flatMap(pace.comparison.day).map(texts.paceDayAccessibility) ?? ""))
+        .accessibilityHint(selectedSlice != nil ? Text("stats.slice.a11y.hint") : Text(verbatim: ""))
+        .accessibilityAdjustableAction(adjust)
+        .accessibilityAction {
+            if let date = selectedSlice { onShowDay?(date) }
+        }
+    }
+
+    // MARK: Выбор дня
+
+    /// День под пальцем, иначе закреплённый; только дни текущей кривой (с 1).
+    private var shownDay: Int? { selectedDay ?? pin.value }
+
+    /// День под пальцем: ближайший к точке касания, в пределах текущей кривой.
+    private var selectedDay: Int? {
+        guard let selectedX, !current.isEmpty else { return nil }
+        return min(max(Int(selectedX.rounded()), 1), current.count)
+    }
+
+    /// Дата закреплённого дня, если в сам день были траты: есть что открыть списком.
+    private var selectedSlice: Date? {
+        guard onShowDay != nil, let day = shownDay.flatMap(pace.comparison.day), day.dayMinor > 0 else { return nil }
+        return day.current.date
+    }
+
+    /// VoiceOver: смахивание вверх / вниз — следующий / предыдущий день.
+    private func adjust(_ direction: AccessibilityAdjustmentDirection) {
+        guard !current.isEmpty else { return }
+        let day = pin.value ?? (direction == .increment ? 0 : current.count + 1)
+        switch direction {
+        case .increment: pin.select(min(day + 1, current.count))
+        case .decrement: pin.select(max(day - 1, 1))
+        @unknown default: break
+        }
+    }
+
+    /// Вертикаль дня и точки на обеих кривых.
+    @ChartContentBuilder
+    private func selectionMarks(_ dayNumber: Int) -> some ChartContent {
+        RuleMark(x: .value("x", Double(dayNumber)), yStart: .value("y", 0.0), yEnd: .value("y", yMax))
+            .foregroundStyle(Theme.graphic)
+            .lineStyle(StrokeStyle(lineWidth: 1))
+        if let day = pace.comparison.day(dayNumber) {
+            if let previous = day.previous {
+                point(dayNumber, previous.cumulativeMinor, color: Theme.graphic, size: StatsLayout.pacePoint * 0.8)
+            }
+            point(dayNumber, day.current.cumulativeMinor, color: Theme.ink, size: StatsLayout.pacePoint)
+        }
+    }
+
+    /// «к 12 окт  642,10 ⃅» графитом, «к 12 сен  580,00 ⃅» secondary и «на 62,10 ⃅ больше».
+    private func tip(_ day: StatsPaceDay) -> some View {
+        StatsSliceTip(action: selectedSlice.map { date in { onShowDay?(date) } }) {
+            VStack(alignment: .leading, spacing: 2) {
+                StatsTipLine(
+                    title: texts.paceTipDay(day.current.date),
+                    value: money.string(fromMinor: day.current.cumulativeMinor)
+                )
+                if let previous = day.previous {
+                    StatsTipLine(
+                        title: texts.paceTipDay(previous.date),
+                        value: money.string(fromMinor: previous.cumulativeMinor),
+                        valueColor: Theme.secondary
+                    )
+                }
+                if let difference = texts.paceTipDifference(day) {
+                    StatsPhrase(text: difference)
+                        .lineLimit(1)
+                }
+            }
+        }
     }
 
     private func line(_ point: StatsCumulativePoint, series: String, color: Color, style: StrokeStyle) -> some ChartContent {
