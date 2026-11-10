@@ -113,7 +113,15 @@ struct StatsTipLine: View {
     var valueColor: Color = Theme.ink
 
     var body: some View {
-        HStack(spacing: Theme.Spacing.sm) {
+        // Не влезает в строку (AX-размеры) — значение под подписью, а не «По четверг… 3 траты · 20…».
+        ViewThatFits(in: .horizontal) {
+            line(HStackLayout(spacing: Theme.Spacing.sm))
+            line(VStackLayout(alignment: .leading, spacing: 2))
+        }
+    }
+
+    private func line(_ layout: some Layout) -> some View {
+        layout {
             Text(verbatim: title)
                 .foregroundStyle(Theme.secondary)
             Text(verbatim: value)

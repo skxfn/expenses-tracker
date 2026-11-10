@@ -3,7 +3,7 @@ import SwiftUI
 import ExpenseCore
 
 /// Траты среза статистики (пуш из журнала категории, столбика, «Темпа», «Привычек», карты года): Large Title —
-/// что за срез («Кафе», «Четверг, 8 октября», «По пятницам»), под ним период или пометка «только Кафе», итог
+/// что за срез («Кафе», «Чт, 8 октября», «По пятницам»), под ним период или пометка «только Кафе», итог
 /// и число трат; дальше лента по дням, как на вкладке «Траты»: липкие стеклянные заголовки дней, строки
 /// `ExpenseRow`, тап — правка, свайпы «Повторить» / «Удалить». Траты читает `StatsSliceListModel`.
 struct StatsSliceListView: View {
@@ -104,7 +104,7 @@ struct StatsSliceListView: View {
     }
 }
 
-/// Заголовок и подпись среза: журнал категории — «Кафе» и «октябрь»; столбик дня — «Четверг, 8 октября»
+/// Заголовок и подпись среза: журнал категории — «Кафе» и «октябрь»; столбик дня — «Чт, 8 октября»
 /// и «только Кафе»; час — «14:00» и «8 октября»; месяц — «Октябрь»; день недели — «По пятницам» и «октябрь».
 struct StatsSliceTexts {
     let model: StatsSliceListModel
@@ -130,7 +130,8 @@ struct StatsSliceTexts {
         case .bucket(.week):
             return dates.range(slice.interval)
         case .bucket(.day):
-            return dates.full(start)
+            // День недели кратко: «Понедельник, 9 ноября» в Large Title не влезает.
+            return dates.full(start, shortWeekday: true)
         case .weekday(let weekday):
             return stats.weekdayTitle(weekday)
         }

@@ -82,7 +82,8 @@ struct StatsSectionHeader: View {
             if filterMark != nil || note != nil {
                 VStack(alignment: isStacked ? .leading : .trailing, spacing: 2) {
                     if let filterMark {
-                        StatsFilterMark(text: filterMark)
+                        // Под заголовком места на всю ширину — имя не режется до «только Тра…».
+                        StatsFilterMark(text: filterMark, maxWidth: isStacked ? nil : StatsLayout.filterMarkWidth)
                     }
                     if let note {
                         Text(verbatim: note)
@@ -101,6 +102,8 @@ struct StatsSectionHeader: View {
 /// «только Продукты»: блок отфильтрован раскрытой категорией. Длинное имя обрезается в конце.
 struct StatsFilterMark: View {
     let text: String
+    /// `nil` — без предела (пометка под заголовком на AX-размерах).
+    var maxWidth: CGFloat? = StatsLayout.filterMarkWidth
 
     var body: some View {
         Text(verbatim: text)
@@ -108,7 +111,7 @@ struct StatsFilterMark: View {
             .foregroundStyle(Theme.secondary)
             .lineLimit(1)
             .truncationMode(.tail)
-            .frame(maxWidth: StatsLayout.filterMarkWidth, alignment: .trailing)
+            .frame(maxWidth: maxWidth, alignment: .trailing)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
