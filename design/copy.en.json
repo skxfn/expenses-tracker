@@ -2007,6 +2007,38 @@
      "decision": "",
      "status": "new",
      "final": "No expenses"
+    },
+    {
+     "id": "cal.legend.filter",
+     "element": "подпись выделенной ступени шкалы",
+     "context": "Нажатие на капсулу шкалы под сеткой выделяет дни месяца этой ступени (остальные приглушаются), повторное — снимает. Подпись встаёт на место «⃅ за день»: число дней и границы ступени. Первая ступень — «до 25», последняя — «75+» (как в капсулах), ступень «0» — cal.legend.filter.none.",
+     "current": "5 дней · 25–50",
+     "proposed": "5 days · 25–50",
+     "alternatives": [],
+     "why": "Как ru: сначала число дней, границы — как в капсулах, без знака валюты. Добавлено при разработке; ждёт подтверждения владельцем.",
+     "ref": "",
+     "limit": "≈ 120 px, SF 15",
+     "risk": "трёхзначные пороги: «12 days · 125–250» ≈ 135 px — подпись уходит над капсулами",
+     "decision": "",
+     "status": "added-dev",
+     "final": "5 days · 25–50"
+    },
+    {
+     "id": "cal.legend.filter.none",
+     "element": "подпись выделенной ступени «0»",
+     "context": "Выделена капсула «0»: дни месяца без трат (будущие не считаются).",
+     "current": "4 дня без трат",
+     "proposed": "1 no-spend day | 4 no-spend days",
+     "alternatives": [
+      "4 days with no expenses"
+     ],
+     "why": "«No-spend day» — привычный термин личных финансов, короче «days with no expenses». Добавлено при разработке; ждёт подтверждения владельцем.",
+     "ref": "",
+     "limit": "≈ 120 px, SF 15",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "1 no-spend day | 4 no-spend days"
     }
    ]
   },
@@ -6652,6 +6684,66 @@
      "decision": "E1",
      "status": "new",
      "final": "Add expense on October 8"
+    },
+    {
+     "id": "cal.summary.stats.a11y",
+     "element": "действие строки-итога месяца",
+     "context": "VoiceOver: замена нажатию на итог месяца в строке-итоге — открывает статистику за этот месяц.",
+     "current": "действие: Открыть статистику за октябрь 2026",
+     "proposed": "action: Open Statistics for October 2026",
+     "alternatives": [],
+     "why": "Глагол + объект, Title Case, как у других действий (E1). Добавлено при разработке; ждёт подтверждения владельцем.",
+     "ref": "",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "action: Open Statistics for October 2026"
+    },
+    {
+     "id": "cal.summary.peak.a11y",
+     "element": "действие строки-итога месяца",
+     "context": "VoiceOver: замена нажатию на «больше всего 5 окт» в строке-итоге — выбирает этот день.",
+     "current": "действие: Показать 5 октября",
+     "proposed": "action: Show October 5",
+     "alternatives": [],
+     "why": "Короткое действие с полной датой. Добавлено при разработке; ждёт подтверждения владельцем.",
+     "ref": "",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "action: Show October 5"
+    },
+    {
+     "id": "cal.legend.step.a11y",
+     "element": "капсула шкалы",
+     "context": "VoiceOver: капсула шкалы — кнопка, выделяет дни месяца этой ступени. Первая ступень — «меньше 25», последняя — «от 75 рублей» (cal.legend.a11y.below / .last), ступень «0» — cal.legend.filter.none («4 дня без трат»). Выбранная — трейт «выбрано».",
+     "current": "от 25 до 50: 5 дней · подсказка: Выделяет эти дни в календаре",
+     "proposed": "25 to 50: 5 days · hint: Highlights these days in the calendar",
+     "alternatives": [],
+     "why": "Ступень словами, как в cal.legend.a11y, и число дней из видимой подписи. Добавлено при разработке; ждёт подтверждения владельцем.",
+     "ref": "",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "25 to 50: 5 days · hint: Highlights these days in the calendar"
+    },
+    {
+     "id": "cal.day.group.a11y",
+     "element": "плашка категории в листе дня",
+     "context": "VoiceOver: плашка доли категории над тратами выбранного дня (если категорий в дне больше одной). Нажатие оставляет в листе только траты этой категории, повторное — все. Выбранная — трейт «выбрано».",
+     "current": "{Категория}, {сумма}, {доля}% трат дня · подсказка: Показывает только траты этой категории",
+     "proposed": "{Category}, {amount}, {share}% of the day’s expenses · hint: Shows only expenses in this category",
+     "alternatives": [],
+     "why": "Как stats.list.group.a11y, доля — от трат дня. Добавлено при разработке; ждёт подтверждения владельцем.",
+     "ref": "",
+     "limit": "",
+     "risk": "",
+     "decision": "",
+     "status": "added-dev",
+     "final": "{Category}, {amount}, {share}% of the day’s expenses · hint: Shows only expenses in this category"
     },
     {
      "id": "period.close.a11y",

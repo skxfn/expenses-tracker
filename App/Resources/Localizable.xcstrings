@@ -1111,6 +1111,42 @@
         }
       }
     },
+    "cal.day.group.a11y" : {
+      "comment" : "плашка категории в листе дня. VoiceOver: плашка доли категории над тратами выбранного дня (если категорий в дне больше одной). Нажатие оставляет в листе только траты этой категории, повторное — все. Выбранная — трейт «выбрано». Аргументы: %1$@ — имя; %2$@ — сумма (a11y.money); %3$@ — доля D7",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@, %3$@ of the day’s expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@, %3$@ трат дня"
+          }
+        }
+      }
+    },
+    "cal.day.group.a11y.hint" : {
+      "comment" : "copy.json cal.day.group.a11y: плашка категории в листе дня. VoiceOver: плашка доли категории над тратами выбранного дня (если категорий в дне больше одной). Нажатие оставляет в листе только траты этой категории, повторное — все. Выбранная — трейт «выбрано»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows only expenses in this category"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывает только траты этой категории"
+          }
+        }
+      }
+    },
     "cal.day.max.a11y" : {
       "comment" : "хвост у самого дорогого дня. VoiceOver: хвост у самого затратного дня. Аргументы: %@ — имя клетки дня (cal.day.a11y)",
       "extractionState" : "manual",
@@ -1273,6 +1309,24 @@
         }
       }
     },
+    "cal.legend.a11y.between" : {
+      "comment" : "copy.json cal.legend.step.a11y: капсула шкалы. VoiceOver: капсула шкалы — кнопка, выделяет дни месяца этой ступени. Первая ступень — «меньше 25», последняя — «от 75 рублей» (cal.legend.a11y.below / .last), ступень «0» — cal.legend.filter.none («4 дня без трат»). Выбранная — трейт «выбрано». Аргументы: %1$@, %2$@ — границы ступени («25», «50»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ to %2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "от %1$@ до %2$@"
+          }
+        }
+      }
+    },
     "cal.legend.a11y.from" : {
       "comment" : "copy.json cal.legend.a11y: шкала заливки. VoiceOver: шкала. Аргументы: %@ — порог",
       "extractionState" : "manual",
@@ -1305,6 +1359,134 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "от %@ рублей"
+          }
+        }
+      }
+    },
+    "cal.legend.filter" : {
+      "comment" : "подпись выделенной ступени шкалы. Нажатие на капсулу шкалы под сеткой выделяет дни месяца этой ступени (остальные приглушаются), повторное — снимает. Подпись встаёт на место «⃅ за день»: число дней и границы ступени. Первая ступень — «до 25», последняя — «75+» (как в капсулах), ступень «0» — cal.legend.filter.none. Аргументы: %1$lld — дней месяца на ступени; %2$@ — границы ступени: cal.legend.range, у первой ступени — cal.legend.items.below, у последней — cal.legend.items.from",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@days@ · %2$@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@days@ · %2$@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg день"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дня"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дней"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дня"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "cal.legend.filter.none" : {
+      "comment" : "подпись выделенной ступени «0». Выделена капсула «0»: дни месяца без трат (будущие не считаются). Аргументы: %lld — дней месяца без трат",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld no-spend day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld no-spend days"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld день без трат"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дня без трат"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дней без трат"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дня без трат"
+                }
+              }
+            }
           }
         }
       }
@@ -1359,6 +1541,116 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@+"
+          }
+        }
+      }
+    },
+    "cal.legend.range" : {
+      "comment" : "copy.json cal.legend.filter: подпись выделенной ступени шкалы. Нажатие на капсулу шкалы под сеткой выделяет дни месяца этой ступени (остальные приглушаются), повторное — снимает. Подпись встаёт на место «⃅ за день»: число дней и границы ступени. Первая ступень — «до 25», последняя — «75+» (как в капсулах), ступень «0» — cal.legend.filter.none. Аргументы: %1$@, %2$@ — границы ступени без знака валюты («25», «50»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@–%2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@–%2$@"
+          }
+        }
+      }
+    },
+    "cal.legend.step.a11y" : {
+      "comment" : "капсула шкалы. VoiceOver: капсула шкалы — кнопка, выделяет дни месяца этой ступени. Первая ступень — «меньше 25», последняя — «от 75 рублей» (cal.legend.a11y.below / .last), ступень «0» — cal.legend.filter.none («4 дня без трат»). Выбранная — трейт «выбрано». Аргументы: %1$@ — ступень словами: cal.legend.a11y.between, у первой — cal.legend.a11y.below, у последней — cal.legend.a11y.last; %2$lld — дней месяца на ступени",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %#@days@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %#@days@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg день"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дня"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дней"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дня"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "cal.legend.step.a11y.hint" : {
+      "comment" : "copy.json cal.legend.step.a11y: капсула шкалы. VoiceOver: капсула шкалы — кнопка, выделяет дни месяца этой ступени. Первая ступень — «меньше 25», последняя — «от 75 рублей» (cal.legend.a11y.below / .last), ступень «0» — cal.legend.filter.none («4 дня без трат»). Выбранная — трейт «выбрано»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highlights these days in the calendar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выделяет эти дни в календаре"
           }
         }
       }
@@ -1469,6 +1761,42 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "cal.summary.peak.a11y" : {
+      "comment" : "действие строки-итога месяца. VoiceOver: замена нажатию на «больше всего 5 окт» в строке-итоге — выбирает этот день. Аргументы: %@ — дата («5 октября»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать %@"
+          }
+        }
+      }
+    },
+    "cal.summary.stats.a11y" : {
+      "comment" : "действие строки-итога месяца. VoiceOver: замена нажатию на итог месяца в строке-итоге — открывает статистику за этот месяц. Аргументы: %@ — месяц и год строчными («октябрь 2026»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Statistics for %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть статистику за %@"
           }
         }
       }
