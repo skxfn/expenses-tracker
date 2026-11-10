@@ -13,6 +13,7 @@ struct ContentView: View {
     @AppStorage(SettingsKeys.currencySymbolStyle) private var currencySymbolStyle = CurrencySymbolStyle.default
     @State private var router = AppRouter(tab: ContentView.initialTab)
     @State private var pendingDeletion = PendingDeletion()
+    @State private var autoBackup = AutoBackupModel()
     /// Стек пушей каждой вкладки.
     @State private var paths: [AppTab: [AppRoute]] = ContentView.initialPaths
     /// Нижний safe area экрана — чтобы поставить таб-бар на `tabbarBottom` от края.
@@ -43,14 +44,21 @@ struct ContentView: View {
             sheetContent(sheet)
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .background { pendingDeletion.commitNow() }
+            guard phase == .background else { return }
+            pendingDeletion.commitNow()
+            autoBackup.sceneDidEnterBackground(container: modelContext.container)
         }
+        // Автокопия в облако: после изменений данных или валюты (с задержкой) и при запуске, если не успела.
+        .onDataSaved { autoBackup.dataDidChange(container: modelContext.container) }
+        .onChange(of: currencyCode) { autoBackup.dataDidChange(container: modelContext.container) }
+        .task { autoBackup.resumePendingBackup(container: modelContext.container) }
         .errorAlert($pendingDeletion.errorMessage)
         #if DEBUG
         .task { await applyDebugRequests() }
         #endif
         .environment(router)
         .environment(pendingDeletion)
+        .environment(autoBackup)
         .environment(\.moneyFormatter, MoneyFormatter(currencyCode: currencyCode, locale: .app, symbolStyle: currencySymbolStyle))
     }
 

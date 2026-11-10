@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 import ExpenseCore
 
 /// «Настройки» (макет `12-settings`): пуш из ⚙ на главной, системная кнопка «Назад», Large Title,
-/// группы r 22 на бумаге с аурой. Валюта, категории, вид диаграммы на вкладке «Траты», резервная копия,
+/// группы r 22 на бумаге с аурой. Валюта, категории, вид диаграммы на вкладке «Траты», резервная копия и автокопия,
 /// язык, версия. Корень экрана — этот тип; стек навигации даёт оболочка.
 struct SettingsView: View {
     @AppStorage(SettingsKeys.currencyCode) private var currencyCode = CurrencySettings.fallbackCode
@@ -15,6 +15,7 @@ struct SettingsView: View {
     private var categories: [ExpenseCategory]
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(AutoBackupModel.self) private var autoBackup
     @State private var backup = BackupModel()
     @State private var auraTones: [GouacheTone] = []
 
@@ -29,6 +30,9 @@ struct SettingsView: View {
                     OverviewStylePicker(selection: $overviewStyle)
                 }
                 backupGroup
+                AutoBackupSection { session in
+                    backup.importSession = session
+                }
                 aboutGroup
                 #if DEBUG
                 DebugDataSection()
@@ -41,7 +45,9 @@ struct SettingsView: View {
         .settingsBackground(tones: auraTones)
         .navigationTitle("settings.title")
         .navigationBarTitleDisplayMode(.large)
-        .sheet(item: $backup.importSession) { session in
+        .sheet(item: $backup.importSession, onDismiss: {
+            autoBackup.restoreSheetDismissed(container: modelContext.container)
+        }) { session in
             ImportView(session: session)
         }
         .failureAlert($backup.alert)
@@ -160,6 +166,8 @@ struct SettingsView: View {
                 ) { result in
                     Task { await backup.openImportedFile(result) }
                 }
+                // Окно открывается в папке автокопии, если она выбрана: «Траты-последняя» — там.
+                .fileDialogDefaultDirectory(autoBackup.folderURL)
 
                 Button {
                     backup.isMonefyImporterPresented = true
@@ -251,6 +259,7 @@ struct SettingsView: View {
     NavigationStack {
         SettingsView()
     }
+    .environment(AutoBackupModel())
     .modelContainer(try! ModelContainerFactory.make(inMemory: true))
 }
 #endif
