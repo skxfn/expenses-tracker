@@ -243,6 +243,12 @@ final class AutoBackupModel {
                 defaults.set(refreshed, forKey: Keys.bookmark)
             }
             folderURL = folder.url
+            // Закладка ведёт и в переименованную или перенесённую папку — имя в настройках за ней.
+            let name = folder.displayName
+            if name != folderName {
+                folderName = name
+                defaults.set(name, forKey: Keys.folderName)
+            }
         } catch {
             setProblem(.folderUnavailable)
             return
