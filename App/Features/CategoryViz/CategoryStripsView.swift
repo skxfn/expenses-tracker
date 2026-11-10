@@ -5,10 +5,11 @@ import ExpenseCore
 /// `04-stats-strips`, `-drill`). Строка 56: плашка 36, имя 15/600 и доля 13/500, сумма справа;
 /// под именем «выкраска» 18 с дыркой, сегменты подкатегорий 14 с зазором 2, «без подкатегории» — штриховка.
 /// Раскрытие: строки подкатегорий, плашка категории — основной тон с иконкой paper-surface.
-/// «Ещё N» раскрывается на месте: свёрнутые категории остаются касаемыми.
+/// «Ещё N» раскрывается на месте: свёрнутые категории остаются касаемыми. Касание строки выбирает категорию,
+/// в раскрытой — подкатегорию (подсветка tint 12 %), повторное касание выбранной — назад.
 struct CategoryStripsView: View {
     let data: CategoryVizData
-    @Binding var expandedID: UUID?
+    @Binding var selection: StatsCategorySelection?
     /// Период для VoiceOver: «октябрь».
     var periodName: String = ""
 
@@ -16,7 +17,7 @@ struct CategoryStripsView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.moneyFormatter) private var money
 
-    private var expanded: CategoryVizGroup? { data.expandedGroup(expandedID) }
+    private var expanded: CategoryVizGroup? { data.expandedGroup(data.group(for: selection)?.id) }
 
     var body: some View {
         let rows = rows
@@ -28,7 +29,7 @@ struct CategoryStripsView: View {
                     .modifier(StripRowAppearance(row: row, partIndex: partIndex(of: row, at: index)))
             }
         }
-        .animation(motion.shape, value: expandedID)
+        .animation(motion.shape, value: data.resolved(selection))
         // Reduce Motion: строки «Ещё N» не выезжают — список сменяется кроссфейдом.
         .animation(reduceMotion ? nil : Motion.vizExpand, value: showsFolded)
         .vizCrossfade(on: expanded?.id)
@@ -67,6 +68,17 @@ struct CategoryStripsView: View {
         case .more(let more):
             moreRow(more, scale: scale, text: text)
         case .part(let part, let group):
+            partRow(part, of: group, scale: scale, text: text)
+        }
+    }
+
+    private func partRow(_ part: CategoryVizPart, of group: CategoryVizGroup, scale: Double, text: VizText) -> some View {
+        let isSelected = selection?.isSelected(part) == true
+        return VizRowButton(
+            action: { selection = StatsCategorySelection.toggling(part, of: group, from: selection) },
+            label: text.label(part),
+            hint: Text(isSelected ? "stats.list.sub.selected.a11y.hint" : "stats.slice.a11y.hint")
+        ) {
             StripRowLayout(
                 leading: {
                     CategoryIconImage(name: part.iconName ?? VizText.iconName(group))
@@ -84,9 +96,9 @@ struct CategoryStripsView: View {
                     fraction: scale > 0 ? Double(part.totalMinor) / scale : 0
                 )
             )
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(verbatim: text.label(part)))
+            .background { VizSelectionHighlight(tone: group.tone, isSelected: isSelected) }
         }
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func groupRow(_ group: CategoryVizGroup, isExpanded: Bool, scale: Double, text: VizText) -> some View {
@@ -109,7 +121,7 @@ struct CategoryStripsView: View {
             card: StripCard(segments: segments, fraction: scale > 0 ? Double(group.totalMinor) / scale : 0)
         )
         return VizRowButton(
-            action: group.isExpandable ? { expandedID = isExpanded ? nil : group.id } : nil,
+            action: { selection = StatsCategorySelection.toggling(group, from: selection) },
             label: isExpanded ? text.centerLabel(group) : text.listLabel(group),
             hint: hint(for: group, isExpanded: isExpanded)
         ) {
@@ -119,7 +131,7 @@ struct CategoryStripsView: View {
 
     private func hint(for group: CategoryVizGroup, isExpanded: Bool) -> Text? {
         if isExpanded { return Text("stats.center.back.a11y.hint") }
-        return group.isExpandable ? Text("stats.list.group.a11y.hint") : nil
+        return Text(group.isExpandable ? "stats.list.group.a11y.hint" : "stats.slice.a11y.hint")
     }
 
     private func moreRow(_ more: CategoryVizMore, scale: Double, text: VizText) -> some View {

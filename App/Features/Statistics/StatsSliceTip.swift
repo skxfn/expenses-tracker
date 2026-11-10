@@ -1,0 +1,132 @@
+import Charts
+import SwiftUI
+
+/// Стеклянная подсказка среза — одна на все графики статистики («По дням», «Темп», «Привычки», карта года):
+/// строки SF 15/600 (подпись secondary, значение графитом) в стекле `glass-in`, капсула 36; в несколько строк —
+/// скруглённый прямоугольник того же радиуса, как заголовок дня ленты. С действием — шеврон и касание: открывает
+/// список трат среза; стекло тогда с `.interactive()` — у него свой отклик нажатия.
+/// Подсказка только для глаз: VoiceOver получает то же через элементы графика (подписи, действия, adjustable).
+struct StatsSliceTip<Content: View>: View {
+    /// `nil` — без шеврона и касания (у среза нет трат или подсказка ещё не закреплена).
+    var action: (() -> Void)?
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Theme.Size.dayHeader / 2, style: .continuous)
+        if let action {
+            Button(action: action) {
+                label.glass(.key, in: shape)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHidden(true)
+        } else {
+            label
+                .glass(.inContent, in: shape)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var label: some View {
+        HStack(spacing: Theme.Spacing.sm) {
+            content()
+            if action != nil {
+                Image(systemName: "chevron.right")
+                    .imageScale(.small)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Theme.graphic)
+            }
+        }
+        .typeStyle(.callout)
+        .padding(.horizontal, Theme.Spacing.md + Theme.Spacing.xs)
+        .padding(.vertical, Theme.Spacing.sm)
+        .frame(minHeight: Theme.Size.dayHeader)
+        .contentShape(Rectangle())
+    }
+}
+
+/// Закреплённый выбор на графике: подсказка остаётся у выбранного и после того, как палец поднят.
+/// Скраббинг (`chartXSelection`) — `track`: закрепляется значение под пальцем, касание закреплённого без движения
+/// снимает закрепление. Касания плиток и клеток — `toggle`.
+struct StatsPin<Value: Equatable>: Equatable {
+    private(set) var value: Value?
+    /// Касание началось на закреплённом и не сдвинулось — по отпусканию закрепление снимается.
+    private var touchUnpins = false
+
+    mutating func track(from old: Value?, to new: Value?) {
+        switch (old, new) {
+        case (nil, let current?):
+            touchUnpins = current == value
+            value = current
+        case (let previous?, let current?) where previous != current:
+            touchUnpins = false
+            value = current
+        case (_?, nil):
+            if touchUnpins { value = nil }
+            touchUnpins = false
+        default:
+            break
+        }
+    }
+
+    mutating func toggle(_ new: Value) {
+        value = value == new ? nil : new
+    }
+
+    /// Выбор без касания: шаг VoiceOver (adjustable).
+    mutating func select(_ new: Value) {
+        value = new
+        touchUnpins = false
+    }
+
+    mutating func reset() {
+        value = nil
+        touchUnpins = false
+    }
+}
+
+/// Куда попадает тап по графику Swift Charts: x выбираемых значений (середины столбиков, дни) и поле — в координатах
+/// графика. Считается в `chartOverlay` (`ChartProxy` есть только там), а тап ловит одновременный жест у самого `Chart`:
+/// жест в слое поверх графика отнимает у него удержание и ведение пальцем.
+struct StatsChartTapTargets: Equatable {
+    private(set) var positions: [CGFloat] = []
+    private(set) var plot: CGRect = .zero
+
+    init() {}
+
+    init<Value: Plottable>(proxy: ChartProxy, geometry: GeometryProxy, values: [Value]) {
+        guard let plotFrame = proxy.plotFrame else { return }
+        plot = geometry[plotFrame]
+        positions = values.map { (proxy.position(forX: $0) ?? 0) + plot.minX }
+    }
+
+    /// Значение, ближайшее к `x`; `nil` — график ещё не разложен.
+    func nearest(to x: CGFloat) -> Int? {
+        positions.indices.min { abs(positions[$0] - x) < abs(positions[$1] - x) }
+    }
+}
+
+/// Строка подсказки: подпись secondary и значение графитом («Сегодня  57,20 ⃅»).
+struct StatsTipLine: View {
+    let title: String
+    let value: String
+    var valueColor: Color = Theme.ink
+
+    var body: some View {
+        // Не влезает в строку (AX-размеры) — значение под подписью, а не «По четверг… 3 траты · 20…».
+        ViewThatFits(in: .horizontal) {
+            line(HStackLayout(spacing: Theme.Spacing.sm))
+            line(VStackLayout(alignment: .leading, spacing: 2))
+        }
+    }
+
+    private func line(_ layout: some Layout) -> some View {
+        layout {
+            Text(verbatim: title)
+                .foregroundStyle(Theme.secondary)
+            Text(verbatim: value)
+                .foregroundStyle(valueColor)
+        }
+        .lineLimit(1)
+    }
+}

@@ -52,6 +52,11 @@ struct ContentView: View {
         .onDataSaved { autoBackup.dataDidChange(container: modelContext.container) }
         .onChange(of: currencyCode) { autoBackup.dataDidChange(container: modelContext.container) }
         .task { autoBackup.resumePendingBackup(container: modelContext.container) }
+        .onChange(of: router.pendingRoute) { _, route in
+            guard let route else { return }
+            router.pendingRoute = nil
+            paths[router.tab, default: []].append(route)
+        }
         .errorAlert($pendingDeletion.errorMessage)
         #if DEBUG
         .task { await applyDebugRequests() }
@@ -140,6 +145,7 @@ struct ContentView: View {
     private func destination(_ route: AppRoute) -> some View {
         switch route {
         case .settings: SettingsView()
+        case .statisticsExpenses(let slice): StatsSliceListView(route: slice)
         }
     }
 

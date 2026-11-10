@@ -158,10 +158,12 @@ public struct StatisticsEngine: Sendable {
         let sums = aggregate(records.filter(filter.matches), into: days)
         var dayCounts: [Int: Int] = [:]
         var totals: [Int: Int64] = [:]
+        var counts: [Int: Int] = [:]
         for (day, sum) in zip(days, sums) {
             let weekday = calendar.component(.weekday, from: day.start)
             dayCounts[weekday, default: 0] += 1
             totals[weekday, default: 0] += sum.total
+            counts[weekday, default: 0] += sum.count
         }
         return (0..<Self.daysInWeek).map { offset in
             let weekday = (calendar.firstWeekday - 1 + offset) % Self.daysInWeek + 1
@@ -171,6 +173,7 @@ public struct StatisticsEngine: Sendable {
                 weekday: weekday,
                 dayCount: dayCount,
                 totalMinor: total,
+                count: counts[weekday] ?? 0,
                 averageMinor: Money.divideRounded(total, by: dayCount)
             )
         }

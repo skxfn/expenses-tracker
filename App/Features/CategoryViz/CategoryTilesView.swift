@@ -18,11 +18,12 @@ enum CategoryVizMode: Hashable {
 /// «Плитки»: squarified treemap по сумме (DESIGN.md → «Плитки», `01-home`, `04-stats`, `04-stats-map-drill`).
 /// Плитка — основной тон, иконка в углу, сумма Unbounded 15 — только где помещается; в статистике ещё
 /// доля и имя. Раскрытие: плитка категории разрастается на всё поле, оттенки подкатегорий проявляются
-/// со стаггером, «без подкатегории» — штриховка.
+/// со стаггером, «без подкатегории» — штриховка. В статистике касание любой категории выбирает её, касание
+/// оттенка — подкатегорию (остальные оттенки приглушаются), повторное — всю категорию.
 struct CategoryTilesView: View {
     let data: CategoryVizData
-    /// Раскрытая категория (только статистика). Не раскрываемая и отсутствующая в данных — обзор.
-    @Binding var expandedID: UUID?
+    /// Выбор в статистике: категория с подкатегориями раскрывается; без подкатегорий и отсутствующая в данных — обзор.
+    @Binding var selection: StatsCategorySelection?
     var level: CategoryTilesLevel
     /// Период для VoiceOver: «октябрь» → «Плитки: траты за октябрь по категориям».
     var periodName: String
@@ -30,15 +31,15 @@ struct CategoryTilesView: View {
     /// Тап по плитке на главной (любая часть). В статистике тап раскрывает категорию.
     private let onHomeSelect: (CategoryVizItemID) -> Void
 
-    /// Статистика: подписи с долями и именами, раскрытие до подкатегорий.
+    /// Статистика: подписи с долями и именами, выбор категории и подкатегории, раскрытие до подкатегорий.
     init(
         data: CategoryVizData,
-        expandedID: Binding<UUID?>,
+        selection: Binding<StatsCategorySelection?>,
         level: CategoryTilesLevel = .subcategories,
         periodName: String = ""
     ) {
         self.data = data
-        _expandedID = expandedID
+        _selection = selection
         self.level = level
         self.periodName = periodName
         mode = .stats
@@ -48,7 +49,7 @@ struct CategoryTilesView: View {
     /// Главная: только суммы, без раскрытия; тап — колбэк.
     init(homeData data: CategoryVizData, periodName: String = "", onSelect: @escaping (CategoryVizItemID) -> Void) {
         self.data = data
-        _expandedID = .constant(nil)
+        _selection = .constant(nil)
         level = .subcategories
         self.periodName = periodName
         mode = .home
@@ -65,7 +66,7 @@ struct CategoryTilesView: View {
     }
 
     private var expanded: CategoryVizGroup? {
-        mode == .stats ? data.expandedGroup(expandedID) : nil
+        mode == .stats ? data.expandedGroup(data.group(for: selection)?.id) : nil
     }
 
     /// Категория, чьи оттенки на поле: раскрытая или только что свёрнутая (оттенки гаснут).
@@ -141,7 +142,9 @@ struct CategoryTilesView: View {
     private func select(_ id: CategoryVizItemID) {
         switch mode {
         case .home: onHomeSelect(id)
-        case .stats: if case .category(let groupID) = id { expandedID = groupID }
+        case .stats:
+            guard let group = data.groups.first(where: { CategoryVizItem.group($0).id == id }) else { return }
+            selection = StatsCategorySelection.toggling(group, from: selection)
         }
     }
 
@@ -154,24 +157,35 @@ struct CategoryTilesView: View {
         let rects = TileLayout.rects(group.parts.map { Double($0.totalMinor) }, in: container, gap: gap)
         let isVisible = expanded?.id == group.id
         let text = VizText(money: money)
+        let selectedPart = isVisible ? selection.flatMap { $0.isPart ? $0 : nil } : nil
         return ZStack(alignment: .topLeading) {
             ForEach(Array(group.parts.enumerated()), id: \.element.id) { index, part in
                 let rect = rects[index]
                 let corners = level == .subcategories
                     ? TileCorners.tile
                     : TileCorners(of: rect, in: container, outer: Theme.Radius.tile, inner: Theme.Radius.chipInner)
-                PartTile(part: part, tone: group.tone, corners: corners, size: rect.size, text: text,
-                         allowsLargeAmount: level == .subcategories && part.share >= VizMetrics.largeAmountMinShare)
-                    .frame(width: rect.width, height: rect.height)
-                    .offset(x: rect.minX, y: rect.minY)
-                    .animation(motion.shape, value: motionKey)
-                    .vizShade(index: index, visible: isVisible)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(verbatim: text.label(part)))
-                    .accessibilityHidden(!isVisible)
+                let isSelected = selectedPart?.isSelected(part) == true
+                VizRowButton(
+                    action: { selection = StatsCategorySelection.toggling(part, of: group, from: selection) },
+                    label: text.label(part),
+                    hint: Text(isSelected ? "stats.list.sub.selected.a11y.hint" : "stats.slice.a11y.hint"),
+                    pressScale: Motion.PressScale.tile
+                ) {
+                    PartTile(part: part, tone: group.tone, corners: corners, size: rect.size, text: text,
+                             allowsLargeAmount: level == .subcategories && part.share >= VizMetrics.largeAmountMinShare)
+                        .contentShape(corners.shape)
+                }
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .opacity(selectedPart != nil && !isSelected ? VizMetrics.dimmedPartOpacity : 1)
+                .animation(Motion.animation(Motion.select, reduceMotion: reduceMotion), value: selectedPart)
+                .frame(width: rect.width, height: rect.height)
+                .offset(x: rect.minX, y: rect.minY)
+                .animation(motion.shape, value: motionKey)
+                .vizShade(index: index, visible: isVisible)
+                .accessibilityHidden(!isVisible)
             }
         }
-        .allowsHitTesting(false)
+        .allowsHitTesting(isVisible)
     }
 }
 
@@ -251,7 +265,7 @@ private struct TileInteraction: ViewModifier {
         guard isActive else { return false }
         switch (mode, item) {
         case (.home, _): return true
-        case (.stats, .group(let group)): return group.isExpandable
+        case (.stats, .group): return true
         case (.stats, .more): return false
         }
     }
@@ -267,7 +281,8 @@ private struct TileInteraction: ViewModifier {
         switch (mode, item) {
         case (.home, .more): Text("home.more.a11y.hint")
         case (.home, .group): Text("home.map.tile.a11y.hint")
-        case (.stats, _): Text("stats.map.tile.a11y.hint")
+        case (.stats, .group(let group)): Text(group.isExpandable ? "stats.map.tile.a11y.hint" : "stats.slice.a11y.hint")
+        case (.stats, .more): Text("stats.map.tile.a11y.hint")
         }
     }
 }

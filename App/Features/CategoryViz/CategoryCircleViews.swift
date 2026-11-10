@@ -24,9 +24,11 @@ struct HomeCategoryRing<Phrase: View>: View {
             outerRing: nil,
             mode: .home,
             expandedID: nil,
+            selection: nil,
             fieldHeight: RingMetrics.home.fieldHeight,
             showsGrain: true,
-            onSelect: onSelect
+            onSelect: onSelect,
+            onSelectPart: { _, _ in }
         ) {
             VStack(spacing: Theme.Spacing.xs) {
                 RingCenterAmount(
@@ -49,58 +51,70 @@ struct HomeCategoryRing<Phrase: View>: View {
 
 /// «Кольцо» в статистике (`04-stats-ring`, `-drill`): поле 358 × 320, R ≈ 114 / r ≈ 83.
 /// В центре «412,30 · Br · 18 трат»; в раскрытом виде — «Категория, сумма», тап по центру — назад.
+/// Касание сегмента выбирает категорию, в раскрытой — подкатегорию (остальные оттенки приглушаются).
 struct CategoryRingView: View {
     let data: CategoryVizData
-    @Binding var expandedID: UUID?
+    @Binding var selection: StatsCategorySelection?
     var periodName: String = ""
 
     var body: some View {
+        let expanded = data.expandedGroup(data.group(for: selection)?.id)
         CircleVizBody(
             data: data,
             ring: .stats,
             outerRing: nil,
             mode: .stats,
-            expandedID: data.expandedGroup(expandedID)?.id,
+            expandedID: expanded?.id,
+            selection: data.resolved(selection),
             fieldHeight: VizMetrics.circleFieldHeight,
             showsGrain: false,
-            onSelect: select
+            onSelect: { selection = StatsCircleSelection.group($0, in: data, from: selection) },
+            onSelectPart: { selection = StatsCategorySelection.toggling($0, of: $1, from: selection) }
         ) {
-            StatsCircleCenter(data: data, expanded: data.expandedGroup(expandedID), ring: .stats) { expandedID = nil }
+            StatsCircleCenter(data: data, expanded: expanded, ring: .stats) { selection = nil }
         }
         .accessibilityLabel(Text(verbatim: L10n.format("stats.ring.a11y", VizText.sharesList(data))))
-    }
-
-    private func select(_ id: CategoryVizItemID) {
-        if case .category(let groupID) = id { expandedID = groupID }
     }
 }
 
 /// «Солнце» (`04-stats-sun`, `-drill`): поле 358 × 320, внутреннее кольцо категорий ≈ 71–100,
 /// внешнее подкатегорий ≈ 103–109 оттенками, «без подкатегории» — штриховка; подписи — диски 32–36.
 /// Раскрытие: категория занимает внутреннее кольцо, оттенки подкатегорий — на нём, внешнее гаснет.
+/// Касание выбирает категорию, в раскрытой — подкатегорию, как у «Кольца».
 struct CategorySunView: View {
     let data: CategoryVizData
-    @Binding var expandedID: UUID?
+    @Binding var selection: StatsCategorySelection?
     var periodName: String = ""
 
     var body: some View {
+        let expanded = data.expandedGroup(data.group(for: selection)?.id)
         CircleVizBody(
             data: data,
             ring: .sunInner,
             outerRing: .sunOuter,
             mode: .stats,
-            expandedID: data.expandedGroup(expandedID)?.id,
+            expandedID: expanded?.id,
+            selection: data.resolved(selection),
             fieldHeight: VizMetrics.circleFieldHeight,
             showsGrain: false,
-            onSelect: select
+            onSelect: { selection = StatsCircleSelection.group($0, in: data, from: selection) },
+            onSelectPart: { selection = StatsCategorySelection.toggling($0, of: $1, from: selection) }
         ) {
-            StatsCircleCenter(data: data, expanded: data.expandedGroup(expandedID), ring: .sunInner) { expandedID = nil }
+            StatsCircleCenter(data: data, expanded: expanded, ring: .sunInner) { selection = nil }
         }
         .accessibilityLabel(Text(verbatim: L10n.format("stats.sun.a11y", VizText.sharesList(data))))
     }
+}
 
-    private func select(_ id: CategoryVizItemID) {
-        if case .category(let groupID) = id { expandedID = groupID }
+/// Касание сегмента или диска категории в кругах статистики: выбрать её («Ещё N» не выбирается).
+private enum StatsCircleSelection {
+    static func group(
+        _ id: CategoryVizItemID,
+        in data: CategoryVizData,
+        from current: StatsCategorySelection?
+    ) -> StatsCategorySelection? {
+        guard let group = data.groups.first(where: { CategoryVizItem.group($0).id == id }) else { return current }
+        return StatsCategorySelection.toggling(group, from: current)
     }
 }
 
@@ -116,9 +130,12 @@ private struct CircleVizBody<Center: View>: View {
     let mode: CategoryVizMode
     /// Раскрытая категория (уже проверенная: есть в данных и раскрывается).
     let expandedID: UUID?
+    /// Выбор статистики (приведённый к данным): выбранная подкатегория раскрытой категории подсвечена.
+    let selection: StatsCategorySelection?
     let fieldHeight: CGFloat
     let showsGrain: Bool
     let onSelect: (CategoryVizItemID) -> Void
+    let onSelectPart: (CategoryVizPart, CategoryVizGroup) -> Void
     @ViewBuilder let center: () -> Center
 
     @State private var lastExpandedID: UUID?
@@ -243,25 +260,47 @@ private struct CircleVizBody<Center: View>: View {
         let discAngles = RadialLabelLayout.spread(partArcs.map(\.mid), minSeparation: separation)
         let isVisible = expanded?.id == group.id
         let text = VizText(money: money)
+        let selectedPart = isVisible ? selection.flatMap { $0.isPart ? $0 : nil } : nil
+        let dimming = Motion.animation(Motion.select, reduceMotion: reduceMotion)
         return ZStack {
             ForEach(Array(group.parts.enumerated()), id: \.element.id) { index, part in
+                let sector = AnnularSector(partArcs[index], inner: ring.inner, outer: ring.outer, corner: ring.corner)
                 VizPartFill(part: part, tone: group.tone)
-                    .clipShape(AnnularSector(partArcs[index], inner: ring.inner, outer: ring.outer, corner: ring.corner))
+                    .clipShape(sector)
+                    .contentShape(sector)
+                    .onTapGesture { onSelectPart(part, group) }
+                    .opacity(partOpacity(part, selected: selectedPart))
+                    .animation(dimming, value: selectedPart)
                     .vizShade(index: index, visible: isVisible)
                     .accessibilityHidden(true)
             }
             // Диски — по сумме: VoiceOver идёт по порядку элементов; место на круге — по оттенку (`index`).
             ForEach(Array(partsBySum(group).enumerated()), id: \.element.part.id) { rank, entry in
-                VizDisc(content: partDiscContent(entry.part, of: group), radius: ring.discRadius)
-                    .offset(discOffset(discAngles[entry.index]))
-                    .vizShade(index: entry.index, visible: isVisible)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(verbatim: text.label(entry.part)))
-                    .accessibilitySortPriority(VizText.sortPriority(rank, count: group.parts.count))
-                    .accessibilityHidden(!isVisible)
+                let isSelected = selectedPart?.isSelected(entry.part) == true
+                VizRowButton(
+                    action: { onSelectPart(entry.part, group) },
+                    label: text.label(entry.part),
+                    hint: Text(isSelected ? "stats.list.sub.selected.a11y.hint" : "stats.slice.a11y.hint"),
+                    pressScale: Motion.PressScale.circle
+                ) {
+                    VizDisc(content: partDiscContent(entry.part, of: group), radius: ring.discRadius)
+                }
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .opacity(partOpacity(entry.part, selected: selectedPart))
+                .animation(dimming, value: selectedPart)
+                .offset(discOffset(discAngles[entry.index]))
+                .vizShade(index: entry.index, visible: isVisible)
+                .accessibilitySortPriority(VizText.sortPriority(rank, count: group.parts.count))
+                .accessibilityHidden(!isVisible)
             }
         }
-        .allowsHitTesting(false)
+        .allowsHitTesting(isVisible)
+    }
+
+    /// Выбрана подкатегория — остальные оттенки приглушены.
+    private func partOpacity(_ part: CategoryVizPart, selected: StatsCategorySelection?) -> Double {
+        guard let selected, !selected.isSelected(part) else { return 1 }
+        return VizMetrics.dimmedPartOpacity
     }
 
     private func partDiscContent(_ part: CategoryVizPart, of group: CategoryVizGroup) -> VizDisc.Content {
@@ -321,7 +360,7 @@ private struct CircleVizBody<Center: View>: View {
     private func isTappable(_ item: CategoryVizItem) -> Bool {
         switch (mode, item) {
         case (.home, _): true
-        case (.stats, .group(let group)): group.isExpandable
+        case (.stats, .group): true
         case (.stats, .more): false
         }
     }
@@ -342,7 +381,8 @@ private struct CircleVizBody<Center: View>: View {
         switch (mode, item) {
         case (.home, .more): Text("home.more.a11y.hint")
         case (.home, .group): Text("home.map.tile.a11y.hint")
-        case (.stats, _): isTappable(item) ? Text("stats.map.tile.a11y.hint") : nil
+        case (.stats, .group(let group)): Text(group.isExpandable ? "stats.map.tile.a11y.hint" : "stats.slice.a11y.hint")
+        case (.stats, .more): nil
         }
     }
 }
