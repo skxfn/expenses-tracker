@@ -274,7 +274,7 @@ private struct DraftRow: View {
                 .accessibilityHint(Text("assistant.review.category.a11y.hint"))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    TextField("assistant.review.note.placeholder", text: Binding(get: { item.draft.note }, set: onNote))
+                    TextField("assistant.review.note.placeholder", text: Binding(get: { item.draft.note }, set: { onNote($0) }))
                         .typeStyle(.body)
                         .foregroundStyle(Theme.ink)
                     HStack(spacing: 4) {
@@ -296,7 +296,7 @@ private struct DraftRow: View {
                 Spacer(minLength: Theme.Spacing.sm)
 
                 HStack(spacing: 4) {
-                    TextField("assistant.review.amount.placeholder", text: Binding(get: { item.draft.amountText }, set: onAmount))
+                    TextField("assistant.review.amount.placeholder", text: Binding(get: { item.draft.amountText }, set: { onAmount($0) }))
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .typeStyle(.amountInlineStrong)
