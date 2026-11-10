@@ -22,6 +22,10 @@ struct StatsBarsChart: View {
     @State private var tooltipWidth: CGFloat = 0
     /// Отрезок, выбранный последним касанием: подсказка остаётся у него и после того, как палец поднят.
     @State private var pin = StatsPin<Int>()
+    /// Середины отрезков и верх поля в координатах графика — для тапа по столбику (`ChartProxy` есть только в слое).
+    @State private var tapTargets = StatsChartTapTargets()
+    /// Касание — удержание с выбором графика: тап при отпускании закрепление не переключает.
+    @State private var isScrubbing = false
     @Environment(\.moneyFormatter) private var money
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -82,10 +86,12 @@ struct StatsBarsChart: View {
         // Подсказка — слоем поверх графика, а не аннотацией: в аннотациях Swift Charts стекло не рисуется.
         .chartOverlay(alignment: .topLeading) { proxy in
             GeometryReader { geometry in
+                let targets = StatsChartTapTargets(proxy: proxy, geometry: geometry, values: buckets.map(\.middle))
+                Color.clear
+                    .onChange(of: targets, initial: true) { tapTargets = targets }
                 if let shownIndex, let plotFrame = proxy.plotFrame {
                     let bucket = buckets[shownIndex]
-                    let middle = bucket.interval.start.addingTimeInterval(bucket.interval.duration / 2)
-                    let x = (proxy.position(forX: middle) ?? 0) + geometry[plotFrame].minX
+                    let x = (proxy.position(forX: bucket.middle) ?? 0) + geometry[plotFrame].minX
                     tooltip(bucket)
                         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { tooltipWidth = $0 }
                         .offset(
@@ -95,15 +101,24 @@ struct StatsBarsChart: View {
                 }
             }
         }
+        // Тап закрепляет столбик: выбор `chartXSelection` в прокрутке срабатывает только от удержания, а обычный тап
+        // перехватывает. Жест одновременный, поэтому удержание его не теряет; подсказка над полем — не в счёт.
+        .simultaneousGesture(SpatialTapGesture().onEnded { value in
+            guard !isScrubbing, value.location.y >= tapTargets.plot.minY,
+                  let index = tapTargets.nearest(to: value.location.x), !isFuture(buckets[index]) else { return }
+            pin.toggle(index)
+        })
         // Подписи оси и подсказка — не крупнее AX1: иначе подсказка закрывает столбики, а крайняя подпись режется.
         .vizDynamicTypeLimit()
         .frame(height: StatsLayout.barsHeight)
         .padding(.top, StatsLayout.tooltipSpace)
         // При Reduce Motion подсказка переставляется без движения (§3.6).
         .animation(reduceMotion ? nil : Motion.chartTooltip, value: shownIndex)
-        .sensoryFeedback(Haptic.selection, trigger: selectedIndex)
+        .sensoryFeedback(Haptic.selection, trigger: shownIndex)
         .onChange(of: selectedIndex) { old, new in
             pin.track(from: old, to: new)
+            // Тап при отпускании приходит раньше этого `onChange` и видит, что касание было удержанием.
+            isScrubbing = new != nil
         }
         .onChange(of: series) { pin.reset() }
         .accessibilityElement(children: .contain)
@@ -235,4 +250,9 @@ struct StatsBarsChart: View {
     static func chartValue(_ minor: Int64) -> Double {
         Double(minor) / Double(Money.minorUnitsPerMajor)
     }
+}
+
+private extension StatsTimeBucket {
+    /// Середина отрезка — x столбика.
+    var middle: Date { interval.start.addingTimeInterval(interval.duration / 2) }
 }

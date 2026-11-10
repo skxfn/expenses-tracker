@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 
 /// Стеклянная подсказка среза — одна на все графики статистики («По дням», «Темп», «Привычки», карта года):
@@ -81,6 +82,27 @@ struct StatsPin<Value: Equatable>: Equatable {
     mutating func reset() {
         value = nil
         touchUnpins = false
+    }
+}
+
+/// Куда попадает тап по графику Swift Charts: x выбираемых значений (середины столбиков, дни) и поле — в координатах
+/// графика. Считается в `chartOverlay` (`ChartProxy` есть только там), а тап ловит одновременный жест у самого `Chart`:
+/// жест в слое поверх графика отнимает у него удержание и ведение пальцем.
+struct StatsChartTapTargets: Equatable {
+    private(set) var positions: [CGFloat] = []
+    private(set) var plot: CGRect = .zero
+
+    init() {}
+
+    init<Value: Plottable>(proxy: ChartProxy, geometry: GeometryProxy, values: [Value]) {
+        guard let plotFrame = proxy.plotFrame else { return }
+        plot = geometry[plotFrame]
+        positions = values.map { (proxy.position(forX: $0) ?? 0) + plot.minX }
+    }
+
+    /// Значение, ближайшее к `x`; `nil` — график ещё не разложен.
+    func nearest(to x: CGFloat) -> Int? {
+        positions.indices.min { abs(positions[$0] - x) < abs(positions[$1] - x) }
     }
 }
 

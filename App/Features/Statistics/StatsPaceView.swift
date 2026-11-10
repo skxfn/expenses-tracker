@@ -19,6 +19,12 @@ struct StatsPaceView: View {
     @State private var selectedX: Double?
     /// Выбранный день (номер с 1): остаётся и после того, как палец поднят.
     @State private var pin = StatsPin<Int>()
+    /// Дни текущей кривой и поле в координатах графика — для тапа по дню (`ChartProxy` есть только в слое).
+    @State private var tapTargets = StatsChartTapTargets()
+    /// Размер подсказки в углу поля: тап по ней — не тап по графику.
+    @State private var tipSize: CGSize = .zero
+    /// Касание — удержание с выбором графика: тап при отпускании закрепление не переключает.
+    @State private var isScrubbing = false
     @Environment(\.moneyFormatter) private var money
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -182,21 +188,37 @@ struct StatsPaceView: View {
         // В аннотациях Swift Charts стекло не рисуется (AGENTS.md).
         .chartOverlay(alignment: .topLeading) { proxy in
             GeometryReader { geometry in
+                let targets = StatsChartTapTargets(proxy: proxy, geometry: geometry, values: current.map { Double($0.dayNumber) })
+                Color.clear
+                    .onChange(of: targets, initial: true) { tapTargets = targets }
                 if let day = shownDay.flatMap(pace.comparison.day), let plotFrame = proxy.plotFrame {
                     let frame = geometry[plotFrame]
                     tip(day)
                         .fixedSize()
+                        .onGeometryChange(for: CGSize.self) { $0.size } action: { tipSize = $0 }
                         .offset(x: frame.minX, y: frame.minY)
                 }
             }
         }
+        // Тап закрепляет день: выбор `chartXSelection` в прокрутке срабатывает только от удержания, а обычный тап
+        // перехватывает. Жест одновременный, поэтому удержание его не теряет; подсказка в углу — не в счёт.
+        .simultaneousGesture(SpatialTapGesture().onEnded { value in
+            let tip = CGRect(origin: tapTargets.plot.origin, size: shownDay == nil ? .zero : tipSize)
+            guard !isScrubbing, !tip.contains(value.location),
+                  let index = tapTargets.nearest(to: value.location.x) else { return }
+            pin.toggle(current[index].dayNumber)
+        })
         // Подписи — не крупнее AX1, место под ними растёт вместе с ними: иначе подписи у концов кривых режутся краем.
         .vizDynamicTypeLimit()
         .frame(height: StatsLayout.paceHeight)
         .padding(.bottom, dynamicTypeSize.chartScaled(StatsLayout.paceAxisSpace, relativeTo: .footnote))
         .animation(reduceMotion ? nil : Motion.chartTooltip, value: shownDay)
-        .sensoryFeedback(Haptic.selection, trigger: selectedDay)
-        .onChange(of: selectedDay) { old, new in pin.track(from: old, to: new) }
+        .sensoryFeedback(Haptic.selection, trigger: shownDay)
+        .onChange(of: selectedDay) { old, new in
+            pin.track(from: old, to: new)
+            // Тап при отпускании приходит раньше этого `onChange` и видит, что касание было удержанием.
+            isScrubbing = new != nil
+        }
         .onChange(of: pace) { pin.reset() }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: texts.paceAccessibility(pace, period: period)))
