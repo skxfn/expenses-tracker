@@ -16,9 +16,21 @@
       "category": "utilities",
       "appPermissions": {
         "entitlements": [],
-        "privacy": {}
+        "privacy": {
+          "NSCameraUsageDescription": "The camera is used to scan receipts into expenses"
+        }
       },
       "versions": [
+        {
+          "version": "1.3.0",
+          "buildVersion": "10",
+          "date": "2026-11-10T12:42:49Z",
+          "localizedDescription": "Версия 1.3.0 (сборка 10)",
+          "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.3.0/Expenses-1.3.0.ipa",
+          "size": 7877120,
+          "sha256": "849e997d1a78b6b6a235cf580d4d404331b5d0a1240da086d1ca93c899a66346",
+          "minOSVersion": "26.0"
+        },
         {
           "version": "1.2.4",
           "buildVersion": "9",
@@ -110,11 +122,11 @@
           "minOSVersion": "17.0"
         }
       ],
-      "version": "1.2.4",
-      "versionDate": "2026-10-13T12:58:53Z",
-      "versionDescription": "Версия 1.2.4 (сборка 9)",
-      "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.2.4/Expenses-1.2.4.ipa",
-      "size": 7410627
+      "version": "1.3.0",
+      "versionDate": "2026-11-10T12:42:49Z",
+      "versionDescription": "Версия 1.3.0 (сборка 10)",
+      "downloadURL": "https://github.com/skxfn/expenses-tracker/releases/download/v1.3.0/Expenses-1.3.0.ipa",
+      "size": 7877120
     }
   ],
   "news": []
