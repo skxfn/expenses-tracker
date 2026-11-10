@@ -186,6 +186,8 @@ EMPHASIZED = {
     "stats.habits.insight.even": "по аналогии: вывод «почти поровну»",
     "stats.cats.caption.group.none": "по аналогии с stats.cats.caption.group: «без категории: 18%»",
     "stats.cats.caption.sub.none": "по аналогии с stats.cats.caption.sub: «без подкатегории: 40%»",
+    "stats.pace.tip.more": "по аналогии с home.compare.more: «62,10 ⃅ больше»",
+    "stats.pace.tip.less": "по аналогии с home.compare: «62,10 ⃅ меньше»",
 }
 
 # --- Главная ---------------------------------------------------------------
@@ -328,6 +330,15 @@ split("cal.cell.amount", " · ", "64,10", f"1{NB}234",
       note="до 10 000 — число без ключа (§5.2)")
 skip("cal.day.title", "данные: полная дата («Четверг, 8 октября»), при переполнении — «Вс, 30 сентября»")
 fmt("cal.addForDay", "Записать на %@", f"8{NB}окт", args=DATE)
+custom("cal.legend.filter",
+       {"cal.legend.filter": Key("%#@days@ · %2$@", subs={"days": (1, DAY)},
+                                 args="%1$lld — дней месяца на ступени; %2$@ — границы ступени: cal.legend.range, "
+                                      "у первой ступени — cal.legend.items.below, у последней — cal.legend.items.from"),
+        "cal.legend.range": Key("%1$@–%2$@", args="%1$@, %2$@ — границы ступени без знака валюты («25», «50»)")},
+       lambda t: t("cal.legend.filter", 5, t("cal.legend.range", "25", "50")), kind="fmt",
+       also=[lambda t, it: (t("cal.legend.filter", 3, t("cal.legend.items.below", "25")).split(" · ")[1], it["context"]),
+             lambda t, it: (t("cal.legend.filter", 2, t("cal.legend.items.from", "75")).split(" · ")[1], it["context"])])
+plural("cal.legend.filter.none", whole(DAY, suffix=" без трат"), 4, args="%lld — дней месяца без трат")
 
 # --- Статистика ------------------------------------------------------------
 
@@ -400,6 +411,16 @@ alias("stats.empty.period",
 split("stats.fewData", " · ",
       ("stats.fewData.pace", Key("Прогноз появится через пару дней")),
       ("stats.fewData.habits", Key("Привычки появятся после двух недель трат")))
+plural("stats.journal.more", whole(TRATA, "Ещё "), 40, args="%lld — сколько трат не поместилось в начало журнала")
+plural("stats.slice.count", whole(TRATA), 9, args="%lld — число трат среза")
+custom("stats.slice.meta",
+       {"stats.slice.meta": Key("%#@count@ · %2$@", subs={"count": (1, TRATA)},
+                                args="%1$lld — число трат; %2$@ — их сумма (фразой, с ⃅)")},
+       lambda t: t("stats.slice.meta", 9, f"344{NB}{SIGN}"), kind="fmt")
+fmt("stats.pace.tip.day", "к %@", f"12{NB}окт", args="%@ — дата D7 («12 окт»; в VoiceOver — «12 октября»)")
+fmt("stats.pace.tip.more", "на **%@ больше**", f"62,10{NB}{SIGN}",
+    args="%@ — разница по модулю (MoneyFormatter.Style.difference; в VoiceOver — a11y.money)")
+fmt("stats.pace.tip.less", "на **%@ меньше**", f"62,10{NB}{SIGN}", args="как у stats.pace.tip.more")
 
 # --- Категории -------------------------------------------------------------
 
@@ -429,6 +450,20 @@ skip("permissions", "пометка: разрешений Info.plist нет")
 # --- Резервная копия -------------------------------------------------------
 
 fmt("settings.backup.last", "Последняя копия: %@", f"1{NB}окт", args="%@ — дата D7 (год — если не текущий)")
+split("settings.autoBackup.last", " · ",
+      ("settings.autoBackup.last.today", Key("Последняя копия: сегодня, %@", args="%@ — время HH:mm"), ("14:05",)),
+      ("settings.autoBackup.last.yesterday", Key("Последняя копия: вчера, %@", args="%@ — время HH:mm"), ("14:05",)),
+      ("settings.autoBackup.last.date", Key("Последняя копия: %1$@, %2$@",
+                                            args="%1$@ — дата D7 («8 ноя», год — если не текущий); %2$@ — время HH:mm"),
+       (f"8{NB}ноя", "14:05")))
+custom("autoBackup.existing.message",
+       {"autoBackup.existing.message": Key(f"Копия от %1$@{NB}— %#@count@. Её можно восстановить или заменить текущими данными.",
+                                           subs={"count": (2, TRATA)},
+                                           args="%1$@ — дата копии D7; %2$lld — число трат в копии")},
+       lambda t: t("autoBackup.existing.message", f"8{NB}ноя", 1234), kind="fmt")
+split("autoBackup.pickError", " / ",
+      ("autoBackup.pickError.title", Key("Не удалось выбрать папку")),
+      ("autoBackup.pickError.message", Key("Выберите другую папку.")))
 custom("app.backupFileName",
        {"app.backupFileName": Key("Траты %@", args="%@ — дата yyyy-MM-dd; .json дописывает система")},
        lambda t: t("app.backupFileName", "2026-10-09") + ".json", kind="fmt")
@@ -622,6 +657,22 @@ custom("cal.legend.a11y",
                                                   t("cal.legend.a11y.from", "50"), t("cal.legend.a11y.last", "75")])))
 fmt("cal.day.sheet.a11y", "Траты за %@", f"8{NB}октября", args="%@ — дата («8 октября»)")
 fmt("cal.addForDay.a11y", "Записать трату на %@", f"8{NB}октября", args="%@ — дата («8 октября»)")
+custom("cal.summary.stats.a11y",
+       {"cal.summary.stats.a11y": Key("Открыть статистику за %@", args="%@ — месяц и год строчными («октябрь 2026»)")},
+       lambda t: "действие: " + t("cal.summary.stats.a11y", "октябрь 2026"), kind="fmt", note="имя действия (accessibilityAction)")
+custom("cal.summary.peak.a11y", {"cal.summary.peak.a11y": Key("Показать %@", args="%@ — дата («5 октября»)")},
+       lambda t: "действие: " + t("cal.summary.peak.a11y", f"5{NB}октября"), kind="fmt",
+       note="имя действия (accessibilityAction)")
+custom("cal.legend.step.a11y",
+       {"cal.legend.step.a11y": Key("%1$@: %#@days@", subs={"days": (2, DAY)},
+                                    args="%1$@ — ступень словами: cal.legend.a11y.between, у первой — cal.legend.a11y.below, "
+                                         "у последней — cal.legend.a11y.last; %2$lld — дней месяца на ступени"),
+        "cal.legend.a11y.between": Key("от %1$@ до %2$@", args="%1$@, %2$@ — границы ступени («25», «50»)"),
+        "cal.legend.step.a11y.hint": Key("Выделяет эти дни в календаре")},
+       lambda t: (t("cal.legend.step.a11y", t("cal.legend.a11y.between", "25", "50"), 5)
+                  + HINT + t("cal.legend.step.a11y.hint")))
+a11y("cal.day.group.a11y", "%1$@, %2$@, %3$@ трат дня", "Показывает только траты этой категории",
+     ("{Категория}", "{сумма}", "{доля}%"), label_args="%1$@ — имя; %2$@ — сумма (a11y.money); %3$@ — доля D7")
 fmt("period.start.a11y", "Начало периода: %@", f"24{NB}сентября", args="%@ — дата («24 сентября»)")
 custom("period.end.a11y",
        {"period.end.a11y": Key("Конец периода: %@", args="%@ — дата («8 октября»)"),
@@ -678,6 +729,8 @@ split("stats.legacy.chartAxes", " · ",
       ("stats.legacy.chartAxes.amount", Key("Сумма")), ("stats.legacy.chartAxes.date", Key("Дата")),
       ("stats.legacy.chartAxes.weekday", Key("День недели")), ("stats.legacy.chartAxes.average", Key("В среднем за день")))
 fmt("stats.dayView.a11y", "Траты по часам за %@", f"8{NB}октября", args="%@ — дата («8 октября»)")
+a11y("stats.slice.a11y", "{срез}, {сумма}", "Показывает траты")
+a11y("stats.list.sub.selected.a11y", "{Подкатегория}, {сумма}, {доля}% категории", "Показывает всю категорию")
 custom("viz.more.a11y",
        {"viz.more.a11y": Key("Ещё %#@cats@, каждая меньше 3%%: %2$@; вместе %3$@, %4$@", subs={"cats": (1, CAT)},
                              args="%1$lld — число свёрнутых категорий; %2$@ — имена через запятую; %3$@ — сумма (a11y.money); %4$@ — доля D7")},
@@ -860,6 +913,11 @@ en("cal.legend.items",
 en("cal.cell.amount", {"cal.cell.amount.thousands": Key("%lldK")},
    lambda t: " · ".join(["64.10", "1,234", t("cal.cell.amount.thousands", 12)]))
 en_fmt("cal.addForDay", "Add Expense on %@", f"Oct{NB}8")
+en("cal.legend.filter",
+   {"cal.legend.filter": Key("%#@days@ · %2$@", subs={"days": (1, EN_DAY)}), "cal.legend.range": Key("%1$@–%2$@")},
+   lambda t: t("cal.legend.filter", 5, t("cal.legend.range", "25", "50")))
+en("cal.legend.filter.none", {"cal.legend.filter.none": Key(plural=whole(en_noun("no-spend day", "no-spend days")))},
+   en_forms("cal.legend.filter.none", [(1,), (4,)]))
 
 # --- Статистика ------------------------------------------------------------
 
@@ -909,6 +967,14 @@ en("viz.more", {"viz.more": Key(plural=whole(MORE_CAT))}, lambda t: t("viz.more"
 en("viz.center.groups", {}, en_forms("viz.center.groups", [(SIGN, 1), (SIGN, 18)], key="stats.center.meta"))
 en_fmt("viz.drill.share", "%@ of all expenses", "35%")
 en_fmt("viz.drill.filter", "%@ only", "Groceries")
+en("stats.journal.more", {"stats.journal.more": Key(plural=whole(en_noun("More Expense", "More Expenses")))},
+   en_forms("stats.journal.more", [(1,), (40,)]))
+en("stats.slice.count", {"stats.slice.count": Key(plural=whole(EXPENSE))}, en_forms("stats.slice.count", [(1,), (9,)]))
+en("stats.slice.meta", {"stats.slice.meta": Key("%#@count@ · %2$@", subs={"count": (1, EXPENSE)})},
+   en_forms("stats.slice.meta", [(1, f"12{S}"), (9, f"344{S}")]))
+en_fmt("stats.pace.tip.day", "by %@", f"Oct{NB}12")
+en_fmt("stats.pace.tip.more", "**%@ more**", f"62.10{S}")
+en_fmt("stats.pace.tip.less", "**%@ less**", f"62.10{S}")
 en("stats.empty.period", {},
    lambda t: f"{t('home.empty.period.in.past', 'September')} · {t('home.empty.period.action')}")
 
@@ -923,6 +989,16 @@ en("cat.unarchive", {"cat.unarchive": Key("Unarchive"), "cat.unarchive.short": K
 
 en_fmt("settings.currency.value", "%1$@ · %2$@", "Belarusian Ruble", SIGN)
 en_fmt("settings.backup.last", "Last backup: %@", f"Oct{NB}1")
+en("settings.autoBackup.last",
+   {"settings.autoBackup.last.today": Key("Last backup: today at %@"),
+    "settings.autoBackup.last.yesterday": Key("Last backup: yesterday at %@"),
+    "settings.autoBackup.last.date": Key("Last backup: %1$@ at %2$@")},
+   lambda t: " · ".join([t("settings.autoBackup.last.today", "14:05"), t("settings.autoBackup.last.yesterday", "14:05"),
+                         t("settings.autoBackup.last.date", f"Nov{NB}8", "14:05")]))
+en("autoBackup.existing.message",
+   {"autoBackup.existing.message": Key(f"Backup from %1$@{NB}— %#@count@. You can restore it or replace it with the current data.",
+                                       subs={"count": (2, EXPENSE)})},
+   en_forms("autoBackup.existing.message", [(f"Nov{NB}8", 1), (f"Nov{NB}8", 1234)]))
 en("app.backupFileName", {"app.backupFileName": Key("Expenses Backup %@")},
    lambda t: t("app.backupFileName", "2026-10-09") + ".json")
 en_fmt("import.currencyDiff",
@@ -1065,6 +1141,17 @@ en("cal.legend.a11y",
    _en_scale)
 en_fmt("cal.day.sheet.a11y", "Expenses on %@", f"October{NB}8")
 en_fmt("cal.addForDay.a11y", "Add expense on %@", f"October{NB}8")
+en("cal.summary.stats.a11y", {"cal.summary.stats.a11y": Key("Open Statistics for %@")},
+   lambda t: "action: " + t("cal.summary.stats.a11y", "October 2026"))
+en("cal.summary.peak.a11y", {"cal.summary.peak.a11y": Key("Show %@")},
+   lambda t: "action: " + t("cal.summary.peak.a11y", f"October{NB}5"))
+en("cal.legend.step.a11y",
+   {"cal.legend.step.a11y": Key("%1$@: %#@days@", subs={"days": (2, EN_DAY)}),
+    "cal.legend.a11y.between": Key("%1$@ to %2$@"),
+    "cal.legend.step.a11y.hint": Key("Highlights these days in the calendar")},
+   lambda t: t("cal.legend.step.a11y", t("cal.legend.a11y.between", "25", "50"), 5) + EN_HINT + t("cal.legend.step.a11y.hint"))
+en_a11y("cal.day.group.a11y", "%1$@, %2$@, %3$@ of the day’s expenses", "Shows only expenses in this category",
+        ("{Category}", "{amount}", "{share}%"))
 en_fmt("period.start.a11y", "Start date: %@", f"September{NB}24")
 en("period.end.a11y", {"period.end.a11y": Key("End date: %@"), "period.end.a11y.today": Key("End date: %@, today")},
    lambda t: t("period.end.a11y.today", f"October{NB}8"),
@@ -1103,6 +1190,8 @@ en_fmt("stats.year.a11y",
        "2026", f"75{NB}rubles", f"January{NB}1", f"October{NB}8")
 en("stats.year.legend.a11y", {}, _en_scale)
 en_fmt("stats.dayView.a11y", "Expenses by hour, %@", f"October{NB}8")
+en_a11y("stats.slice.a11y", "{slice}, {amount}", "Shows expenses")
+en_a11y("stats.list.sub.selected.a11y", "{Subcategory}, {amount}, {share}% of the category", "Shows the whole category")
 en("viz.more.a11y",
    {"viz.more.a11y": Key("%#@cats@, each under 3%%: %2$@; %3$@ in total, %4$@", subs={"cats": (1, MORE_CAT)})},
    lambda t: t("viz.more.a11y", 4, "Health, Pets, Education, Beauty", f"57.10{NB}rubles", "8%"))

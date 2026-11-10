@@ -182,6 +182,8 @@ public struct StatsWeekdayAverage: Sendable, Hashable, Identifiable {
     /// Сколько таких дней недели вошло в расчёт.
     public let dayCount: Int
     public let totalMinor: Int64
+    /// Сколько трат в эти дни.
+    public let count: Int
     /// `totalMinor / dayCount` с округлением; 0, если таких дней не было.
     public let averageMinor: Int64
 

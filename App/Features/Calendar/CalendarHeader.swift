@@ -48,10 +48,21 @@ struct CalendarHeader: View {
 
 /// Строка-итог месяца (`cal.summary`): «**412,30 ⃅** за 8 дней · больше всего 2 окт», SF 15;
 /// выделенная сумма — SF 600 графитом. В строку (copy.json: nowrap), на крупном тексте — переносом.
+/// Части фразы до и после «·» — ссылки (`totalAction`, `peakAction`): одна строка `Text` переносится и ужимается
+/// как прежде; для VoiceOver те же действия — именованными действиями строки.
 struct CalendarSummaryLine: View {
+    /// Действие части фразы: нажатие и имя для VoiceOver.
+    struct Action {
+        let accessibilityName: String
+        let perform: () -> Void
+    }
+
     let summary: AttributedString
     /// Для VoiceOver: сумма словом «рубль», без «·» (`CalendarStrings.summaryAccessibility`).
     let accessibilityText: String
+    /// Нажатие на «412,30 ⃅ за 8 дней» и на «больше всего 2 окт»; `nil` — часть не нажимается.
+    var totalAction: Action?
+    var peakAction: Action?
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.fontResolutionContext) private var fontContext
@@ -60,10 +71,27 @@ struct CalendarSummaryLine: View {
         Text(styled)
             .typeStyle(.subheadline)
             .foregroundStyle(Theme.secondary)
+            .tint(Theme.secondary)
             .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
             .minimumScaleFactor(0.8)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .environment(\.openURL, OpenURLAction { url in
+                switch url {
+                case Self.totalURL: totalAction?.perform()
+                case Self.peakURL: peakAction?.perform()
+                default: return .discarded
+                }
+                return .handled
+            })
             .accessibilityLabel(Text(verbatim: accessibilityText))
+            .accessibilityActions {
+                if let totalAction {
+                    Button(totalAction.accessibilityName, action: totalAction.perform)
+                }
+                if let peakAction {
+                    Button(peakAction.accessibilityName, action: peakAction.perform)
+                }
+            }
     }
 
     private var styled: AttributedString {
@@ -73,6 +101,19 @@ struct CalendarSummaryLine: View {
             text[run.range].font = CurrencySignFont.font(TypeStyle.callout.font.monospacedDigit(), in: fontContext)
             text[run.range].foregroundColor = Theme.ink
         }
+        // Пустой месяц — фраза без «·» и без ссылок.
+        if let separator = text.range(of: Self.separator, options: .backwards) {
+            if totalAction != nil {
+                text[text.startIndex..<separator.lowerBound].link = Self.totalURL
+            }
+            if peakAction != nil {
+                text[separator.upperBound..<text.endIndex].link = Self.peakURL
+            }
+        }
         return text
     }
+
+    private static let separator = " · "
+    private static let totalURL = URL(string: "expenses-calendar:total")!
+    private static let peakURL = URL(string: "expenses-calendar:peak")!
 }

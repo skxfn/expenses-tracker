@@ -49,7 +49,7 @@ public enum StatsCategoryFilter: Sendable, Hashable {
     /// Только расходы без категории.
     case uncategorized
 
-    func matches(_ record: ExpenseRecord) -> Bool {
+    public func matches(_ record: ExpenseRecord) -> Bool {
         switch self {
         case .all: true
         case .category(let id): record.categoryID == id

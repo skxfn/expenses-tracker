@@ -96,7 +96,8 @@ private struct HomeTotal: View {
     }
 }
 
-/// Первый запуск (`home.empty.firstRun`): на листе вместо итога, обзора и ленты — Headline и строка SF 15.
+/// Первый запуск (`home.empty.firstRun`): на листе вместо итога, обзора и ленты — Headline и строка SF 15,
+/// под ними капсула «Восстановить из резервной копии» — вернуть данные после переустановки.
 struct HomeFirstRun: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
@@ -107,6 +108,8 @@ struct HomeFirstRun: View {
             Text("home.empty.firstRun.body")
                 .typeStyle(.subheadline)
                 .foregroundStyle(Theme.secondary)
+            RestoreBackupButton()
+                .padding(.top, Theme.Spacing.md - Theme.Spacing.xs)
         }
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)

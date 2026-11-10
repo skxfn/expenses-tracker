@@ -66,6 +66,16 @@ struct CalendarStrings {
         return String(text.characters).replacingOccurrences(of: " · ", with: ", ")
     }
 
+    /// `cal.summary.stats.a11y`: «Открыть статистику за октябрь 2026» — действие VoiceOver вместо нажатия на итог.
+    func summaryStatsAction(_ month: MonthGrid) -> String {
+        L10n.format("cal.summary.stats.a11y", monthAndYear(month))
+    }
+
+    /// `cal.summary.peak.a11y`: «Показать 5 октября» — действие VoiceOver вместо нажатия на «больше всего 5 окт».
+    func summaryPeakAction(_ peak: Date) -> String {
+        L10n.format("cal.summary.peak.a11y", dates.dayMonth(peak))
+    }
+
     // MARK: Клетка дня
 
     /// Число в клетке.
@@ -126,6 +136,50 @@ struct CalendarStrings {
             + bounds.dropLast().map { L10n.format("cal.legend.a11y.from", $0) }
             + [L10n.format("cal.legend.a11y.last", last)]
         return L10n.format("cal.legend.a11y", items.joined(separator: ", "))
+    }
+
+    /// Подпись выделенной ступени вместо `cal.legend.title`: «5 дней · 25–50», «3 дня · до 25», «2 дня · 75+»;
+    /// ступень 0 — «4 дня без трат» (`cal.legend.filter`, `cal.legend.filter.none`).
+    func legendCaption(level: Int, dayCount: Int, scale: StatsHeatScale) -> String {
+        let bound = { (minor: Int64) in self.money.string(fromMinor: minor, style: .wholeUnits) }
+        let range: String
+        switch scale.range(ofLevel: level) {
+        case .zero, nil:
+            return L10n.format("cal.legend.filter.none", dayCount)
+        case .below(let upper):
+            let key = upper >= Self.shortLegendFromMinor ? "cal.legend.items.belowShort" : "cal.legend.items.below"
+            range = L10n.format(key, bound(upper))
+        case .between(let lower, let upper):
+            range = L10n.format("cal.legend.range", bound(lower), bound(upper))
+        case .from(let lower):
+            range = L10n.format("cal.legend.items.from", bound(lower))
+        }
+        return L10n.format("cal.legend.filter", dayCount, range)
+    }
+
+    /// Имя капсулы шкалы для VoiceOver (`cal.legend.step.a11y`): «от 25 до 50: 5 дней», «меньше 25: 3 дня»,
+    /// «от 75 рублей: 2 дня»; ступень 0 — «4 дня без трат».
+    func legendStepAccessibility(level: Int, dayCount: Int, scale: StatsHeatScale) -> String {
+        let bound = { (minor: Int64) in self.money.string(fromMinor: minor, style: .wholeUnits) }
+        let step: String
+        switch scale.range(ofLevel: level) {
+        case .zero, nil:
+            return L10n.format("cal.legend.filter.none", dayCount)
+        case .below(let upper):
+            step = L10n.format("cal.legend.a11y.below", bound(upper))
+        case .between(let lower, let upper):
+            step = L10n.format("cal.legend.a11y.between", bound(lower), bound(upper))
+        case .from(let lower):
+            step = L10n.format("cal.legend.a11y.last", bound(lower))
+        }
+        return L10n.format("cal.legend.step.a11y", step, dayCount)
+    }
+
+    // MARK: Доли категорий дня
+
+    /// `cal.day.group.a11y`: «Кафе, 44,70 рубля, 78% трат дня».
+    func dayGroupAccessibility(name: String, totalMinor: Int64, share: String) -> String {
+        L10n.format("cal.day.group.a11y", name, spoken(totalMinor), share)
     }
 
     // MARK: Лист дня

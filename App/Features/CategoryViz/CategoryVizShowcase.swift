@@ -13,7 +13,7 @@ struct CategoryVizShowcase: View {
     @State private var dataset: VizDemoDataset
     @State private var page: VizShowcasePage
     @State private var statsView: StatsCategoryView
-    @State private var expandedID: UUID?
+    @State private var statsSelection: StatsCategorySelection?
     private let isScreenshot: Bool
     private let toggles: Bool
     private let tilesLevel: CategoryTilesLevel
@@ -26,13 +26,17 @@ struct CategoryVizShowcase: View {
         _page = State(initialValue: page)
         _statsView = State(initialValue: page.statsView ?? .tiles)
         let expands = defaults.bool(forKey: "vizExpand")
-        _expandedID = State(initialValue: expands ? VizDemo.data(dataset).groups.first(where: \.isExpandable)?.id : nil)
+        _statsSelection = State(initialValue: expands ? Self.firstExpandable(in: VizDemo.data(dataset)) : nil)
         isScreenshot = requested != nil
         toggles = defaults.bool(forKey: "vizToggle")
         tilesLevel = defaults.string(forKey: "vizLevel") == "categories" ? .categories : .subcategories
     }
 
     private var data: CategoryVizData { VizDemo.data(dataset) }
+
+    private static func firstExpandable(in data: CategoryVizData) -> StatsCategorySelection? {
+        data.groups.first(where: \.isExpandable).map(StatsCategorySelection.init)
+    }
 
     var body: some View {
         ScrollView {
@@ -48,7 +52,7 @@ struct CategoryVizShowcase: View {
         .toolbar(isScreenshot ? .hidden : .visible, for: .navigationBar)
         .navigationTitle(Text(verbatim: "Визуализации категорий"))
         .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: dataset) { expandedID = nil }
+        .onChange(of: dataset) { statsSelection = nil }
         .onChange(of: page) { _, page in
             if let view = page.statsView { statsView = view }
         }
@@ -56,7 +60,7 @@ struct CategoryVizShowcase: View {
             guard toggles else { return }
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(2.5))
-                expandedID = expandedID == nil ? data.groups.first(where: \.isExpandable)?.id : nil
+                statsSelection = statsSelection == nil ? Self.firstExpandable(in: data) : nil
             }
         }
     }
@@ -123,7 +127,7 @@ struct CategoryVizShowcase: View {
             .padding(.horizontal, Theme.Spacing.screen)
         case .tiles, .strips, .sun, .ring:
             StatsCategorySection(
-                data: data, view: $statsView, expandedID: $expandedID, periodName: "октябрь", tilesLevel: tilesLevel
+                data: data, view: $statsView, selection: $statsSelection, periodName: "октябрь", tilesLevel: tilesLevel
             )
                 .padding(Theme.Spacing.screen)
                 .padding(.top, Theme.Spacing.sm)

@@ -1779,6 +1779,170 @@
         }
       }
     },
+    "autoBackup.existing.message" : {
+      "comment" : "диалог: текст. Под заголовком: дата копии (D7) и число трат в ней; кнопки — «Восстановить из копии», «Заменить копию», системная отмена. Аргументы: %1$@ — дата копии D7; %2$lld — число трат в копии",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backup from %1$@ — %#@count@. You can restore it or replace it with the current data."
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expense"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expenses"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копия от %1$@ — %#@count@. Её можно восстановить или заменить текущими данными."
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трата"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трат"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "autoBackup.existing.replace" : {
+      "comment" : "кнопка диалога. Диалог «В папке уже есть копия»: записать текущие данные поверх копии (destructive)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replace Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заменить копию"
+          }
+        }
+      }
+    },
+    "autoBackup.existing.title" : {
+      "comment" : "диалог: в папке уже есть копия. После выбора папки, где лежит «последняя» копия с другого iPhone или прошлой установки",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Folder Already Has a Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В папке уже есть копия"
+          }
+        }
+      }
+    },
+    "autoBackup.existing.unreadable" : {
+      "comment" : "диалог: текст, копия не читается. Вместо autoBackup.existing.message, если файл в папке повреждён или из более новой версии; кнопки — «Заменить копию» и отмена",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version of Expenses can’t read the backup in this folder. You can replace it with the current data."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта версия «Трат» не может прочитать копию из папки. Её можно заменить текущими данными."
+          }
+        }
+      }
+    },
+    "autoBackup.pickError.message" : {
+      "comment" : "copy.json autoBackup.pickError: алерт: заголовок / текст. Папку не удалось запомнить (провайдер файлов не дал доступ)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a different folder."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите другую папку."
+          }
+        }
+      }
+    },
+    "autoBackup.pickError.title" : {
+      "comment" : "copy.json autoBackup.pickError: алерт: заголовок / текст. Папку не удалось запомнить (провайдер файлов не дал доступ)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t Use This Folder"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось выбрать папку"
+          }
+        }
+      }
+    },
     "backup.exportPrepareError.message" : {
       "comment" : "copy.json backup.exportPrepareError: алерт: заголовок / текст. Алерт «Не получилось»",
       "extractionState" : "manual",
@@ -1959,6 +2123,42 @@
         }
       }
     },
+    "cal.day.group.a11y" : {
+      "comment" : "плашка категории в листе дня. VoiceOver: плашка доли категории над тратами выбранного дня (если категорий в дне больше одной). Нажатие оставляет в листе только траты этой категории, повторное — все. Выбранная — трейт «выбрано». Аргументы: %1$@ — имя; %2$@ — сумма (a11y.money); %3$@ — доля D7",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@, %3$@ of the day’s expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@, %3$@ трат дня"
+          }
+        }
+      }
+    },
+    "cal.day.group.a11y.hint" : {
+      "comment" : "copy.json cal.day.group.a11y: плашка категории в листе дня. VoiceOver: плашка доли категории над тратами выбранного дня (если категорий в дне больше одной). Нажатие оставляет в листе только траты этой категории, повторное — все. Выбранная — трейт «выбрано»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows only expenses in this category"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывает только траты этой категории"
+          }
+        }
+      }
+    },
     "cal.day.max.a11y" : {
       "comment" : "хвост у самого дорогого дня. VoiceOver: хвост у самого затратного дня. Аргументы: %@ — имя клетки дня (cal.day.a11y)",
       "extractionState" : "manual",
@@ -2121,6 +2321,24 @@
         }
       }
     },
+    "cal.legend.a11y.between" : {
+      "comment" : "copy.json cal.legend.step.a11y: капсула шкалы. VoiceOver: капсула шкалы — кнопка, выделяет дни месяца этой ступени. Первая ступень — «меньше 25», последняя — «от 75 рублей» (cal.legend.a11y.below / .last), ступень «0» — cal.legend.filter.none («4 дня без трат»). Выбранная — трейт «выбрано». Аргументы: %1$@, %2$@ — границы ступени («25», «50»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ to %2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "от %1$@ до %2$@"
+          }
+        }
+      }
+    },
     "cal.legend.a11y.from" : {
       "comment" : "copy.json cal.legend.a11y: шкала заливки. VoiceOver: шкала. Аргументы: %@ — порог",
       "extractionState" : "manual",
@@ -2153,6 +2371,134 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "от %@ рублей"
+          }
+        }
+      }
+    },
+    "cal.legend.filter" : {
+      "comment" : "подпись выделенной ступени шкалы. Нажатие на капсулу шкалы под сеткой выделяет дни месяца этой ступени (остальные приглушаются), повторное — снимает. Подпись встаёт на место «⃅ за день»: число дней и границы ступени. Первая ступень — «до 25», последняя — «75+» (как в капсулах), ступень «0» — cal.legend.filter.none. Аргументы: %1$lld — дней месяца на ступени; %2$@ — границы ступени: cal.legend.range, у первой ступени — cal.legend.items.below, у последней — cal.legend.items.from",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@days@ · %2$@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@days@ · %2$@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg день"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дня"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дней"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дня"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "cal.legend.filter.none" : {
+      "comment" : "подпись выделенной ступени «0». Выделена капсула «0»: дни месяца без трат (будущие не считаются). Аргументы: %lld — дней месяца без трат",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld no-spend day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld no-spend days"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld день без трат"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дня без трат"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дней без трат"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld дня без трат"
+                }
+              }
+            }
           }
         }
       }
@@ -2207,6 +2553,116 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@+"
+          }
+        }
+      }
+    },
+    "cal.legend.range" : {
+      "comment" : "copy.json cal.legend.filter: подпись выделенной ступени шкалы. Нажатие на капсулу шкалы под сеткой выделяет дни месяца этой ступени (остальные приглушаются), повторное — снимает. Подпись встаёт на место «⃅ за день»: число дней и границы ступени. Первая ступень — «до 25», последняя — «75+» (как в капсулах), ступень «0» — cal.legend.filter.none. Аргументы: %1$@, %2$@ — границы ступени без знака валюты («25», «50»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@–%2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@–%2$@"
+          }
+        }
+      }
+    },
+    "cal.legend.step.a11y" : {
+      "comment" : "капсула шкалы. VoiceOver: капсула шкалы — кнопка, выделяет дни месяца этой ступени. Первая ступень — «меньше 25», последняя — «от 75 рублей» (cal.legend.a11y.below / .last), ступень «0» — cal.legend.filter.none («4 дня без трат»). Выбранная — трейт «выбрано». Аргументы: %1$@ — ступень словами: cal.legend.a11y.between, у первой — cal.legend.a11y.below, у последней — cal.legend.a11y.last; %2$lld — дней месяца на ступени",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %#@days@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %#@days@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg день"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дня"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дней"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg дня"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "cal.legend.step.a11y.hint" : {
+      "comment" : "copy.json cal.legend.step.a11y: капсула шкалы. VoiceOver: капсула шкалы — кнопка, выделяет дни месяца этой ступени. Первая ступень — «меньше 25», последняя — «от 75 рублей» (cal.legend.a11y.below / .last), ступень «0» — cal.legend.filter.none («4 дня без трат»). Выбранная — трейт «выбрано»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highlights these days in the calendar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выделяет эти дни в календаре"
           }
         }
       }
@@ -2317,6 +2773,42 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "cal.summary.peak.a11y" : {
+      "comment" : "действие строки-итога месяца. VoiceOver: замена нажатию на «больше всего 5 окт» в строке-итоге — выбирает этот день. Аргументы: %@ — дата («5 октября»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать %@"
+          }
+        }
+      }
+    },
+    "cal.summary.stats.a11y" : {
+      "comment" : "действие строки-итога месяца. VoiceOver: замена нажатию на итог месяца в строке-итоге — открывает статистику за этот месяц. Аргументы: %@ — месяц и год строчными («октябрь 2026»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Statistics for %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть статистику за %@"
           }
         }
       }
@@ -7403,6 +7895,24 @@
         }
       }
     },
+    "home.empty.firstRun.restore" : {
+      "comment" : "кнопка: восстановить. Первый запуск (трат нет совсем): капсула под «Нажмите «+»…» — после переустановки вернуть данные из резервной копии",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore from Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восстановить из резервной копии"
+          }
+        }
+      }
+    },
     "home.empty.firstRun.title" : {
       "comment" : "copy.json home.empty.firstRun: пустое состояние: первый запуск. Ни одной траты; вместо карты — серый сложенный обзор. В коде — «Пока нет трат / Добавьте первый расход…». План: «Добавить первую трату»",
       "extractionState" : "manual",
@@ -10327,6 +10837,204 @@
         }
       }
     },
+    "settings.autoBackup.chooseAgain" : {
+      "comment" : "строка: выбрать папку заново. Вместо строки «Папка», когда папка недоступна (удалена, перемещена, нет доступа)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Folder Again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать папку заново"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.error.folder" : {
+      "comment" : "сноска: папка недоступна. Сноска под секцией: папку удалили, переместили в корзину или доступ к ней потерян",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The folder isn’t available. It may have been deleted or moved. Choose the folder again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка недоступна: возможно, её удалили или переместили. Выберите папку заново."
+          }
+        }
+      }
+    },
+    "settings.autoBackup.error.write" : {
+      "comment" : "сноска: копия не записалась. Сноска под секцией: запись не удалась по другой причине (нет места, сбой облака)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t save the backup. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить копию. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "settings.autoBackup.folder" : {
+      "comment" : "строка: папка. Настройки → «Автокопия в облако»: папка копий, значение — «iCloud Drive/Траты»; тап — выбрать другую",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.footer" : {
+      "comment" : "сноска: как работает. Сноска под секцией, пока автокопия выключена",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A backup is saved to the chosen folder after each change. Choose a folder in iCloud Drive to keep the backup even if the app is deleted."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копия сама сохраняется в выбранную папку после изменений. Выберите папку в iCloud Drive — тогда копия останется, даже если удалить приложение."
+          }
+        }
+      }
+    },
+    "settings.autoBackup.heading" : {
+      "comment" : "заголовок секции. Настройки: секция автокопии под «Резервная копия»",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автокопия в облако"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.last.date" : {
+      "comment" : "copy.json settings.autoBackup.last: сноска: последняя копия. Сноска под секцией, автокопия включена: когда записана последняя копия (3 варианта: сегодня, вчера, дата D7). Аргументы: %1$@ — дата D7 («8 ноя», год — если не текущий); %2$@ — время HH:mm",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last backup: %1$@ at %2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя копия: %1$@, %2$@"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.last.today" : {
+      "comment" : "copy.json settings.autoBackup.last: сноска: последняя копия. Сноска под секцией, автокопия включена: когда записана последняя копия (3 варианта: сегодня, вчера, дата D7). Аргументы: %@ — время HH:mm",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last backup: today at %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя копия: сегодня, %@"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.last.yesterday" : {
+      "comment" : "copy.json settings.autoBackup.last: сноска: последняя копия. Сноска под секцией, автокопия включена: когда записана последняя копия (3 варианта: сегодня, вчера, дата D7). Аргументы: %@ — время HH:mm",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last backup: yesterday at %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Последняя копия: вчера, %@"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.now" : {
+      "comment" : "строка: сохранить сейчас. Настройки → «Автокопия в облако», автокопия включена: записать копию в папку немедленно",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back Up Now"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить сейчас"
+          }
+        }
+      }
+    },
+    "settings.autoBackup.toggle" : {
+      "comment" : "переключатель. Настройки → «Автокопия в облако»: вкл/выкл; первое включение открывает выбор папки",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back Up Automatically"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранять автоматически"
+          }
+        }
+      }
+    },
     "settings.back" : {
       "comment" : "кнопка «‹ Траты». Стеклянная кнопка «‹ Траты» (назад на главный)",
       "extractionState" : "manual",
@@ -11625,6 +12333,78 @@
         }
       }
     },
+    "stats.journal.heading" : {
+      "comment" : "заголовок блока. Журнал выбранной категории, подкатегории или «Без категории»: сразу под «Категориями», над графиками; справа пометка «только Кафе» (viz.drill.filter)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Траты"
+          }
+        }
+      }
+    },
+    "stats.journal.more" : {
+      "comment" : "кнопка под журналом. Стеклянная капсула 44 под началом журнала: сколько трат не поместилось; открывает весь журнал категории за период списком (со свайпами). Аргументы: %lld — сколько трат не поместилось в начало журнала",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld More Expense"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld More Expenses"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ещё %lld трата"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ещё %lld траты"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ещё %lld трат"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ещё %lld траты"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "stats.legacy.chartAxes.amount" : {
       "comment" : "copy.json stats.legacy.chartAxes: имена величин Swift Charts. accessibilityChartDescriptor / .value(...) в графиках статистики",
       "extractionState" : "manual",
@@ -11783,6 +12563,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@: подкатегории"
+          }
+        }
+      }
+    },
+    "stats.list.sub.selected.a11y.hint" : {
+      "comment" : "copy.json stats.list.sub.selected.a11y: выбранная подкатегория. VoiceOver: подкатегория раскрытой категории, выбранная касанием (её траты и графики); повторное касание — вся категория",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the whole category"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывает всю категорию"
           }
         }
       }
@@ -12021,6 +12819,78 @@
         }
       }
     },
+    "stats.pace.tip.day" : {
+      "comment" : "строка подсказки «Темпа». Подсказка выбранного дня «Темпа»: «к 12 окт  642,10 ⃅» — накоплено к этому дню; второй строкой то же для прошлого периода («к 12 сен  580 ⃅»). Аргументы: %@ — дата D7 («12 окт»; в VoiceOver — «12 октября»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "by %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "к %@"
+          }
+        }
+      }
+    },
+    "stats.pace.tip.less" : {
+      "comment" : "разница в подсказке «Темпа». Третья строка подсказки дня «Темпа»: сейчас накоплено меньше, чем к тому же дню прошлого периода. Аргументы: как у stats.pace.tip.more. Выделение **…** — SF 600 графитом, выводить через L10n.attributed",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "**%@ less**"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "на **%@ меньше**"
+          }
+        }
+      }
+    },
+    "stats.pace.tip.more" : {
+      "comment" : "разница в подсказке «Темпа». Третья строка подсказки дня «Темпа»: сейчас накоплено больше, чем к тому же дню прошлого периода. Аргументы: %@ — разница по модулю (MoneyFormatter.Style.difference; в VoiceOver — a11y.money). Выделение **…** — SF 600 графитом, выводить через L10n.attributed",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "**%@ more**"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "на **%@ больше**"
+          }
+        }
+      }
+    },
+    "stats.pace.tip.same" : {
+      "comment" : "разница в подсказке «Темпа». Третья строка подсказки дня «Темпа»: разница меньше 1 % (как «примерно как» в сводке)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "about the same"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "примерно так же"
+          }
+        }
+      }
+    },
     "stats.ring.a11y" : {
       "comment" : "диаграмма «Кольцо». VoiceOver: описание кольца. Аргументы: %@ — «имя доля» через запятую",
       "extractionState" : "manual",
@@ -12035,6 +12905,170 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Кольцо: %@"
+          }
+        }
+      }
+    },
+    "stats.slice.a11y.hint" : {
+      "comment" : "copy.json stats.slice.a11y: срез графика, категория, подкатегория. VoiceOver: столбик «По дням» / «По часам» / «По месяцам», плитка «Привычек», карта года, день «Темпа», категория без подкатегорий, подкатегория — всё, что открывает траты",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывает траты"
+          }
+        }
+      }
+    },
+    "stats.slice.count" : {
+      "comment" : "число трат в шапке списка. Список трат среза (журнал категории, столбик, день, день недели): под итогом Unbounded 28. Аргументы: %lld — число трат среза",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld expense"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld expenses"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld трата"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld траты"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld трат"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld траты"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "stats.slice.empty" : {
+      "comment" : "пустой список трат среза. Список трат среза, если все его траты удалили (после тоста «Удалено»)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Трат нет"
+          }
+        }
+      }
+    },
+    "stats.slice.meta" : {
+      "comment" : "значение подсказки дня недели. Стеклянная подсказка «Привычек» после касания плитки: «По пятницам  9 трат · 344 ⃅» — число трат и их сумма за эти дни периода. Аргументы: %1$lld — число трат; %2$@ — их сумма (фразой, с ⃅)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@count@ · %2$@"
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expense"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg expenses"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@count@ · %2$@"
+          },
+          "substitutions" : {
+            "count" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трата"
+                    }
+                  },
+                  "few" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  },
+                  "many" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg трат"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg траты"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

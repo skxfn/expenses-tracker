@@ -10,6 +10,8 @@ struct CalendarDayCell: View {
     let amount: String?
     /// Линза стоит над клеткой и показывает её цифры.
     let isUnderLens: Bool
+    /// День вне выделенной в легенде ступени шкалы — приглушён.
+    var isDimmed = false
 
     /// «12 тыс» и «1 234» на грани ширины клетки (copy.json → risk); на крупном тексте сжимаются сильнее,
     /// полная сумма — в Large Content Viewer и VoiceOver.
@@ -18,12 +20,14 @@ struct CalendarDayCell: View {
     var body: some View {
         if !day.isSelectable {
             content(digits: Theme.tertiary)
+                .opacity(isDimmed ? CalendarMetrics.dimmedOpacity : 1)
         } else {
             content(digits: Theme.heatDigits(day.level))
                 .opacity(isUnderLens ? 0 : 1)
                 // Линза взлетела — цифры на месте сразу; села — гаснут вместе с проявлением её цифр.
                 .animation(isUnderLens ? LensMotion.digitsIn : nil, value: isUnderLens)
                 .background { cell }
+                .opacity(isDimmed ? CalendarMetrics.dimmedOpacity : 1)
         }
     }
 

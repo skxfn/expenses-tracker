@@ -14,6 +14,8 @@ enum AppTab: String, Hashable, CaseIterable {
 enum AppRoute: Hashable {
     /// Настройки — пушем из ⚙ в шапке главной.
     case settings
+    /// Траты среза статистики: журнал выбранной категории, столбик графика, день, день недели.
+    case statisticsExpenses(StatsSliceRoute)
 }
 
 /// Шит поверх всего приложения. Показывает корень (`ContentView`), экраны только просят.
@@ -46,6 +48,9 @@ final class AppRouter {
     var statisticsFocus: StatisticsFocus?
     /// Трата, только что записанная «Сохранить» в шите: главная подсвечивает её строку (save-reward) и обнуляет.
     var savedExpenseID: UUID?
+    /// Пуш во вкладке, который просит экран без `NavigationLink` (график, действие VoiceOver):
+    /// корень кладёт его в стек текущей вкладки и обнуляет.
+    var pendingRoute: AppRoute?
 
     init(tab: AppTab = .expenses) {
         self.tab = tab
@@ -67,5 +72,10 @@ final class AppRouter {
     func openStatistics(period: StatsPeriod, groupID: UUID?) {
         statisticsFocus = StatisticsFocus(period: period, groupID: groupID)
         tab = .statistics
+    }
+
+    /// Список трат среза статистики — пушем во вкладке.
+    func showStatisticsExpenses(_ route: StatsSliceRoute) {
+        pendingRoute = .statisticsExpenses(route)
     }
 }

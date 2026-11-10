@@ -39,6 +39,10 @@ nonisolated enum StatsLayout {
     static let yearRowGap: CGFloat = 3
     static let yearCellRadius: CGFloat = 1.5
     static let yearTodayLine: CGFloat = 1.5
+    /// Выбранный касанием день недели «Привычек» и клетка карты года — обводка графитом.
+    static let selectionLine: CGFloat = 2
+    /// Журнал выбранной категории: между днями (как в ленте — 16 до следующего заголовка).
+    static let journalDaySpacing: CGFloat = Theme.Spacing.md
 }
 
 extension DynamicTypeSize {
@@ -78,7 +82,8 @@ struct StatsSectionHeader: View {
             if filterMark != nil || note != nil {
                 VStack(alignment: isStacked ? .leading : .trailing, spacing: 2) {
                     if let filterMark {
-                        StatsFilterMark(text: filterMark)
+                        // Под заголовком места на всю ширину — имя не режется до «только Тра…».
+                        StatsFilterMark(text: filterMark, maxWidth: isStacked ? nil : StatsLayout.filterMarkWidth)
                     }
                     if let note {
                         Text(verbatim: note)
@@ -97,6 +102,8 @@ struct StatsSectionHeader: View {
 /// «только Продукты»: блок отфильтрован раскрытой категорией. Длинное имя обрезается в конце.
 struct StatsFilterMark: View {
     let text: String
+    /// `nil` — без предела (пометка под заголовком на AX-размерах).
+    var maxWidth: CGFloat? = StatsLayout.filterMarkWidth
 
     var body: some View {
         Text(verbatim: text)
@@ -104,7 +111,7 @@ struct StatsFilterMark: View {
             .foregroundStyle(Theme.secondary)
             .lineLimit(1)
             .truncationMode(.tail)
-            .frame(maxWidth: StatsLayout.filterMarkWidth, alignment: .trailing)
+            .frame(maxWidth: maxWidth, alignment: .trailing)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
