@@ -17,3 +17,6 @@ dist/
 
 # Claude Code worktrees
 .claude/worktrees/
+
+# Настоящие чеки для живого прогона ИИ-записи — личные данные, репо публичный
+Packages/ExpenseCore/Tests/LiveFixtures/private/
