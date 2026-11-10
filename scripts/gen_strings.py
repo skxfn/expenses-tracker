@@ -328,6 +328,15 @@ split("cal.cell.amount", " · ", "64,10", f"1{NB}234",
       note="до 10 000 — число без ключа (§5.2)")
 skip("cal.day.title", "данные: полная дата («Четверг, 8 октября»), при переполнении — «Вс, 30 сентября»")
 fmt("cal.addForDay", "Записать на %@", f"8{NB}окт", args=DATE)
+custom("cal.legend.filter",
+       {"cal.legend.filter": Key("%#@days@ · %2$@", subs={"days": (1, DAY)},
+                                 args="%1$lld — дней месяца на ступени; %2$@ — границы ступени: cal.legend.range, "
+                                      "у первой ступени — cal.legend.items.below, у последней — cal.legend.items.from"),
+        "cal.legend.range": Key("%1$@–%2$@", args="%1$@, %2$@ — границы ступени без знака валюты («25», «50»)")},
+       lambda t: t("cal.legend.filter", 5, t("cal.legend.range", "25", "50")), kind="fmt",
+       also=[lambda t, it: (t("cal.legend.filter", 3, t("cal.legend.items.below", "25")).split(" · ")[1], it["context"]),
+             lambda t, it: (t("cal.legend.filter", 2, t("cal.legend.items.from", "75")).split(" · ")[1], it["context"])])
+plural("cal.legend.filter.none", whole(DAY, suffix=" без трат"), 4, args="%lld — дней месяца без трат")
 
 # --- Статистика ------------------------------------------------------------
 
@@ -622,6 +631,22 @@ custom("cal.legend.a11y",
                                                   t("cal.legend.a11y.from", "50"), t("cal.legend.a11y.last", "75")])))
 fmt("cal.day.sheet.a11y", "Траты за %@", f"8{NB}октября", args="%@ — дата («8 октября»)")
 fmt("cal.addForDay.a11y", "Записать трату на %@", f"8{NB}октября", args="%@ — дата («8 октября»)")
+custom("cal.summary.stats.a11y",
+       {"cal.summary.stats.a11y": Key("Открыть статистику за %@", args="%@ — месяц и год строчными («октябрь 2026»)")},
+       lambda t: "действие: " + t("cal.summary.stats.a11y", "октябрь 2026"), kind="fmt", note="имя действия (accessibilityAction)")
+custom("cal.summary.peak.a11y", {"cal.summary.peak.a11y": Key("Показать %@", args="%@ — дата («5 октября»)")},
+       lambda t: "действие: " + t("cal.summary.peak.a11y", f"5{NB}октября"), kind="fmt",
+       note="имя действия (accessibilityAction)")
+custom("cal.legend.step.a11y",
+       {"cal.legend.step.a11y": Key("%1$@: %#@days@", subs={"days": (2, DAY)},
+                                    args="%1$@ — ступень словами: cal.legend.a11y.between, у первой — cal.legend.a11y.below, "
+                                         "у последней — cal.legend.a11y.last; %2$lld — дней месяца на ступени"),
+        "cal.legend.a11y.between": Key("от %1$@ до %2$@", args="%1$@, %2$@ — границы ступени («25», «50»)"),
+        "cal.legend.step.a11y.hint": Key("Выделяет эти дни в календаре")},
+       lambda t: (t("cal.legend.step.a11y", t("cal.legend.a11y.between", "25", "50"), 5)
+                  + HINT + t("cal.legend.step.a11y.hint")))
+a11y("cal.day.group.a11y", "%1$@, %2$@, %3$@ трат дня", "Показывает только траты этой категории",
+     ("{Категория}", "{сумма}", "{доля}%"), label_args="%1$@ — имя; %2$@ — сумма (a11y.money); %3$@ — доля D7")
 fmt("period.start.a11y", "Начало периода: %@", f"24{NB}сентября", args="%@ — дата («24 сентября»)")
 custom("period.end.a11y",
        {"period.end.a11y": Key("Конец периода: %@", args="%@ — дата («8 октября»)"),
@@ -848,6 +873,11 @@ en("cal.legend.items",
 en("cal.cell.amount", {"cal.cell.amount.thousands": Key("%lldK")},
    lambda t: " · ".join(["64.10", "1,234", t("cal.cell.amount.thousands", 12)]))
 en_fmt("cal.addForDay", "Add Expense on %@", f"Oct{NB}8")
+en("cal.legend.filter",
+   {"cal.legend.filter": Key("%#@days@ · %2$@", subs={"days": (1, EN_DAY)}), "cal.legend.range": Key("%1$@–%2$@")},
+   lambda t: t("cal.legend.filter", 5, t("cal.legend.range", "25", "50")))
+en("cal.legend.filter.none", {"cal.legend.filter.none": Key(plural=whole(en_noun("no-spend day", "no-spend days")))},
+   en_forms("cal.legend.filter.none", [(1,), (4,)]))
 
 # --- Статистика ------------------------------------------------------------
 
@@ -1053,6 +1083,17 @@ en("cal.legend.a11y",
    _en_scale)
 en_fmt("cal.day.sheet.a11y", "Expenses on %@", f"October{NB}8")
 en_fmt("cal.addForDay.a11y", "Add expense on %@", f"October{NB}8")
+en("cal.summary.stats.a11y", {"cal.summary.stats.a11y": Key("Open Statistics for %@")},
+   lambda t: "action: " + t("cal.summary.stats.a11y", "October 2026"))
+en("cal.summary.peak.a11y", {"cal.summary.peak.a11y": Key("Show %@")},
+   lambda t: "action: " + t("cal.summary.peak.a11y", f"October{NB}5"))
+en("cal.legend.step.a11y",
+   {"cal.legend.step.a11y": Key("%1$@: %#@days@", subs={"days": (2, EN_DAY)}),
+    "cal.legend.a11y.between": Key("%1$@ to %2$@"),
+    "cal.legend.step.a11y.hint": Key("Highlights these days in the calendar")},
+   lambda t: t("cal.legend.step.a11y", t("cal.legend.a11y.between", "25", "50"), 5) + EN_HINT + t("cal.legend.step.a11y.hint"))
+en_a11y("cal.day.group.a11y", "%1$@, %2$@, %3$@ of the day’s expenses", "Shows only expenses in this category",
+        ("{Category}", "{amount}", "{share}%"))
 en_fmt("period.start.a11y", "Start date: %@", f"September{NB}24")
 en("period.end.a11y", {"period.end.a11y": Key("End date: %@"), "period.end.a11y.today": Key("End date: %@, today")},
    lambda t: t("period.end.a11y.today", f"October{NB}8"),

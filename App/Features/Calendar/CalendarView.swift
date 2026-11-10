@@ -5,6 +5,8 @@ import ExpenseCore
 /// Вкладка «Календарь» (макет 09): шапка месяца с ‹ ›, строка-итог, сетка heat с линзой выбранного дня,
 /// шкала и бумажный лист выбранного дня со строками трат и «Записать на …».
 /// Всё под шапкой — один `List`: свайпы строк работают только в нём (ловушка AGENTS.md).
+/// Дополнительное — только по нажатию: итог месяца в строке-итоге открывает статистику за месяц, «больше всего
+/// 5 окт» выбирает этот день; ступень шкалы выделяет свои дни; доли категорий дня фильтруют его траты.
 /// Траты выбирает `CalendarModel` (год месяца и выбранный день), а не `@Query` всех трат: перевод
 /// в `ExpenseRecord` в `body` на каждом касании стоил ≈ 6 мкс на трату.
 struct CalendarView: View {
@@ -25,14 +27,21 @@ struct CalendarView: View {
     @State private var repeatTick = 0
     @State private var longPressTick = 0
     @State private var errorMessage: String?
+    /// Ступень шкалы, выделенная нажатием на легенду; `nil` — без выделения.
+    @State private var highlightedLevel: Int?
+    /// Категория, нажатая в долях дня: в листе только её траты; `.all` — все.
+    @State private var dayFilter: StatsCategoryFilter = .all
 
     var body: some View {
         let strings = CalendarStrings(money: money, calendar: model.calendar, now: model.now)
+        let dayGroups = model.dayGroups
+        // Категории в дне больше нет (трата удалена или перенесена) — фильтр не действует.
+        let filter = dayGroups.contains { Self.filter(for: $0) == dayFilter } ? dayFilter : .all
 
         VStack(spacing: Theme.Spacing.md) {
             header(strings)
                 .padding(.horizontal, Theme.Spacing.screen)
-            list(strings, dayRows: model.dayRows)
+            list(strings, dayRows: model.dayRows(matching: filter), dayGroups: dayGroups, filter: filter)
         }
         .padding(.top, Theme.Spacing.sm)
         .background { AuraBackground(tones: auraTones).ignoresSafeArea() }
@@ -52,6 +61,8 @@ struct CalendarView: View {
             if phase == .active { model.refresh() }
         }
         .onCalendarDayChange { model.refresh() }
+        // Фильтр долей — только для того дня, где его выбрали.
+        .onChange(of: model.selectedDay) { dayFilter = .all }
         .errorAlert($errorMessage)
     }
 
@@ -74,11 +85,15 @@ struct CalendarView: View {
 
     // MARK: Сетка и лист дня
 
-    private func list(_ strings: CalendarStrings, dayRows: [ExpenseRowData]) -> some View {
+    private func list(
+        _ strings: CalendarStrings, dayRows: [ExpenseRowData], dayGroups: [StatsGroupShare], filter: StatsCategoryFilter
+    ) -> some View {
         List {
             CalendarSummaryLine(
                 summary: strings.summary(model.summary, month: model.month, isCurrent: model.isCurrentMonth),
-                accessibilityText: strings.summaryAccessibility(model.summary, month: model.month, isCurrent: model.isCurrentMonth)
+                accessibilityText: strings.summaryAccessibility(model.summary, month: model.month, isCurrent: model.isCurrentMonth),
+                totalAction: summaryTotalAction(strings),
+                peakAction: summaryPeakAction(strings)
             )
             .padding(.bottom, Theme.Spacing.lg)
             .calendarRow()
@@ -96,16 +111,24 @@ struct CalendarView: View {
                 strings: strings,
                 onSelect: select,
                 onAdd: addByLongPress,
-                onSwipe: step(forward:)
+                onSwipe: step(forward:),
+                highlightedLevel: shownLevel
             )
             .padding(.bottom, Theme.Spacing.md)
             .calendarRow()
 
             if let scale = model.heatScale {
+                let level = shownLevel
                 HeatLegend(
                     title: strings.legendTitle,
                     items: strings.legendItems(scale),
-                    accessibilityText: strings.legendAccessibility(scale)
+                    accessibilityText: strings.legendAccessibility(scale),
+                    selectedLevel: level,
+                    caption: level.map { strings.legendCaption(level: $0, dayCount: levelDayCount($0), scale: scale) },
+                    stepAccessibility: (0..<scale.levelCount).map {
+                        strings.legendStepAccessibility(level: $0, dayCount: levelDayCount($0), scale: scale)
+                    },
+                    onToggle: toggleLevel
                 )
                 .padding(.bottom, Theme.Spacing.lg)
                 .calendarRow()
@@ -116,6 +139,12 @@ struct CalendarView: View {
                 .padding(.bottom, Theme.Spacing.sm)
                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { sheetTop = $0 }
                 .calendarRow(background: PaperSheetBackground.shape.fill(Theme.surface))
+
+            if dayGroups.count > 1 {
+                DayGroupChips(items: chipItems(dayGroups, strings: strings), selection: filter, onToggle: toggleDayFilter)
+                    .padding(.bottom, Theme.Spacing.xs)
+                    .calendarRow(background: Theme.surface)
+            }
 
             if dayRows.isEmpty {
                 Text("cal.emptyDay")
@@ -258,6 +287,73 @@ struct CalendarView: View {
             tones[category.id] = GouacheTone(mainHex: category.colorHex)
         }
         return model.topGroupIDs.compactMap { tones[$0] }
+    }
+
+    // MARK: Интерактивность итога, шкалы и долей дня
+
+    /// Итог месяца → статистика за этот месяц.
+    private func summaryTotalAction(_ strings: CalendarStrings) -> CalendarSummaryLine.Action? {
+        guard model.summary.totalMinor > 0 else { return nil }
+        let period = model.month.period
+        return CalendarSummaryLine.Action(accessibilityName: strings.summaryStatsAction(model.month)) {
+            router.openStatistics(period: period, groupID: nil)
+        }
+    }
+
+    /// «больше всего 5 окт» → выбрать этот день (линза перелетает).
+    private func summaryPeakAction(_ strings: CalendarStrings) -> CalendarSummaryLine.Action? {
+        guard model.summary.totalMinor > 0, let peak = model.summary.peakDay else { return nil }
+        return CalendarSummaryLine.Action(accessibilityName: strings.summaryPeakAction(peak)) {
+            select(peak)
+        }
+    }
+
+    /// Выделенная ступень, если она есть в легенде этого года.
+    private var shownLevel: Int? {
+        guard let highlightedLevel, let scale = model.heatScale, highlightedLevel < scale.levelCount else { return nil }
+        return highlightedLevel
+    }
+
+    private func levelDayCount(_ level: Int) -> Int {
+        level < model.levelDayCounts.count ? model.levelDayCounts[level] : 0
+    }
+
+    /// Нажатие на ступень шкалы: выделить её дни; повторное — снять.
+    private func toggleLevel(_ level: Int) {
+        withAnimation(Motion.animation(Motion.select, reduceMotion: reduceMotion)) {
+            highlightedLevel = shownLevel == level ? nil : level
+        }
+        selectionTick += 1
+    }
+
+    /// Плашки долей категорий дня: имя, иконка и тон — из каталога, доля — D7.
+    private func chipItems(_ groups: [StatsGroupShare], strings: CalendarStrings) -> [DayGroupChips.Item] {
+        let catalog = CategoryCatalogSnapshot(categories: categories)
+        return groups.map { group in
+            let entry = group.groupID.flatMap { catalog[$0] }
+            let name = entry?.name ?? String(localized: "feed.row.noCategory")
+            let share = PercentFormatter.string(fromShare: group.share)
+            return DayGroupChips.Item(
+                filter: Self.filter(for: group),
+                name: name,
+                iconName: entry?.iconName ?? CategoryPaint.uncategorizedIconName,
+                tone: entry?.tone,
+                share: share,
+                accessibilityLabel: strings.dayGroupAccessibility(name: name, totalMinor: group.totalMinor, share: share)
+            )
+        }
+    }
+
+    /// Нажатие на долю категории: в листе только её траты; повторное — все.
+    private func toggleDayFilter(_ filter: StatsCategoryFilter) {
+        withAnimation(Motion.animation(Motion.select, reduceMotion: reduceMotion)) {
+            dayFilter = dayFilter == filter ? .all : filter
+        }
+        selectionTick += 1
+    }
+
+    private static func filter(for group: StatsGroupShare) -> StatsCategoryFilter {
+        group.groupID.map(StatsCategoryFilter.group) ?? .uncategorized
     }
 
     // MARK: Действия
