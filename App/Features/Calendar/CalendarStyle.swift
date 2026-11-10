@@ -20,6 +20,18 @@ nonisolated enum CalendarMetrics {
     static let legendItemWidth: CGFloat = 44
     static let legendItemHeight: CGFloat = 20
     static let legendItemRadius: CGFloat = 4
+    /// Капсула шкалы — кнопка: цель касания выступает за капсулу на 12 сверху и снизу (20 + 24 = 44).
+    static let legendHitOutset: CGFloat = 12
+    /// Подпись выделенной ступени («12 дней · 125–250») ужимается до места подписи шкалы.
+    static let legendCaptionMinimumScale: CGFloat = 0.7
+    /// Клетки и капсулы вне выделенной ступени шкалы.
+    static let dimmedOpacity: Double = 0.25
+    /// Плашка доли категории в листе дня: высота, иконка, отступы, обводка выбранной (как выбранный цвет в редакторе).
+    static let groupChipHeight: CGFloat = 32
+    static let groupChipIcon: CGFloat = 16
+    static let groupChipPadding: CGFloat = 10
+    static let groupChipRing: CGFloat = 2
+    static let groupChipRingGap: CGFloat = 2
     /// Горизонтальный свайп по сетке, который листает месяц.
     static let swipeDistance: CGFloat = 50
 }

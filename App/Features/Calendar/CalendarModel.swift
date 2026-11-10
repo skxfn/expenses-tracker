@@ -22,6 +22,11 @@ final class CalendarModel {
 
         /// Будущий день без трат не выбирается (клетки нет, записывать в будущее нечего).
         var isSelectable: Bool { !isFuture || totalMinor > 0 }
+
+        /// День на ступени шкалы `level` — для выделения ступени в легенде; будущий без трат — ни на какой.
+        func isAtLevel(_ level: Int) -> Bool {
+            isSelectable && self.level == level
+        }
     }
 
     /// Строка-итог месяца (`cal.summary`).
@@ -42,6 +47,9 @@ final class CalendarModel {
     private(set) var heatScale: StatsHeatScale?
     /// Категории верхнего уровня месяца по убыванию суммы (для ауры).
     private(set) var topGroupIDs: [UUID] = []
+    /// Дней месяца на каждой ступени шкалы (индекс — ступень, `StatsHeatScale.dayCounts`); будущие без трат
+    /// не считаются. Пусто — шкалы нет.
+    private(set) var levelDayCounts: [Int] = []
 
     private var dailyTotals: [Date: Int64] = [:]
     private var store: ExpenseStore?
@@ -53,6 +61,8 @@ final class CalendarModel {
     private var latestExpenseDate: Date?
     /// Строки выбранного дня (вместе со скрытыми), новые сверху.
     private var selectedDayRows: [ExpenseRowData] = []
+    /// Те же траты снимками для долей категорий дня и фильтра строк.
+    private var selectedDayRecords: [ExpenseRecord] = []
     /// База менялась после последнего чтения (или ещё не читалась).
     @ObservationIgnored private var isStale = true
     @ObservationIgnored private var isVisible = false
@@ -115,6 +125,20 @@ final class CalendarModel {
     /// Строки листа выбранного дня, новые сверху.
     var dayRows: [ExpenseRowData] {
         selectedDayRows.filter { !hiddenIDs.contains($0.id) }
+    }
+
+    /// Строки листа выбранного дня одной категории верхнего уровня (`.group`, `.uncategorized`); `.all` — все.
+    func dayRows(matching filter: StatsCategoryFilter) -> [ExpenseRowData] {
+        guard filter != .all else { return dayRows }
+        let ids = Set(selectedDayRecords.filter(filter.matches).map(\.id))
+        return dayRows.filter { ids.contains($0.id) }
+    }
+
+    /// Категории верхнего уровня выбранного дня с долями, по убыванию суммы.
+    var dayGroups: [StatsGroupShare] {
+        let records = selectedDayRecords.filter { !hiddenIDs.contains($0.id) }
+        let day = StatsPeriod.current(.day, now: selectedDay, calendar: calendar)
+        return StatisticsEngine(calendar: calendar).groupBreakdown(for: day, records: records)
     }
 
     func day(_ date: Date) -> Day {
@@ -229,9 +253,12 @@ final class CalendarModel {
     private func loadSelectedDay() {
         guard let store, let interval = calendar.dateInterval(of: .day, for: selectedDay) else {
             selectedDayRows = []
+            selectedDayRecords = []
             return
         }
-        selectedDayRows = ((try? store.expenses(in: interval)) ?? []).map { ExpenseRowData($0) }
+        let expenses = (try? store.expenses(in: interval)) ?? []
+        selectedDayRows = expenses.map { ExpenseRowData($0) }
+        selectedDayRecords = expenses.map { ExpenseRecord($0) }
     }
 
     private func recompute() {
@@ -250,5 +277,6 @@ final class CalendarModel {
         )
         heatScale = engine.heatScale(forYearContaining: month.start, records: records)
         topGroupIDs = engine.groupBreakdown(for: month.period, records: records).compactMap(\.groupID)
+        levelDayCounts = heatScale?.dayCounts(month.days.map(day).filter(\.isSelectable).map(\.totalMinor)) ?? []
     }
 }

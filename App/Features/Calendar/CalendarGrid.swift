@@ -13,6 +13,8 @@ struct CalendarGrid: View {
     let onSelect: (Date) -> Void
     let onAdd: (Date) -> Void
     let onSwipe: (_ forward: Bool) -> Void
+    /// Ступень шкалы, выделенная в легенде: дни других ступеней (и линза над таким днём) приглушаются.
+    var highlightedLevel: Int?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Полёт линзы к выбранному дню; `nil` — линза стоит над ним.
@@ -39,6 +41,11 @@ struct CalendarGrid: View {
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         // Другой месяц — без полёта: линза новой сетки сразу над выбранным днём.
         .onChange(of: model.month.start) { lensFlight = nil }
+        // Выбор не касанием клетки (день-максимум в строке-итоге) — тот же полёт; касание подняло линзу раньше.
+        .onChange(of: model.selectedDay) { previous, _ in
+            guard model.month.contains(previous) else { return }
+            liftOff(from: previous)
+        }
         // Посадка: цифры выбранного дня — после неё; новый выбор в полёте откладывает её.
         .task(id: [model.selectedDay, lensFlight?.takeoff]) {
             guard lensFlight != nil else { return }
@@ -53,9 +60,14 @@ struct CalendarGrid: View {
 
     /// Выбор касанием: линза взлетает (Reduce Motion — без полёта, сразу над новым днём).
     private func liftOff(to date: Date) {
-        guard date != model.selectedDay, !reduceMotion else { return }
+        guard date != model.selectedDay else { return }
+        liftOff(from: model.selectedDay)
+    }
+
+    private func liftOff(from takeoff: Date) {
+        guard !reduceMotion else { return }
         if lensFlight == nil {
-            lensFlight = LensFlight(takeoff: model.selectedDay)
+            lensFlight = LensFlight(takeoff: takeoff)
         } else {
             lensFlight?.isLanding = false
         }
@@ -110,8 +122,14 @@ struct CalendarGrid: View {
     private func cell(_ date: Date, isUnderLens: Bool) -> CalendarDayCell {
         let day = model.day(date)
         return CalendarDayCell(
-            day: day, number: strings.dayNumber(date), amount: strings.cellAmount(day.totalMinor), isUnderLens: isUnderLens
+            day: day, number: strings.dayNumber(date), amount: strings.cellAmount(day.totalMinor), isUnderLens: isUnderLens,
+            isDimmed: isDimmed(day)
         )
+    }
+
+    /// День вне выделенной ступени шкалы.
+    private func isDimmed(_ day: CalendarModel.Day) -> Bool {
+        highlightedLevel.map { !day.isAtLevel($0) } ?? false
     }
 
     @ViewBuilder
@@ -183,6 +201,7 @@ struct CalendarGrid: View {
                     )
                 )
             }
+            .opacity(isDimmed(selected) ? CalendarMetrics.dimmedOpacity : 1)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
         }
