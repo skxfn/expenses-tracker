@@ -66,6 +66,8 @@ final class AutoBackupModel {
     /// Попытки идут по очереди: следующая видит отпечаток, записанный предыдущей.
     private var lastRun: Task<Void, Never>?
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    /// Счётчик изменений: пометку `hasPendingChanges` снимает только попытка, во время которой новых изменений не было.
+    private var changeCount = 0
     /// Папка, из копии которой сейчас восстанавливают данные; после восстановления она станет папкой автокопии.
     private var restoringCandidate: (candidate: FolderCandidate, session: ImportSession)?
 
@@ -89,6 +91,7 @@ final class AutoBackupModel {
     /// Данные сохранены: копия — через `debounce`, если за это время не будет новых изменений.
     func dataDidChange(container: ModelContainer) {
         guard isEnabled else { return }
+        changeCount += 1
         defaults.set(true, forKey: Keys.hasPendingChanges)
         debounceTask?.cancel()
         debounceTask = Task {
@@ -105,16 +108,18 @@ final class AutoBackupModel {
     }
 
     /// Уход в фон: несохранённое в копию пишем сразу, под фоновой задачей — иначе система приостановит запись.
+    /// Уже идущая запись тоже дописывается под фоновой задачей.
     func sceneDidEnterBackground(container: ModelContainer) {
-        guard isEnabled, defaults.bool(forKey: Keys.hasPendingChanges) else { return }
+        let hasPendingChanges = defaults.bool(forKey: Keys.hasPendingChanges)
+        guard isEnabled, hasPendingChanges || isWriting else { return }
         debounceTask?.cancel()
         endBackgroundTask()
         backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "AutoBackup") { [weak self] in
             self?.endBackgroundTask()
         }
-        let run = enqueue(.automatic, container: container)
+        let run = hasPendingChanges ? enqueue(.automatic, container: container) : lastRun
         Task {
-            await run.value
+            await run?.value
             endBackgroundTask()
         }
     }
@@ -243,8 +248,8 @@ final class AutoBackupModel {
             return
         }
 
-        // Снимаем пометку до записи: изменения во время записи поставят её снова.
-        defaults.set(false, forKey: Keys.hasPendingChanges)
+        // Пометку снимаем только после попытки: прерванная запись (приложение выгрузили) повторится при запуске.
+        let changesAtStart = changeCount
         do {
             let outcome = try await AutoBackupWriter(modelContainer: container).backUp(
                 to: folder,
@@ -259,8 +264,10 @@ final class AutoBackupModel {
                 lastBackupDate = exportedAt
                 setProblem(nil)
             }
+            if changeCount == changesAtStart {
+                defaults.set(false, forKey: Keys.hasPendingChanges)
+            }
         } catch {
-            defaults.set(true, forKey: Keys.hasPendingChanges)
             setProblem(error == .folderUnavailable ? .folderUnavailable : .writeFailed)
         }
     }
