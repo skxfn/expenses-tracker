@@ -186,6 +186,8 @@ EMPHASIZED = {
     "stats.habits.insight.even": "по аналогии: вывод «почти поровну»",
     "stats.cats.caption.group.none": "по аналогии с stats.cats.caption.group: «без категории: 18%»",
     "stats.cats.caption.sub.none": "по аналогии с stats.cats.caption.sub: «без подкатегории: 40%»",
+    "stats.pace.tip.more": "по аналогии с home.compare.more: «62,10 ⃅ больше»",
+    "stats.pace.tip.less": "по аналогии с home.compare: «62,10 ⃅ меньше»",
 }
 
 # --- Главная ---------------------------------------------------------------
@@ -400,6 +402,16 @@ alias("stats.empty.period",
 split("stats.fewData", " · ",
       ("stats.fewData.pace", Key("Прогноз появится через пару дней")),
       ("stats.fewData.habits", Key("Привычки появятся после двух недель трат")))
+plural("stats.journal.more", whole(TRATA, "Ещё "), 40, args="%lld — сколько трат не поместилось в начало журнала")
+plural("stats.slice.count", whole(TRATA), 9, args="%lld — число трат среза")
+custom("stats.slice.meta",
+       {"stats.slice.meta": Key("%#@count@ · %2$@", subs={"count": (1, TRATA)},
+                                args="%1$lld — число трат; %2$@ — их сумма (фразой, с ⃅)")},
+       lambda t: t("stats.slice.meta", 9, f"344{NB}{SIGN}"), kind="fmt")
+fmt("stats.pace.tip.day", "к %@", f"12{NB}окт", args="%@ — дата D7 («12 окт»; в VoiceOver — «12 октября»)")
+fmt("stats.pace.tip.more", "на **%@ больше**", f"62,10{NB}{SIGN}",
+    args="%@ — разница по модулю (MoneyFormatter.Style.difference; в VoiceOver — a11y.money)")
+fmt("stats.pace.tip.less", "на **%@ меньше**", f"62,10{NB}{SIGN}", args="как у stats.pace.tip.more")
 
 # --- Категории -------------------------------------------------------------
 
@@ -678,6 +690,8 @@ split("stats.legacy.chartAxes", " · ",
       ("stats.legacy.chartAxes.amount", Key("Сумма")), ("stats.legacy.chartAxes.date", Key("Дата")),
       ("stats.legacy.chartAxes.weekday", Key("День недели")), ("stats.legacy.chartAxes.average", Key("В среднем за день")))
 fmt("stats.dayView.a11y", "Траты по часам за %@", f"8{NB}октября", args="%@ — дата («8 октября»)")
+a11y("stats.slice.a11y", "{срез}, {сумма}", "Показывает траты")
+a11y("stats.list.sub.selected.a11y", "{Подкатегория}, {сумма}, {доля}% категории", "Показывает всю категорию")
 custom("viz.more.a11y",
        {"viz.more.a11y": Key("Ещё %#@cats@, каждая меньше 3%%: %2$@; вместе %3$@, %4$@", subs={"cats": (1, CAT)},
                              args="%1$lld — число свёрнутых категорий; %2$@ — имена через запятую; %3$@ — сумма (a11y.money); %4$@ — доля D7")},
@@ -897,6 +911,14 @@ en("viz.more", {"viz.more": Key(plural=whole(MORE_CAT))}, lambda t: t("viz.more"
 en("viz.center.groups", {}, en_forms("viz.center.groups", [(SIGN, 1), (SIGN, 18)], key="stats.center.meta"))
 en_fmt("viz.drill.share", "%@ of all expenses", "35%")
 en_fmt("viz.drill.filter", "%@ only", "Groceries")
+en("stats.journal.more", {"stats.journal.more": Key(plural=whole(en_noun("More Expense", "More Expenses")))},
+   en_forms("stats.journal.more", [(1,), (40,)]))
+en("stats.slice.count", {"stats.slice.count": Key(plural=whole(EXPENSE))}, en_forms("stats.slice.count", [(1,), (9,)]))
+en("stats.slice.meta", {"stats.slice.meta": Key("%#@count@ · %2$@", subs={"count": (1, EXPENSE)})},
+   en_forms("stats.slice.meta", [(1, f"12{S}"), (9, f"344{S}")]))
+en_fmt("stats.pace.tip.day", "by %@", f"Oct{NB}12")
+en_fmt("stats.pace.tip.more", "**%@ more**", f"62.10{S}")
+en_fmt("stats.pace.tip.less", "**%@ less**", f"62.10{S}")
 en("stats.empty.period", {},
    lambda t: f"{t('home.empty.period.in.past', 'September')} · {t('home.empty.period.action')}")
 
@@ -1091,6 +1113,8 @@ en_fmt("stats.year.a11y",
        "2026", f"75{NB}rubles", f"January{NB}1", f"October{NB}8")
 en("stats.year.legend.a11y", {}, _en_scale)
 en_fmt("stats.dayView.a11y", "Expenses by hour, %@", f"October{NB}8")
+en_a11y("stats.slice.a11y", "{slice}, {amount}", "Shows expenses")
+en_a11y("stats.list.sub.selected.a11y", "{Subcategory}, {amount}, {share}% of the category", "Shows the whole category")
 en("viz.more.a11y",
    {"viz.more.a11y": Key("%#@cats@, each under 3%%: %2$@; %3$@ in total, %4$@", subs={"cats": (1, MORE_CAT)})},
    lambda t: t("viz.more.a11y", 4, "Health, Pets, Education, Beauty", f"57.10{NB}rubles", "8%"))
