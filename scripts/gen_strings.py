@@ -429,6 +429,20 @@ skip("permissions", "пометка: разрешений Info.plist нет")
 # --- Резервная копия -------------------------------------------------------
 
 fmt("settings.backup.last", "Последняя копия: %@", f"1{NB}окт", args="%@ — дата D7 (год — если не текущий)")
+split("settings.autoBackup.last", " · ",
+      ("settings.autoBackup.last.today", Key("Последняя копия: сегодня, %@", args="%@ — время HH:mm"), ("14:05",)),
+      ("settings.autoBackup.last.yesterday", Key("Последняя копия: вчера, %@", args="%@ — время HH:mm"), ("14:05",)),
+      ("settings.autoBackup.last.date", Key("Последняя копия: %1$@, %2$@",
+                                            args="%1$@ — дата D7 («8 ноя», год — если не текущий); %2$@ — время HH:mm"),
+       (f"8{NB}ноя", "14:05")))
+custom("autoBackup.existing.message",
+       {"autoBackup.existing.message": Key(f"Копия от %1$@{NB}— %#@count@. Её можно восстановить или заменить текущими данными.",
+                                           subs={"count": (2, TRATA)},
+                                           args="%1$@ — дата копии D7; %2$lld — число трат в копии")},
+       lambda t: t("autoBackup.existing.message", f"8{NB}ноя", 1234), kind="fmt")
+split("autoBackup.pickError", " / ",
+      ("autoBackup.pickError.title", Key("Не удалось выбрать папку")),
+      ("autoBackup.pickError.message", Key("Выберите другую папку.")))
 custom("app.backupFileName",
        {"app.backupFileName": Key("Траты %@", args="%@ — дата yyyy-MM-dd; .json дописывает система")},
        lambda t: t("app.backupFileName", "2026-10-09") + ".json", kind="fmt")
@@ -911,6 +925,16 @@ en("cat.unarchive", {"cat.unarchive": Key("Unarchive"), "cat.unarchive.short": K
 
 en_fmt("settings.currency.value", "%1$@ · %2$@", "Belarusian Ruble", SIGN)
 en_fmt("settings.backup.last", "Last backup: %@", f"Oct{NB}1")
+en("settings.autoBackup.last",
+   {"settings.autoBackup.last.today": Key("Last backup: today at %@"),
+    "settings.autoBackup.last.yesterday": Key("Last backup: yesterday at %@"),
+    "settings.autoBackup.last.date": Key("Last backup: %1$@ at %2$@")},
+   lambda t: " · ".join([t("settings.autoBackup.last.today", "14:05"), t("settings.autoBackup.last.yesterday", "14:05"),
+                         t("settings.autoBackup.last.date", f"Nov{NB}8", "14:05")]))
+en("autoBackup.existing.message",
+   {"autoBackup.existing.message": Key(f"Backup from %1$@{NB}— %#@count@. You can restore it or replace it with the current data.",
+                                       subs={"count": (2, EXPENSE)})},
+   en_forms("autoBackup.existing.message", [(f"Nov{NB}8", 1), (f"Nov{NB}8", 1234)]))
 en("app.backupFileName", {"app.backupFileName": Key("Expenses Backup %@")},
    lambda t: t("app.backupFileName", "2026-10-09") + ".json")
 en_fmt("import.currencyDiff",
