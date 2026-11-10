@@ -29,6 +29,9 @@ struct SettingsView: View {
                 SettingsGroup(header: "settings.overview.heading") {
                     OverviewStylePicker(selection: $overviewStyle)
                 }
+                SettingsGroup {
+                    AssistantSettingsRow()
+                }
                 backupGroup
                 AutoBackupSection { session in
                     backup.importSession = session

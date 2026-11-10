@@ -51,6 +51,7 @@ struct ExpenseEntryView: View {
     @State private var saveCount = 0
     @State private var shakeCount = 0
     @FocusState private var focus: Field?
+    @AppStorage(SettingsKeys.assistantEnabled) private var isAssistantEnabled = false
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.moneyFormatter) private var money
@@ -69,6 +70,18 @@ struct ExpenseEntryView: View {
         NavigationStack {
             layout
                 .sheetHeader(modeKey(add: "add.title", edit: "edit.title"), onClose: close)
+                .toolbar {
+                    // ИИ-запись вместо пустой формы: с введённой суммой или заметкой кнопки нет — нечего терять.
+                    if isAssistantEnabled, model.isNew, !model.hasUnsavedChanges {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button {
+                                router?.presentAssistant(date: model.draft.date)
+                            } label: {
+                                Label("assistant.entry.a11y", systemImage: "sparkles")
+                            }
+                        }
+                    }
+                }
         }
         .presentationBackground {
             AuraBackground(tones: auraTones, edge: .bottom, base: Theme.canvasElevated, layout: Self.auraLayout)

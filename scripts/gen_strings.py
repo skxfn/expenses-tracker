@@ -751,6 +751,18 @@ for _group, _first, _id in ((1, 1, "cat.icon.name.1.*"), (2, 1, "cat.icon.name.2
 
 skip("default.rename.note", "пометка для разработчика: новые имена — только для новых установок")
 
+# ИИ-запись (экран assistant; макетов нет, тексты added-dev)
+custom("assistant.review.total",
+       {"assistant.review.total": Key("%#@count@ · %2$@", subs={"count": (1, TRATA)},
+                                      args="%1$lld — число черновиков; %2$@ — их сумма (фразой, с ⃅)")},
+       lambda t: t("assistant.review.total", 3, f"21,50{NB}{SIGN}"), kind="fmt")
+fmt("assistant.review.receiptTotal", "итог %@", f"30,83{NB}{SIGN}", args="%@ — итог чека (фразой, с ⃅)")
+fmt("assistant.review.mismatch", "Не сходится с итогом чека на %@", f"0,25{NB}{SIGN}", args="%@ — разница (фразой, с ⃅)")
+plural("assistant.review.save", whole(noun("трату", "траты", "трат", "траты"), "Записать "), 3,
+       args="%lld — число черновиков к записи")
+fmt("settings.assistant.key.saved", "сохранён, …%@", "4417", args="%@ — последние 4 символа ключа")
+fmt("settings.assistant.check.passed", f"Работает, %@{NB}с", "3,6", args="%@ — время ответа в секундах, один знак после запятой")
+
 
 # ---------------------------------------------------------------------------
 # Английский (design/copy.en.json, INTEGRATION §5.5)
@@ -1187,6 +1199,16 @@ en("settings.categories.a11y",
    {"settings.categories.a11y": Key("Categories: %#@cats@ and %#@subs@", subs={"cats": (1, EN_CAT), "subs": (2, EN_SUBCAT)})},
    en_forms("settings.categories.a11y", [(1, 1), (12, 25)]))
 
+# ИИ-запись
+en("assistant.review.total", {"assistant.review.total": Key("%#@count@ · %2$@", subs={"count": (1, EXPENSE)})},
+   en_forms("assistant.review.total", [(1, f"9.50{S}"), (3, f"21.50{S}")]))
+en_fmt("assistant.review.receiptTotal", "total %@", f"30.83{S}")
+en_fmt("assistant.review.mismatch", "Off from the receipt total by %@", f"0.25{S}")
+en("assistant.review.save", {"assistant.review.save": Key(plural={"one": f"Save %lld{NB}Expense", "other": f"Save %lld{NB}Expenses"})},
+   en_forms("assistant.review.save", [(1,), (3,)]))
+en_fmt("settings.assistant.key.saved", "saved, …%@", "4417")
+en_fmt("settings.assistant.check.passed", f"Works, %@{NB}s", "3.6")
+
 
 # ---------------------------------------------------------------------------
 # Сборка каталога
@@ -1309,15 +1331,20 @@ def build(copy, copy_en):
     return {"sourceLanguage": LANG, "strings": strings, "version": "1.0"}
 
 
+# Ключи Info.plist на языке интерфейса: ключ Info.plist → id в copy.json.
+INFOPLIST_IDS = {"CFBundleDisplayName": "app.displayName", "NSCameraUsageDescription": "app.cameraUsage"}
+
+
 def build_infoplist(copy, copy_en):
-    """Имя приложения под иконкой на языке интерфейса (`app.displayName`): ключ Info.plist CFBundleDisplayName."""
-    names = {lang: next(it["final"] for it in items(c) if it["id"] == "app.displayName")
-             for lang, c in (("ru", copy), ("en", copy_en))}
-    item = next(it for it in items(copy) if it["id"] == "app.displayName")
-    entry = {"comment": comment(item, "CFBundleDisplayName", Key("")),
-             "extractionState": "manual",
-             "localizations": {lang: unit(names[lang]) for lang in LANGS}}
-    return {"sourceLanguage": LANG, "strings": {"CFBundleDisplayName": entry}, "version": "1.0"}
+    """Info.plist на языке интерфейса: имя под иконкой (`app.displayName`), запрос камеры (`app.cameraUsage`)."""
+    strings = {}
+    for plist_key, id in INFOPLIST_IDS.items():
+        values = {lang: next(it["final"] for it in items(c) if it["id"] == id) for lang, c in (("ru", copy), ("en", copy_en))}
+        item = next(it for it in items(copy) if it["id"] == id)
+        strings[plist_key] = {"comment": comment(item, plist_key, Key("")),
+                              "extractionState": "manual",
+                              "localizations": {lang: unit(values[lang]) for lang in LANGS}}
+    return {"sourceLanguage": LANG, "strings": strings, "version": "1.0"}
 
 
 def dumps(catalog):
@@ -1336,7 +1363,7 @@ def main():
         kinds[spec_for(item).kind] = kinds.get(spec_for(item).kind, 0) + 1
     print(f"{CATALOG.relative_to(ROOT)}: {len(catalog['strings'])} ключей из {len(items(copy))} id "
           f"({', '.join(f'{k} {v}' for k, v in sorted(kinds.items()))}), языки {', '.join(LANGS)}; "
-          f"{INFOPLIST_CATALOG.relative_to(ROOT)}: CFBundleDisplayName")
+          f"{INFOPLIST_CATALOG.relative_to(ROOT)}: {', '.join(INFOPLIST_IDS)}")
 
 
 if __name__ == "__main__":
